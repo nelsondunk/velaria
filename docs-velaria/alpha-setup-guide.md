@@ -2,6 +2,7 @@
 
 > Name: renamed from Kalyx to Velaria on 31 Oct 2026. Code, macro, driver, folder and Notion/Design names that still say Kalyx are left as they are until the rename lands in the build.
 
+
 For alpha testers. Mac + DaVinci Resolve Studio + Meta Quest 3. About 20 minutes the first time; most of it is the headset's developer mode. If anything here doesn't match what you see, that is a bug in the guide as much as in the software — tell us.
 
 ## What you need
@@ -50,7 +51,7 @@ If the status says **Premiere / After Effects** instead of Resolve, the Source i
 
 ## 5. Placing things from the headset
 
-- Edit page → **Effects → Velaria**. Drop **Velaria Canvas Control** on a clip above your plate for a footage window (PIP) or a flat title; drop **Velaria 3D Card · Vine / Salmon / Hay Bale** straight onto the plate for a 3D title with real depth. The Inspector has every control; the headset has the ones you want to do by hand.
+- Edit page → **Effects → Velaria**. Drop **Velaria Canvas Control** on a clip above your plate for a footage window (PIP), a flat title, or your own 3D scene (FBX/OBJ) with real depth; drop **Velaria Trim** on an adjustment clip for a trim pass you can do from the headset. The Inspector has every control; the headset has the ones you want to do by hand. (Ready-made 3D card templates are a later release — the alpha has Canvas Control's 3D Scene input.)
 - In the headset, the strip shows **Overlays · Patches · Picture**. On Overlays, pinch a card in the picture and move it, or tap its name and use the Placement panel's ring (pan), arc (tilt), throttles (distance, scale) and dials. Release, and Resolve re-renders: "Resolve updated in 0.4 s".
 - Undo is Resolve's undo. Every change you make in the headset is a real change to the comp.
 - **Patches** (LatLong Patcher paint-outs) and **Picture** (PanoMap / Velaria Orient 360 re-orientation) live on their own layers and stay out of your way until you switch to them; lock a patch so a stray pinch can't move it.
@@ -70,6 +71,7 @@ Install the free **NDI Tools** (ndi.video/tools) first, then run `sudo ./install
 ## 8. When something goes wrong
 
 - **The headset tells you first.** When the Mac side is set up wrong, the strip's status line shows a warning with the fix in Resolve's own menu words: *Timeline 5760x5760 exceeds the 7680x4320 monitor: Timeline Settings > Output scaling > 3840 x 3840*, *Monitoring 1920x1080, timeline 5760x2880: Project Settings > Video Monitoring > 7680 x 4320*, *Monitoring at 24 fps, timeline 29.97…*, or *No picture: DaVinci Resolve > Preferences > Video and Audio I/O > Velaria (Quest)*. The same line is in `~/Library/Logs/VRLink/bridge.out`. Fix it, and the line goes away on its own.
+
 - **No "Velaria (Quest)" in Video I/O:** Resolve was open during install. Quit and relaunch it. Still missing: `ls /Library/Frameworks/DeckLinkAPI.framework` should exist — if not, run the installer again and send us its output.
 - **Headset says Waiting to connect:** check the cable and that USB debugging was allowed with the headset on; over Wi-Fi, make sure the Mac and Quest are on the same network (guest networks isolate devices). The USB helper logs to `~/Library/Logs/VRLink/usb-tether.log`.
 - **Picture but no panels / "bridge isn't running":** the Resolve bridge is a small background service; `launchctl kickstart -k gui/$(id -u)/ca.skylightproductions.vrlink.bridge` restarts it. Its log is `~/Library/Logs/VRLink/bridge.out`.

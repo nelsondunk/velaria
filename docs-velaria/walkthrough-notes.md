@@ -46,7 +46,7 @@ Audience: an immersive editor on a Mac with a Quest, cutting in Resolve Studio. 
 ## 5. Patches, re‑orientation and the trim pass (the Patches and Picture layers)
 - Your tripod/nadir paint‑out chain (LatLong Patcher + Paint) stays set up in Resolve. By default the headset does **not** touch it: those tools only appear when you switch the strip to **Patches**.
 - On Patches nothing in the picture is pickable (tap a name instead), the tag is ice (PATCH), and each patch can be **Locked** so a stray pinch can't move it — a lock icon on its name; Lock is remembered.
-- **Picture** is the whole sphere: PanoMap / Velaria Orient 360 (PICTURE tag) and the **Velaria Trim** pass (TRIM tag) — one node on an adjustment clip with exposure, lift, gamma, gain, contrast, saturation, temperature and tint on the Look panel's Trim tab. "A trim on the device the audience will wear; the colour page never knows."
+- **Picture** is the whole sphere: PanoMap / Velaria Orient 360 (PICTURE tag) and the **Velaria Trim** pass (TRIM tag) — one node on an adjustment clip with exposure, lift, gamma, gain, contrast, saturation, temperature and tint as bars on the Placement panel (TRIM). "A trim on the device the audience will wear; the colour page never knows."
 - Re‑orienting a whole stereo 360 plate at the end of the chain: **Velaria Orient 360** (Effects ▸ Velaria). Feed it the top/bottom clip *after* all patches and paint: it splits the eyes, PanoMaps both identically, recombines. Pan / Tilt / Roll from the headset with the level grid on. Mono plate: a plain PanoMap does the same job and shows up on the same layer.
 
 ## 6. Premiere Pro and After Effects (monitor only)

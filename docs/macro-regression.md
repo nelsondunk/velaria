@@ -44,7 +44,24 @@ Every Kalyx macro rendered through DaVinci Resolve's export path (the one that f
 
 Still open from this pass: the kits themselves (Vine 22 MB, Salmon 131 MB, Hay Bale 167 MB) live on project volumes. A tester gets a 3D Card only if the kit travels with the package or they point *Model Kit Folder* at a copy; a missing kit fails the export outright. That is the licence/bundling decision already on Nelson's list, now with sizes.
 
-### Pass 2 — fonts installed, Salmon kit copied to NYC, fixed macros — **not yet run to completion**
+### Pass 2 — 2 Nov 2026 08:08–08:12, NYC with Montserrat installed, regenerated macros, Resolve relaunched by Nelson
+
+| variant | result | seconds | why |
+|---|---|---|---|
+| cc_ws0, cc_ws1, cc_ws2 | **PASS** | 3–7 | — |
+| orient360 | **PASS** | 2.4 | — (the FBX error lines in its log window belong to the missingkit run just before it) |
+| **trim_warm** | **PASS** | 1.8 | Kalyx Trim renders through the export path |
+| title_Vine, title_HayBale | **PASS** | 6.6 / 9.8 | fonts fixed it. Hay Bale still logs `Could not locate pool item "/Volumes/The Baxter Building/2609…"` at INFO level and **completes** — a missing texture is non-fatal |
+| card_Vine_* (6) | **PASS** | 4.6–8.0 | — |
+| card_HayBale_* (6) | **PASS** | 7.5–13.2 | — |
+| title_Salmon, card_Salmon_* (6) | FAIL | — | `Could not locate pool item "/Volumes/Earth-1610/2608 - BC Salmon - …"` ×5 then the job fails: the Salmon kit's **mesh** is found through the copied kit, but its material textures live under the *project* folder on Earth-1610, not under `Salmon_Kit/`, so the kit-relative rewrite did not catch them. Moot: the Salmon card is Skylight-internal and not shipped (2 Nov) |
+| card_Vine_missingkit | FAIL | — | `FBX Error: "Unexpected file type"` — by design: a missing kit still fails the export rather than degrading |
+
+Every "Error occured during exporting subtitle sidecar file" line is the harness's render preset (subtitle export on, no subtitles), not the library.
+
+**What this says.** On a second Mac, with the fonts the package now installs, everything that ships (Canvas Control ×3, Orient 360, Trim) and everything Skylight uses internally with a reachable kit (Vine, Hay Bale titles and cards, 12 variants) exports. The two failure modes left are both "a file the macro points at is not on this Mac": a texture only logs, a mesh fails the job. Rig lesson that cost a day: Resolve relaunched headless over ssh comes up behind a modal; the pass needed Nelson's own relaunch.
+
+### Pass 2 as first planned (31 Oct, for the record)
 
 Blocked by the test rig, not the library: after Resolve is quit and relaunched over ssh on the headless NYC, its UI ends up behind a modal (the scripting API answers queries but `GetCurrentPage()` is `None` and `AppendToTimeline` / `ImportFusionComp` / `AddRenderJob` return nothing). One relaunch out of four came up clean (page Edit, edits worked) and then a 26-clip `DeleteClips` raised a confirmation dialog that cannot be dismissed without a screen. Harness changes made for the re-run: no bulk deletes (clips are reused, comps replaced per item), `LoadFusionCompByName` after import, job status tolerant of `None`.
 

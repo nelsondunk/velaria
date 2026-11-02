@@ -11,7 +11,7 @@ Always on screen when the panels are open. Its job is to answer two questions at
 
 ![Strip, Overlays layer, a card picked](ref/strip-overlays.png)
 
-- **Overlays · Patches · Picture** — the layer control, with a count of what is at this frame. Overlays are titles and footage windows (pickable in the picture). Patches are LatLong Patcher windows. Picture is the whole sphere (PanoMap, Velaria Orient 360) and the **Velaria Trim** pass (its controls are on the Look panel's Trim tab).
+- **Overlays · Patches · Picture** — the layer control, with a count of what is at this frame. Overlays are titles and footage windows (pickable in the picture). Patches are LatLong Patcher windows. Picture is the whole sphere (PanoMap, Velaria Orient 360) and the **Velaria Trim** pass (its bars take over the Placement panel).
 - The four icons on the right show and hide the **Placement**, **Look**, **Timeline** and **Scopes** panels (raised = shown). The chevron rolls the strip up to its bar.
 - Row two: one chip per thing on this layer; the copper one is what your hand moves. Only ever one. Arrows page through them; a lock on a name means it is locked.
 - **Copy · Paste · Undo** act on the picked chip. Undo is Resolve's undo.
@@ -56,9 +56,9 @@ Tabs are the macro's own pages (Frame, Glow, Stereo…). Bars have nudge chips f
 
 ![Look panel, View tab](ref/look-view.png)
 
-![Look panel, Trim tab](ref/look-trim.png)
+![Placement panel as TRIM](ref/placement-trim.png)
 
-A **Velaria Trim** on an adjustment clip gets a Trim tab: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.
+A **Velaria Trim** on an adjustment clip (Picture layer) turns the Placement panel into **TRIM**: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars (the last rows page with the chevron). The Look panel keeps its View tab.
 
 The **View** tab is the app's own settings: stream and playback status; **Source** (Auto / Resolve / Premiere · After Effects); **Picture** (layout, projection, swap eyes, delay); **Overlays** (status bar, level grid, card outline); **Panels** (recentre, placed / follow, scopes on/off). Diagnostics at the bottom, and the versions line: headset build · Mac package · bridge (when it differs) · Resolve. Read that line out, or screenshot it, when you report anything.
 
