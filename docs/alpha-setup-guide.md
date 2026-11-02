@@ -48,7 +48,7 @@ If the status says **Premiere / After Effects** instead of Resolve, the Source i
 
 ## 5. Placing things from the headset
 
-- Edit page → **Effects → Kalyx**. Drop **Kalyx Canvas Control** on a clip above your plate for a footage window (PIP) or a flat title; drop **Kalyx 3D Card · Vine / Salmon / Hay Bale** straight onto the plate for a 3D title with real depth. The Inspector has every control; the headset has the ones you want to do by hand.
+- Edit page → **Effects → Kalyx**. Drop **Kalyx Canvas Control** on a clip above your plate for a footage window (PIP), a flat title, or your own 3D scene (FBX/OBJ) with real depth; drop **Kalyx Trim** on an adjustment clip for a trim pass you can do from the headset. The Inspector has every control; the headset has the ones you want to do by hand. (Ready-made 3D card templates are a later release — the alpha has Canvas Control's 3D Scene input.)
 - In the headset, the strip shows **Overlays · Patches · Picture**. On Overlays, pinch a card in the picture and move it, or tap its name and use the Placement panel's ring (pan), arc (tilt), throttles (distance, scale) and dials. Release, and Resolve re-renders: "Resolve updated in 0.4 s".
 - Undo is Resolve's undo. Every change you make in the headset is a real change to the comp.
 - **Patches** (LatLong Patcher paint-outs) and **Picture** (PanoMap / Kalyx Orient 360 re-orientation) live on their own layers and stay out of your way until you switch to them; lock a patch so a stray pinch can't move it.

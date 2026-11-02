@@ -23,7 +23,9 @@ Inspector pages:
 
 In the headset the window is on the **Overlays** layer: pinch it in the picture and move, or tap its name on the strip and use the Placement panel. The Look panel carries the Frame, Glow and Stereo pages.
 
-## 2. 3D title with real depth — Kalyx 3D Card · Vine / Salmon / Hay Bale
+## 2. 3D title with real depth — Kalyx 3D Card (Skylight-internal today; templates later)
+
+> **Not in the alpha package.** The Vine / Salmon / Hay Bale cards are Skylight's own project cards and are not shipped. Testers build 3D depth through Canvas Control's *3D Scene* input (end of this section). A set of chooseable 3D card templates is planned for beta/launch.
 
 What it is: Canvas Control and a 3D title in one node, pre-wired. **Drop it straight on the plate clip** (or an adjustment clip): it composites the card over the plate itself. Output 2, *Card only*, is the card on transparency if you'd rather put it on its own track.
 
@@ -60,7 +62,7 @@ What it is: one Fusion ColorCorrector in a macro, meant for an **adjustment clip
 
 1. Put an adjustment clip over the section (Effects ▸ Toolbox ▸ Effects ▸ Adjustment Clip) and drop **Kalyx Trim** on it from Effects ▸ Kalyx.
 2. Controls, all on one *Trim* page: Exposure (an offset, −0.5…+0.5), Lift, Gamma, Gain, Contrast, Saturation, **Temperature** (blue ↔ amber) and **Tint** (green ↔ magenta), both approximated with per-channel gain, and **Amount** (0 turns the trim off, for before/after). Every one of them keyframes and undoes like any other Resolve control.
-3. In the headset: the **Picture** layer lists the trim as *Trim*; its controls are bars on the Look panel's **Trim** tab. The Placement panel has nothing to place for it and says so.
+3. In the headset: the **Picture** layer lists the trim as *Trim*; tap it and the Placement panel becomes **TRIM** — the nine bars, with nudge chips.
 4. When the trim is right, either leave it (it renders in the export like any Fusion effect) or read the values off the Inspector and build them into the grade on the colour page.
 
 Why a Fusion node and not the colour page's own CDL: Resolve's scripting can *set* a node's CDL but not read it back, so the headset would be blind to the colourist's wheels and would overwrite them. The Fusion route is readable, writable, keyframeable, undoable, and it stacks on top of the real grade instead of replacing it.

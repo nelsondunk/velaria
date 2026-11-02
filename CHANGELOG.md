@@ -4,7 +4,7 @@ For alpha testers. Newest first. Headset builds are numbered `version+build`; th
 
 ## 1.0.8 — 2 November 2026
 
-Headset app 1.0.8+48. Install over 1.0.7 with `sudo ./install.sh`; the headset app updates in place and keeps your panel layout.
+Headset app 1.0.8+50. Install over 1.0.7 with `sudo ./install.sh`; the headset app updates in place and keeps your panel layout.
 
 **Fixed**
 
@@ -15,17 +15,19 @@ Headset app 1.0.8+48. Install over 1.0.7 with `sudo ./install.sh`; the headset a
 **Added**
 
 - **The headset tells you when Resolve is set up wrong.** The strip's status line shows one warning with the fix in Resolve's own menu words: a square timeline without output scaling, monitoring smaller than the timeline, a frame-rate mismatch, or no picture after the bridge connects. Fix it and the line clears.
-- **Kalyx Trim** (Effects ▸ Kalyx): a trim pass for an adjustment clip — exposure, lift, gamma, gain, contrast, saturation, temperature, tint, amount — adjustable from the headset's Look panel (Trim tab, Picture layer).
-- **Montserrat ships in the package** and the installer adds it to your fonts. Without it the 3D Titles failed to export on any Mac but ours.
+- **Kalyx Trim** (Effects ▸ Kalyx): a trim pass for an adjustment clip — exposure, lift, gamma, gain, contrast, saturation, temperature, tint, amount — adjustable from the headset: pick it on the Picture layer and the Placement panel becomes the TRIM panel.
+- **Montserrat ships in the package** and the installer adds it to your fonts, so titles set in it export on any Mac.
 - **Versions on the View tab.** Bottom right of Look ▸ View: headset build, Mac package, bridge and Resolve. A screenshot of that line answers the first three questions in any bug report.
 - **`adb` comes in the box.** The package includes Google's Android platform-tools (`platform-tools/adb`, universal binary, licence in `platform-tools/NOTICE.txt`). You no longer need Homebrew or the Android SDK; if you have `adb` already, yours is used. `sudo ./install.sh --headset` installs or updates the headset app on its own.
 - `send-logs.sh` gathers the Mac logs, the versions and the headset log into one zip on your Desktop.
+- The Placement and Look bars name the clip you are controlling.
+- Scopes are drawn with a smoothing filter instead of nearest-neighbour: lines are lines, not staircases.
+- Card outlines in the picture sit under the panels (they used to cut across them) and have proper round corners.
 - Test hooks for us: the app reads `cmd.txt` in its files folder for scripted presses, pointing and quitting, so we can reproduce what you report without a hand in the headset.
 
 **Fixed, installer**
 
 - 1.0.8's first installer stopped after placing adb and never installed the Fusion library (caught by a ten-cycle install soak on a second Mac). Fixed before anyone got it.
-- The Salmon 3D Card's fish model was an absolute path on our own drive; every model file now follows the Model Kit Folder control.
 
 **Changed**
 
@@ -35,7 +37,7 @@ Headset app 1.0.8+48. Install over 1.0.7 with `sudo ./install.sh`; the headset a
 **Known**
 
 - Square 360 timelines (over/under, e.g. 5760 × 5760) still need Output scaling set to 3840 × 3840 while you monitor; the headset tells you when that is the problem.
-- The 3D Cards need their model kits on your Mac (Model Kit Folder); a missing kit fails the export rather than dropping the model. Kits are not in this package yet.
+- No 3D card templates yet: the alpha's 3D path is your own FBX/OBJ scene through Canvas Control's *3D Scene* input. Templates come with beta.
 - Nothing on the Quest Store yet: sideload only, developer mode required.
 
 ## 1.0.7 — 30 October 2026
