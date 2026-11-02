@@ -1,10 +1,10 @@
-"""Build an Edit-page drop-on card: Kalyx Canvas Control + one Kalyx 3D Title, pre-wired, in a single macro.
+"""Build an Edit-page drop-on card: Velaria Canvas Control + one Velaria 3D Title, pre-wired, in a single macro.
 
 The plate (MainInput1) feeds a PipeRouter that goes to both the title's Environment and Canvas Control's Footage;
 the title's scene goes to Canvas Control's 3D Scene; "Window shows" defaults to 2 (nothing: 3D only).
 Published: Canvas Control's Placement / Stereo pages + Window shows, then every title control.
 
-Usage: python3 make_card_combo.py "Kalyx 3D Title - Vine.setting" Vine "Kalyx 3D Card - Vine.setting"
+Usage: python3 make_card_combo.py "Velaria 3D Title - Vine.setting" Vine "Velaria 3D Card - Vine.setting"
 """
 import sys
 
@@ -12,7 +12,7 @@ import settingparse as sp
 import settingwrite as sw
 
 title_path, label, dst = sys.argv[1:4]
-rc, _ = sp.load("Kalyx Canvas Control.setting")
+rc, _ = sp.load("Velaria Canvas Control.setting")
 ccname, cc, _ = sp.tools_of(rc)
 dc = sp.py(rc)
 cc = dc["Tools"][ccname]
@@ -33,7 +33,7 @@ tools["Left_Footage_Input"]["Inputs"]["Input"] = {"__type": "Input", "SourceOp":
 # title scene -> canvas 3D scene
 tools["Scene_Offset"]["Inputs"]["SceneInput"] = {"__type": "Input", "SourceOp": "FB_Scene", "Source": "Output"}
 # window shows nothing by default (3D only)
-tools["Kalyx_Controls"]["Inputs"]["WindowShows"] = {"__type": "Input", "Value": 2}
+tools["Velaria_Controls"]["Inputs"]["WindowShows"] = {"__type": "Input", "Value": 2}
 # composite the finished over/under card back over the plate, as the old Fact Cards did (FB_CardOverPlate),
 # so the macro works dropped straight onto the plate clip or an adjustment clip
 tools["Card_Over_Plate"] = {
@@ -72,7 +72,7 @@ macro = {
 }
 if "ViewInfo" in cc:
     macro["ViewInfo"] = cc["ViewInfo"]
-d = {"Tools": {"Kalyx3DCard_" + label.replace(" ", ""): macro}}
+d = {"Tools": {"Velaria3DCard_" + label.replace(" ", ""): macro}}
 sw.write_setting(d, dst)
 
 names = set(tools)

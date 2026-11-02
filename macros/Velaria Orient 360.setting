@@ -1,6 +1,6 @@
 {
 	Tools = ordered() {
-		Kalyx_Orient360 = MacroOperator {
+		Velaria_Orient360 = MacroOperator {
 			Inputs = ordered() {
 				-- ===== FOOTAGE: a top/bottom stereo 360 clip, after all patches and paint =====
 				MainInput1 = InstanceInput {
@@ -78,5 +78,5 @@
 			},
 		}
 	},
-	ActiveTool = "Kalyx_Orient360"
+	ActiveTool = "Velaria_Orient360"
 }

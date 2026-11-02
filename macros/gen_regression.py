@@ -84,71 +84,71 @@ def emit_comp(vid, c, desc):
 
 
 # ---- Canvas Control alone: Window shows 0/1/2, footage + graphic both from the clip
-ccname, _ = macro("Kalyx Canvas Control.setting")
+ccname, _ = macro("Velaria Canvas Control.setting")
 for ws in (0, 1, 2):
-    _, m = macro("Kalyx Canvas Control.setting")
+    _, m = macro("Velaria Canvas Control.setting")
     set_inner(m, "Source", ws)
     connect_inner(m, "MainInput1", "MediaIn1", "Output")
     connect_inner(m, "MainInput3", "MediaIn1", "Output")
-    emit_comp("cc_ws%d" % ws, comp([(ccname, m)], *out_of(m, "MainOutput1")), "Kalyx Canvas Control, Window shows = %d, footage + graphic = clip" % ws)
+    emit_comp("cc_ws%d" % ws, comp([(ccname, m)], *out_of(m, "MainOutput1")), "Velaria Canvas Control, Window shows = %d, footage + graphic = clip" % ws)
 
 # ---- 3D Titles through Canvas Control's 3D Scene input (the only way a title becomes pixels)
 for label in ("Vine", "Salmon", "Hay Bale"):
-    tpath = "Kalyx 3D Title - %s.setting" % label
+    tpath = "Velaria 3D Title - %s.setting" % label
     tname, t = macro(tpath)
     kit(t, label)
-    _, m = macro("Kalyx Canvas Control.setting")
+    _, m = macro("Velaria Canvas Control.setting")
     set_inner(m, "Source", 2)
     connect_inner(m, "MainInput1", "MediaIn1", "Output")
     connect_inner(t, "MainInput1", "MediaIn1", "Output")
     connect_inner(m, "SceneInput", *out_of(t, "MainOutput1"))
-    emit_comp("title_%s" % label.replace(" ", ""), comp([(tname, t), (ccname, m)], *out_of(m, "MainOutput1")), "Kalyx 3D Title - %s -> Canvas Control 3D Scene, Window shows = 2" % label)
+    emit_comp("title_%s" % label.replace(" ", ""), comp([(tname, t), (ccname, m)], *out_of(m, "MainOutput1")), "Velaria 3D Title - %s -> Canvas Control 3D Scene, Window shows = 2" % label)
 
 # ---- 3D Cards: Window shows 0/1/2 at defaults, then fade (HoldSeconds 3), then Environment not over/under
 for label in ("Vine", "Salmon", "Hay Bale"):
-    cpath = "Kalyx 3D Card - %s.setting" % label
+    cpath = "Velaria 3D Card - %s.setting" % label
     short = label.replace(" ", "")
     for ws in (0, 1, 2):
         cname, c = macro(cpath)
         kit(c, label)
         connect_inner(c, "MainInput1", "MediaIn1", "Output")
         # the card has no published Window shows; set the inner control directly
-        c["Tools"]["Kalyx_Controls"]["Inputs"]["WindowShows"] = {"__type": "Input", "Value": ws}
-        emit_comp("card_%s_ws%d" % (short, ws), comp([(cname, c)], *out_of(c, "MainOutput1")), "Kalyx 3D Card - %s, Window shows = %d" % (label, ws))
+        c["Tools"]["Velaria_Controls"]["Inputs"]["WindowShows"] = {"__type": "Input", "Value": ws}
+        emit_comp("card_%s_ws%d" % (short, ws), comp([(cname, c)], *out_of(c, "MainOutput1")), "Velaria 3D Card - %s, Window shows = %d" % (label, ws))
     cname, c = macro(cpath)
     kit(c, label)
     connect_inner(c, "MainInput1", "MediaIn1", "Output")
     set_inner(c, "HoldSeconds", 1)
-    emit_comp("card_%s_hold1" % short, comp([(cname, c)], *out_of(c, "MainOutput1")), "Kalyx 3D Card - %s, fade out after 1 s (frame 40 is mid-fade)" % label)
+    emit_comp("card_%s_hold1" % short, comp([(cname, c)], *out_of(c, "MainOutput1")), "Velaria 3D Card - %s, fade out after 1 s (frame 40 is mid-fade)" % label)
     cname, c = macro(cpath)
     kit(c, label)
     connect_inner(c, "MainInput1", "MediaIn1", "Output")
     set_inner(c, "EnvOverUnder", 0)
-    emit_comp("card_%s_env0" % short, comp([(cname, c)], *out_of(c, "MainOutput1")), "Kalyx 3D Card - %s, environment not over/under" % label)
+    emit_comp("card_%s_env0" % short, comp([(cname, c)], *out_of(c, "MainOutput1")), "Velaria 3D Card - %s, environment not over/under" % label)
     cname, c = macro(cpath)
     kit(c, label)
     connect_inner(c, "MainInput1", "MediaIn1", "Output")
-    emit_comp("card_%s_out2" % short, comp([(cname, c)], *out_of(c, "MainOutput2")), "Kalyx 3D Card - %s, output 2 (card only, transparent)" % label)
+    emit_comp("card_%s_out2" % short, comp([(cname, c)], *out_of(c, "MainOutput2")), "Velaria 3D Card - %s, output 2 (card only, transparent)" % label)
 
 # ---- missing kit folder
-cname, c = macro("Kalyx 3D Card - Vine.setting")
+cname, c = macro("Velaria 3D Card - Vine.setting")
 connect_inner(c, "MainInput1", "MediaIn1", "Output")
 set_inner(c, "ModelKit", "/Volumes/Nowhere/Vine_Kit")
-emit_comp("card_Vine_missingkit", comp([(cname, c)], *out_of(c, "MainOutput1")), "Kalyx 3D Card - Vine with the kit folder missing")
+emit_comp("card_Vine_missingkit", comp([(cname, c)], *out_of(c, "MainOutput1")), "Velaria 3D Card - Vine with the kit folder missing")
 
 # ---- Orient 360
-oname, o = macro("Kalyx Orient 360.setting")
+oname, o = macro("Velaria Orient 360.setting")
 connect_inner(o, "MainInput1", "MediaIn1", "Output")
 set_inner(o, "Pan", 30)
-emit_comp("orient360", comp([(oname, o)], *out_of(o, "MainOutput1")), "Kalyx Orient 360, pan 30")
+emit_comp("orient360", comp([(oname, o)], *out_of(o, "MainOutput1")), "Velaria Orient 360, pan 30")
 
 # ---- Trim (task D): warm, lifted, a little contrast
-tname, t = macro("Kalyx Trim.setting")
+tname, t = macro("Velaria Trim.setting")
 connect_inner(t, "MainInput1", "MediaIn1", "Output")
 set_inner(t, "Temperature", 0.6)
 set_inner(t, "Lift", 0.05)
 set_inner(t, "Contrast", 1.2)
-emit_comp("trim_warm", comp([(tname, t)], *out_of(t, "MainOutput1")), "Kalyx Trim, temperature +0.6, lift +0.05, contrast 1.2")
+emit_comp("trim_warm", comp([(tname, t)], *out_of(t, "MainOutput1")), "Velaria Trim, temperature +0.6, lift +0.05, contrast 1.2")
 
 json.dump(variants, open(os.path.join(OUT, "variants.json"), "w"), indent=1)
 print(len(variants), "comps in", OUT)

@@ -1,7 +1,7 @@
-// Heads-up display for Kalyx View: a slim status strip below the horizon and a set of glass panels you look down
+// Heads-up display for Velaria View: a slim status strip below the horizon and a set of glass panels you look down
 // at (or place anywhere by grabbing their top bar) and operate with hand-tracking pinches or controller triggers.
 // Everything is drawn on the CPU into compositor quad layers, on a worker thread so the frame loop never waits on
-// text rasterisation. Look and material follow the Kalyx design system (graphite glass, one copper accent).
+// text rasterisation. Look and material follow the Velaria design system (graphite glass, one copper accent).
 #pragma once
 #include <condition_variable>
 #include <cstdint>
@@ -21,7 +21,7 @@ struct Colour {
     float r, g, b, a;   // sRGB-encoded components, straight alpha
 };
 
-// Kalyx tokens (design system "Kalyx", 28 Oct 2026)
+// Velaria tokens (design system "Velaria", 28 Oct 2026)
 namespace pal {
 inline const Colour kGraphite900{0.082f, 0.094f, 0.114f, 1};
 inline const Colour kGraphite800{0.114f, 0.133f, 0.165f, 1};
@@ -79,7 +79,7 @@ public:
     static float measure(const std::string& s, const font_ui::Font& f, float tracking = 0);
     void encode(std::vector<uint8_t>& out) const;   // top row first
 
-    // ---- Kalyx material
+    // ---- Velaria material
     // Glass panel with rim light, base line and a faint copper halo (fills the whole canvas).
     void glass(float r = 28);
     // A soft glow around a rounded rect (concentric rings; cheap stand-in for a blur).
@@ -94,7 +94,7 @@ public:
     // Domed knob with a drop shadow and a copper glow when live.
     void knob(float cx, float cy, float r, bool live);
 
-    // ---- UI v3 (Kalyx View headset UI, 30 Oct 2026)
+    // ---- UI v3 (Velaria View headset UI, 30 Oct 2026)
     // Multi-stop gradient fill of a rounded rect, vertical (top -> bottom) or horizontal.
     void fillRoundRectGrad(float x, float y, float w, float h, float r, const std::vector<GradStop>& stops, bool vertical = true);
     // Soft drop shadow under a rounded rect: offset dy, blur radius, peak alpha.

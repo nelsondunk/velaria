@@ -229,11 +229,11 @@ def test_seek_and_step():
 
 
 def test_group_kinds_and_nested_macro_children():
-    # layers: a MacroOperator is a card, PanoMap / Kalyx_Orient* are orient, LatLongPatcher is a patch; tools
+    # layers: a MacroOperator is a card, PanoMap / Velaria_Orient* are orient, LatLongPatcher is a patch; tools
     # inside a macro (Orient 360's two PanoMaps) never become groups of their own
     b, _ = make_bridge()
     inner = [fake_resolve.pano_map("PanoMap_L"), fake_resolve.pano_map("PanoMap_R")]
-    orient = fake_resolve.Tool("Kalyx_Orient360", "MacroOperator", [
+    orient = fake_resolve.Tool("Velaria_Orient360", "MacroOperator", [
         ("Pan", "Pan", "Number", "ScrewControl", -180.0, 180.0, 4.0)], children=inner)
     patch = fake_resolve.Tool("LatLongPatcher1", "LatLongPatcher", [
         ("Rotate.X", "Rotate X", "Number", "ScrewControl", -180.0, 180.0, 90.0)])
@@ -243,7 +243,7 @@ def test_group_kinds_and_nested_macro_children():
     kinds = {g["tool"]: g.get("kind") for g in msg["groups"]}
     assert kinds["Skylight_FactWindow"] == "card"
     assert kinds["PanoMap1"] == "orient"
-    assert kinds["Kalyx_Orient360"] == "orient"
+    assert kinds["Velaria_Orient360"] == "orient"
     assert kinds["LatLongPatcher1"] == "patch"
     assert "PanoMap_L" not in kinds and "PanoMap_R" not in kinds
     # cards first, then the rest
@@ -252,10 +252,10 @@ def test_group_kinds_and_nested_macro_children():
 
 
 def test_trim_macro_is_kind_trim_with_named_controls_in_a_trim_tab():
-    # Kalyx Trim (ColorCorrector on an adjustment clip) grades the whole picture: kind "trim", after cards and orient,
+    # Velaria Trim (ColorCorrector on an adjustment clip) grades the whole picture: kind "trim", after cards and orient,
     # before patches; its controls keep their names and land in one Trim section
     b, _ = make_bridge()
-    trim = fake_resolve.Tool("Kalyx_Trim", "MacroOperator", [
+    trim = fake_resolve.Tool("Velaria_Trim", "MacroOperator", [
         ("Exposure", "Exposure (offset)", "Number", "SliderControl", -0.5, 0.5, 0.0),
         ("Gamma", "Gamma", "Number", "SliderControl", 0.5, 2.0, 1.0),
         ("Temperature", "Temperature (blue - amber)", "Number", "SliderControl", -1.0, 1.0, 0.0),
@@ -265,12 +265,12 @@ def test_trim_macro_is_kind_trim_with_named_controls_in_a_trim_tab():
     b.timeline.plate_comp.tools.extend([trim, patch])
     msg = b.macro_params()
     g = {x["tool"]: x for x in msg["groups"]}
-    assert g["Kalyx_Trim"]["kind"] == "trim"
+    assert g["Velaria_Trim"]["kind"] == "trim"
     order = [x["kind"] for x in msg["groups"]]
     assert order.index("trim") > order.index("card") and order.index("trim") < order.index("patch")
-    names = {p["id"]: p["name"] for p in g["Kalyx_Trim"]["params"]}
+    names = {p["id"]: p["name"] for p in g["Velaria_Trim"]["params"]}
     assert names["Exposure"] == "Exposure" and names["Temperature"] == "Temperature" and names["Amount"] == "Amount"
-    assert {p.get("section") for p in g["Kalyx_Trim"]["params"]} == {"Trim"}
+    assert {p.get("section") for p in g["Velaria_Trim"]["params"]} == {"Trim"}
 
 
 def test_seek_to_frame_from_the_strip():
@@ -347,3 +347,12 @@ if __name__ == "__main__":
                 traceback.print_exc()
     print("FAILED" if failed else "PASSED", failed, "failure(s)")
     sys.exit(1 if failed else 0)
+
+
+def test_macro_kind_accepts_both_velaria_and_legacy_kalyx_prefixes():
+    # timelines built before the rename keep their Kalyx_* instances until the upgrade script runs; the headset
+    # must still put them on the right layer
+    mk = vb.Bridge.macro_kind
+    assert mk("Velaria_Trim") == "trim" and mk("Kalyx_Trim") == "trim" and mk("Kalyx_Trim_2") == "trim"
+    assert mk("Velaria_Orient360") == "orient" and mk("Kalyx_Orient360") == "orient"
+    assert mk("Velaria_CanvasControl") == "card" and mk("Kalyx_CanvasControl") == "card" and mk("Skylight_FactWindow") == "card"

@@ -37,7 +37,7 @@ struct EditParam {
 
 struct EditGroup {
     std::string clip, clipName, tool, source;   // source: comp name / footage files the card is built from
-    std::string kind = "card";                  // card (Kalyx macro) | patch (LatLong Patcher) | orient (PanoMap) | trim (Kalyx Trim)
+    std::string kind = "card";                  // card (Velaria macro) | patch (LatLong Patcher) | orient (PanoMap) | trim (Velaria Trim)
     int track = 0;
     std::vector<EditParam> params;
     bool isCard() const { return kind == "card"; }
@@ -55,7 +55,7 @@ struct EditGroup {
     std::string key() const { return clip + "|" + tool; }
 };
 
-// Which control a parameter gets, from its id/name (Kalyx control vocabulary).
+// Which control a parameter gets, from its id/name (Velaria control vocabulary).
 enum class Widget { Bar, Switch, Colour, Text, Point, Ring, Arc, Dial, Throttle };
 Widget widgetFor(const EditParam& p);
 // Placement panel takes Placement + Object sections; everything else is a Look tab.
@@ -78,7 +78,7 @@ struct EditModel {
     std::string tc = "--:--:--:--";
     std::vector<EditGroup> groups;
     int group = 0;                // which macro's controls are shown
-    // Layers: CARDS (the Kalyx macros, pickable in the scene) or PATCHES (LatLong Patcher windows and PanoMap
+    // Layers: CARDS (the Velaria macros, pickable in the scene) or PATCHES (LatLong Patcher windows and PanoMap
     // re-orientation, which are normally set up in Resolve). Only the current layer's groups are shown, so it is
     // always obvious whether a drag moves a card or the plate's patch (Nelson, 30 Oct).
     int layer = 0;                  // 0 OVERLAYS, 1 PATCHES, 2 PICTURE

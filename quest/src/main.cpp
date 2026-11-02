@@ -448,9 +448,9 @@ static bool initXr() {
     ai.applicationActivity = g.android->activity->clazz;
     XrInstanceCreateInfo ci{XR_TYPE_INSTANCE_CREATE_INFO};
     ci.next = &ai;
-    strcpy(ci.applicationInfo.applicationName, "Kalyx View");
+    strcpy(ci.applicationInfo.applicationName, "Velaria View");
     ci.applicationInfo.applicationVersion = 1;
-    strcpy(ci.applicationInfo.engineName, "Kalyx");
+    strcpy(ci.applicationInfo.engineName, "Velaria");
     ci.applicationInfo.apiVersion = XR_MAKE_VERSION(1, 0, 34);
     ci.enabledExtensionCount = (uint32_t)exts.size();
     ci.enabledExtensionNames = exts.data();
@@ -570,7 +570,7 @@ static bool initXr() {
     // ---- input (controllers)
     XrActionSetCreateInfo asci{XR_TYPE_ACTION_SET_CREATE_INFO};
     strcpy(asci.actionSetName, "vrlink");
-    strcpy(asci.localizedActionSetName, "Kalyx View");
+    strcpy(asci.localizedActionSetName, "Velaria View");
     XRC(xrCreateActionSet(g.instance, &asci, &g.actionSet));
     auto path = [&](const char* s) {
         XrPath p;
@@ -785,7 +785,7 @@ static void activate(HudButton b, int arg = 0) {
             g.hudForce = true;
             showNotice(g.edit.layer == 0 ? "OVERLAYS: titles and footage windows placed on the picture. Pinch one in the scene to pick it."
                        : g.edit.layer == 1 ? "PATCHES: tripod and sky patch windows. Set up in Resolve; move here only on purpose."
-                                           : "PICTURE: the whole sphere (PanoMap / Kalyx Orient 360) and the Kalyx Trim pass.");
+                                           : "PICTURE: the whole sphere (PanoMap / Velaria Orient 360) and the Velaria Trim pass.");
             return;
         case HudButton::ScopesView:
             g.settings.scopesView = std::max(0, std::min(2, arg));
@@ -1878,7 +1878,7 @@ static void updateHud(int64_t now, bool playing) {
         if (g.edit.bridgeOk && resolve) {
             if (!g.edit.warnings.empty()) setup = g.edit.warnings[0];
             else if (!g.decoder.hasConfig() && g.bridgeSinceNs && now - g.bridgeSinceNs > 8000000000LL)
-                setup = "No picture: DaVinci Resolve > Preferences > Video and Audio I/O > Kalyx (Quest)";
+                setup = "No picture: DaVinci Resolve > Preferences > Video and Audio I/O > Velaria (Quest)";
             else if (g.decoder.hasConfig() && g.edit.haveTimeline) {
                 int rw = (int)g.cfg.msg.rasterWidth, rh = (int)g.cfg.msg.rasterHeight;
                 int ow = g.edit.fmtOutWidth, oh = g.edit.fmtOutHeight;
@@ -2036,7 +2036,7 @@ static void sendStats(int64_t now) {
 
 // ------------------------------------------------------------------------------------------------ frame loop
 
-// Test hook: `adb shell "echo 'press TabEdit' > /sdcard/Android/data/ca.skylightproductions.vrlink/files/cmd.txt"`
+// Test hook: `adb shell "echo 'press TabEdit' > /sdcard/Android/data/ca.skylightproductions.velaria/files/cmd.txt"`
 // drives the UI without hands. Commands: press <Button> [arg], slider <row> <0..1>, scrub <0..1>, page edit|preview.
 static void pollDebugCommands(int64_t now) {
     if (now - g.lastDebugPollNs < 500000000LL || !g.android->activity->externalDataPath) return;

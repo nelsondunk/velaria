@@ -1,6 +1,6 @@
 {
 	Tools = {
-		Kalyx3DCard_HayBale = MacroOperator {
+		Velaria3DCard_HayBale = MacroOperator {
 			Inputs = ordered() {
 				MainInput1 = InstanceInput { SourceOp = "Plate_In", Source = "Input", Name = "Plate (360 footage)", },
 				Yaw = InstanceInput {
@@ -238,7 +238,7 @@
 						Pos = { -1907.54, -174.998 },
 					},
 				},
-				Kalyx_Controls = PipeRouter {
+				Velaria_Controls = PipeRouter {
 					Inputs = {
 						WindowShows = Input { Value = 2, },
 					},
@@ -463,7 +463,7 @@
 					},
 					Inputs = {
 						Background = Input { Source = "Output", SourceOp = "Right_Framed_Window", },
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 						Foreground = Input { Source = "Output", SourceOp = "Graphic_Placed", },
 					},
 				},
@@ -485,7 +485,7 @@
 					},
 					Inputs = {
 						Background = Input { Source = "Output", SourceOp = "Right_Rounded_Footage", },
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 						Foreground = Input { Source = "Output", SourceOp = "Graphic_Placed", },
 					},
 				},
@@ -530,7 +530,7 @@
 						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input { Value = 1, },
 						["MtlStdInputs.MaterialID"] = Input { Value = 1, },
 						MaterialInput = Input { Source = "Output", SourceOp = "Left_Window_Plus_Glow", },
-						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Kalyx_Controls.WindowShows > 1.5, 0, 1)", },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Velaria_Controls.WindowShows > 1.5, 0, 1)", },
 						["Transform3DOp.Translate.Z"] = Input { Value = -3, },
 						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
 					},
@@ -571,7 +571,7 @@
 						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input { Value = 2, },
 						MaterialInput = Input { Source = "Output", SourceOp = "Right_Window_Plus_Glow", },
 						["Transform3DOp.Rotate.Y"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Y", },
-						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Kalyx_Controls.WindowShows > 1.5, 0, 1)", },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Velaria_Controls.WindowShows > 1.5, 0, 1)", },
 						["Transform3DOp.Translate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Translate.Z", },
 						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
 						["Transform3DOp.Rotate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Z", },
@@ -655,7 +655,7 @@
 					},
 					Inputs = {
 						Background = Input { Source = "Output", SourceOp = "Left_Rounded_Footage", },
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 						Foreground = Input { Source = "Output", SourceOp = "Graphic_Placed", },
 					},
 				},
@@ -666,7 +666,7 @@
 					},
 					Inputs = {
 						Background = Input { Source = "Output", SourceOp = "Left_Framed_Window", },
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 						Foreground = Input { Source = "Output", SourceOp = "Graphic_Placed", },
 					},
 				},

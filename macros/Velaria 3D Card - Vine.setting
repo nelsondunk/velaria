@@ -1,6 +1,6 @@
 {
 	Tools = {
-		Kalyx3DCard_Vine = MacroOperator {
+		Velaria3DCard_Vine = MacroOperator {
 			Inputs = ordered() {
 				MainInput1 = InstanceInput { SourceOp = "Plate_In", Source = "Input", Name = "Plate (360 footage)", },
 				Yaw = InstanceInput {
@@ -399,7 +399,7 @@
 					Inputs = {
 						Background = Input { SourceOp = "Left_Framed_Window", Source = "Output", },
 						Foreground = Input { SourceOp = "Graphic_Placed", Source = "Output", },
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 					},
 					ViewInfo = OperatorInfo {
 						Pos = { -1687.54, -444.998 },
@@ -513,7 +513,7 @@
 					Inputs = {
 						Background = Input { SourceOp = "Right_Framed_Window", Source = "Output", },
 						Foreground = Input { SourceOp = "Graphic_Placed", Source = "Output", },
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 					},
 					ViewInfo = OperatorInfo {
 						Pos = { -1687.54, 95.0019 },
@@ -529,7 +529,7 @@
 						["Transform3DOp.Translate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Translate.Z", },
 						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
 						["MtlStdInputs.MaterialID"] = Input { Value = 2, },
-						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Kalyx_Controls.WindowShows > 1.5, 0, 1)", },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Velaria_Controls.WindowShows > 1.5, 0, 1)", },
 						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input { Value = 2, },
 					},
 					ViewInfo = OperatorInfo {
@@ -542,7 +542,7 @@
 						["Transform3DOp.Translate.Z"] = Input { Value = -3, },
 						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
 						["MtlStdInputs.MaterialID"] = Input { Value = 1, },
-						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Kalyx_Controls.WindowShows > 1.5, 0, 1)", },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Velaria_Controls.WindowShows > 1.5, 0, 1)", },
 						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input { Value = 1, },
 					},
 					ViewInfo = OperatorInfo {
@@ -576,7 +576,7 @@
 						Pos = { -1687.54, -334.998 },
 					},
 				},
-				Kalyx_Controls = PipeRouter {
+				Velaria_Controls = PipeRouter {
 					Inputs = {
 						WindowShows = Input { Value = 2, },
 					},
@@ -643,7 +643,7 @@
 					Inputs = {
 						Background = Input { SourceOp = "Right_Rounded_Footage", Source = "Output", },
 						Foreground = Input { SourceOp = "Graphic_Placed", Source = "Output", },
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 					},
 					ViewInfo = OperatorInfo {
 						Pos = { -1852.54, 205.002 },
@@ -711,7 +711,7 @@
 					Inputs = {
 						Background = Input { SourceOp = "Left_Rounded_Footage", Source = "Output", },
 						Foreground = Input { SourceOp = "Graphic_Placed", Source = "Output", },
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 					},
 					ViewInfo = OperatorInfo {
 						Pos = { -1852.54, -334.998 },

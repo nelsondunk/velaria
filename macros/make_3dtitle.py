@@ -1,8 +1,8 @@
-"""Convert a Skylight Fact Card 360 macro (self-contained 360 renderer) into a Kalyx 3D Title macro:
-a 3D scene (plates, extruded text, model, lights) that plugs into Kalyx Canvas Control's "3D Scene" input.
+"""Convert a Skylight Fact Card 360 macro (self-contained 360 renderer) into a Velaria 3D Title macro:
+a 3D scene (plates, extruded text, model, lights) that plugs into Velaria Canvas Control's "3D Scene" input.
 Canvas Control owns placement; the title owns text, model, animation and the environment reflections.
 
-Usage: python3 make_3dtitle.py "factcards/Skylight Fact Card 360 - Vine.setting" "Kalyx 3D Title - Vine.setting" Vine
+Usage: python3 make_3dtitle.py "factcards/Skylight Fact Card 360 - Vine.setting" "Velaria 3D Title - Vine.setting" Vine
 """
 import sys
 
@@ -152,7 +152,7 @@ for tname, tool in tools.items():
             print("kit-relative:", tname, key, os.path.basename(iv["Value"]))
 
 # ---- 6. rename and write
-newname = "Kalyx3DTitle_" + label.replace(" ", "")
+newname = "Velaria3DTitle_" + label.replace(" ", "")
 d["Tools"] = {newname: macro}
 sw.write_setting(d, dst)
 

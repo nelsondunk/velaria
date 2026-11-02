@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""VR Link bridge: lets the headset read and change the DaVinci Resolve timeline it is watching.
+"""Velaria bridge: lets the headset read and change the DaVinci Resolve timeline it is watching.
 
 Speaks newline-delimited JSON on TCP 47812 (USB: via `adb reverse`, Wi-Fi: same host as the video). Talks to
 Resolve through its scripting API. Everything it changes goes through Fusion macro inputs on the clips under the
@@ -36,9 +36,9 @@ os.environ.setdefault("RESOLVE_SCRIPT_LIB",
                       "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so")
 sys.path.append(RESOLVE_API + "/Modules")
 
-BRIDGE_VERSION = "1.0.8"
+BRIDGE_VERSION = "1.0.9"
 PORT = int(os.environ.get("VRLINK_BRIDGE_PORT", "47812"))
-LOG = os.path.expanduser("~/Library/Logs/VRLink/bridge.log")
+LOG = os.path.expanduser("~/Library/Logs/Velaria/bridge.log")
 
 # Macro inputs worth showing. Everything else (connections, nests, comments, layer selectors) stays hidden.
 HIDDEN_IDS = {"HideInputs", "CommentsNest", "Comments", "OutputWidth", "Blend", "ProcessRed", "ProcessGreen",
@@ -134,7 +134,7 @@ class Bridge:
 
     # ---------------------------------------------------------------- resolve
     def versions(self):
-        """Who is on the Mac side: this bridge, the installed Kalyx package (VERSION beside the bridge, written by
+        """Who is on the Mac side: this bridge, the installed Velaria package (VERSION beside the bridge, written by
         install.sh), Resolve and the project. The headset shows it on the View tab so a bug report names its parts."""
         installed = ""
         try:
@@ -290,25 +290,37 @@ class Bridge:
             self.rebuild_index()
         return [(v, it) for v, it, start, end in self.clip_index if start <= frame < end]
 
-    # Fusion tools (besides the Kalyx macros) worth driving from the headset, with the inputs they expose.
+    # Fusion tools (besides the Velaria macros) worth driving from the headset, with the inputs they expose.
     # PanoMap: re-orient a whole sphere (fix a wonky horizon); LatLongPatcher: the nadir/zenith patch window.
     TOOL_INPUTS = {
         "PanoMap": ("Rotate.X", "Rotate.Y", "Rotate.Z"),
         "LatLongPatcher": ("Rotate.X", "Rotate.Y", "Rotate.Z", "AoV"),
     }
 
-    # what a tool is to the headset: "card" (a Kalyx macro: pickable, on the CARDS layer), "patch" (a LatLong
+    # what a tool is to the headset: "card" (a Velaria macro: pickable, on the CARDS layer), "patch" (a LatLong
     # Patcher window) or "orient" (a PanoMap turning the whole sphere); patch + orient live on the PATCHES layer
     TOOL_KIND = {"PanoMap": "orient", "LatLongPatcher": "patch"}
+
+    MACRO_PREFIXES = ("Velaria_", "Kalyx_")
+
+    @classmethod
+    def macro_kind(cls, name):
+        for pre in cls.MACRO_PREFIXES:
+            if name.startswith(pre + "Orient"):
+                return "orient"
+            if name.startswith(pre + "Trim"):
+                return "trim"
+        return "card"
 
     def edit_tools(self, comp):
         """The tools of a comp the headset gets controls for: every macro, plus the whitelisted stock tools."""
         out = []
         inside = set()   # tools living inside a macro (GetToolList also returns those): the macro is the control
         for _, t in (comp.GetToolList(False, "MacroOperator") or {}).items():
-            # Kalyx Orient 360 (split → PanoMap per eye → combine) turns the whole plate: PICTURE layer, not a card.
-            # Kalyx Trim (a ColorCorrector on an adjustment clip) grades the whole picture: PICTURE layer too, kind "trim".
-            kind = "orient" if t.Name.startswith("Kalyx_Orient") else "trim" if t.Name.startswith("Kalyx_Trim") else "card"
+            # Velaria Orient 360 (split → PanoMap per eye → combine) turns the whole plate: PICTURE layer, not a card.
+            # Velaria Trim (a ColorCorrector on an adjustment clip) grades the whole picture: PICTURE layer too, kind "trim".
+            # Instances from before the rename (Kalyx_*) are still recognised, so old timelines keep working.
+            kind = self.macro_kind(t.Name)
             out.append((t, None, kind))
             try:
                 for _, c in (t.GetChildrenList() or {}).items():
@@ -464,7 +476,7 @@ class Bridge:
         "OutputWidth": "Render width (per eye)",
         # PanoMap / LatLongPatcher
         "Rotate.X": "Tilt", "Rotate.Y": "Pan", "Rotate.Z": "Roll", "AoV": "Window angle",
-        # Kalyx Trim
+        # Velaria Trim
         "Exposure": "Exposure", "Lift": "Lift", "Gamma": "Gamma", "Gain": "Gain", "Contrast": "Contrast",
         "Saturation": "Saturation", "Temperature": "Temperature", "Tint": "Tint", "Amount": "Amount",
     }

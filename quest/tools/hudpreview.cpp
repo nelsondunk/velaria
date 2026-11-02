@@ -1,4 +1,4 @@
-// Draws the Kalyx View panels on the desktop with sample data, so the UI can be judged at true pixel size without a
+// Draws the Velaria View panels on the desktop with sample data, so the UI can be judged at true pixel size without a
 // headset. Writes <out>/<panel>-<state>.ppm (composited over graphite) for PIL to turn into PNGs.
 //   g++ -std=c++17 -O2 -I../common -Isrc tools/hudpreview.cpp src/hud.cpp src/panels.cpp src/edit.cpp -lpthread -o host/hudpreview
 #include <cstdio>
@@ -69,12 +69,12 @@ int main(int argc, char** argv) {
     { EditClip c; c.key = "hb"; c.name = "Hay Bale V3"; c.track = 3; c.start = m.frame - 200; c.end = m.frame + 300; c.fusion = true; c.colour = "Orange"; m.clips.push_back(c); }
     { EditClip c; c.key = "fw"; c.name = "Footage window"; c.track = 4; c.start = m.frame - 100; c.end = m.frame + 500; c.fusion = true; c.colour = "Teal"; m.clips.push_back(c); }
     { EditClip c; c.key = "lt"; c.name = "Lower third"; c.track = 5; c.start = m.frame - 50; c.end = m.frame + 200; c.fusion = true; m.clips.push_back(c); }
-    m.groups = {card("Kalyx3DCard_HayBale", "Hay Bale V3", 3), card("Kalyx_CanvasControl", "Footage window", 4), card("Kalyx_CanvasControl", "Lower third", 5),
+    m.groups = {card("Velaria3DCard_HayBale", "Hay Bale V3", 3), card("Velaria_CanvasControl", "Footage window", 4), card("Velaria_CanvasControl", "Lower third", 5),
                 patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2),
                 patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2)};
     m.groups[3].clipName = "Nadir \xC2\xB7 left eye"; m.groups[4].clipName = "Nadir \xC2\xB7 right eye"; m.groups[5].clipName = "Tripod leg";
-    EditGroup orient = patch("Kalyx_Orient360", "C037_03122139", 2); orient.kind = "orient"; m.groups.push_back(orient);
-    EditGroup trim = card("Kalyx_Trim", "Adjustment Clip", 4); trim.kind = "trim";
+    EditGroup orient = patch("Velaria_Orient360", "C037_03122139", 2); orient.kind = "orient"; m.groups.push_back(orient);
+    EditGroup trim = card("Velaria_Trim", "Adjustment Clip", 4); trim.kind = "trim";
     trim.params = {num("Exposure", "Exposure", "Trim", 0.05, -0.5, 0.5), num("Lift", "Lift", "Trim", 0, -0.25, 0.25),
                    num("Gamma", "Gamma", "Trim", 1.05, 0.5, 2), num("Gain", "Gain", "Trim", 1, 0, 2), num("Contrast", "Contrast", "Trim", 1.1, 0.5, 2),
                    num("Saturation", "Saturation", "Trim", 1, 0, 2), num("Temperature", "Temperature", "Trim", 0.3, -1, 1), num("Tint", "Tint", "Trim", 0, -1, 1),

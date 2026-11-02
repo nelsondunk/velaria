@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Kalyx Trim: a headset trim pass on an adjustment clip — one ColorCorrector with the controls a trim needs,
+"""Velaria Trim: a headset trim pass on an adjustment clip — one ColorCorrector with the controls a trim needs,
 published on a Trim page. Temperature / tint are approximated with per-channel gain. (Design call: roadmap,
 "Headset trim pass"; input IDs verified with GetInputList on Resolve 21.1, 1 Nov 2026.)"""
 import settingwrite as sw
@@ -21,12 +21,12 @@ inputs["Gamma"] = inp("Trim_CC", "MasterRGBGamma", "Gamma", 1, 0.5, 2)
 inputs["Gain"] = inp("Trim_CC", "MasterRGBGain", "Gain", 1, 0, 2)
 inputs["Contrast"] = inp("Trim_CC", "MasterRGBContrast", "Contrast", 1, 0.5, 2)
 inputs["Saturation"] = inp("Trim_CC", "Saturation1", "Saturation", 1, 0, 2)
-inputs["Temperature"] = inp("Kalyx_TrimControls", "Temperature", "Temperature (blue - amber)", 0, -1, 1)
-inputs["Tint"] = inp("Kalyx_TrimControls", "Tint", "Tint (green - magenta)", 0, -1, 1)
+inputs["Temperature"] = inp("Velaria_TrimControls", "Temperature", "Temperature (blue - amber)", 0, -1, 1)
+inputs["Tint"] = inp("Velaria_TrimControls", "Tint", "Tint (green - magenta)", 0, -1, 1)
 inputs["Amount"] = inp("Trim_CC", "Blend", "Amount (0 = off)", 1, 0, 1)   # published as Amount: the bridge hides every "Blend"
 
 tools = {"__ordered": True}
-tools["Kalyx_TrimControls"] = {
+tools["Velaria_TrimControls"] = {
     "__type": "PipeRouter", "CtrlWZoom": False,
     "Inputs": {"Temperature": {"__type": "Input", "Value": 0}, "Tint": {"__type": "Input", "Value": 0}},
     "ViewInfo": {"__type": "PipeRouterInfo", "Pos": [-220, -60]},
@@ -42,14 +42,14 @@ tools["Trim_CC"] = {
         "MasterRGBContrast": {"__type": "Input", "Value": 1},
         "Saturation1": {"__type": "Input", "Value": 1},
         # warm = more red, less blue; magenta = less green, a touch more red and blue
-        "MasterRedGain": {"__type": "Input", "Value": 1, "Expression": "1 + 0.25*Kalyx_TrimControls.Temperature + 0.08*Kalyx_TrimControls.Tint"},
-        "MasterGreenGain": {"__type": "Input", "Value": 1, "Expression": "1 - 0.16*Kalyx_TrimControls.Tint"},
-        "MasterBlueGain": {"__type": "Input", "Value": 1, "Expression": "1 - 0.25*Kalyx_TrimControls.Temperature + 0.08*Kalyx_TrimControls.Tint"},
+        "MasterRedGain": {"__type": "Input", "Value": 1, "Expression": "1 + 0.25*Velaria_TrimControls.Temperature + 0.08*Velaria_TrimControls.Tint"},
+        "MasterGreenGain": {"__type": "Input", "Value": 1, "Expression": "1 - 0.16*Velaria_TrimControls.Tint"},
+        "MasterBlueGain": {"__type": "Input", "Value": 1, "Expression": "1 - 0.25*Velaria_TrimControls.Temperature + 0.08*Velaria_TrimControls.Tint"},
     },
     "ViewInfo": {"__type": "OperatorInfo", "Pos": [0, 0]},
 }
 macro = {"__type": "MacroOperator", "Inputs": inputs,
          "Outputs": {"MainOutput1": {"__type": "InstanceOutput", "SourceOp": "Trim_CC", "Source": "Output", "Name": "Picture"}},
          "Tools": tools, "ViewInfo": {"__type": "GroupInfo", "Pos": [0, 0]}}
-sw.write_setting({"Tools": {"__ordered": True, "Kalyx_Trim": macro}}, "Kalyx Trim.setting")
-print("wrote Kalyx Trim.setting")
+sw.write_setting({"Tools": {"__ordered": True, "Velaria_Trim": macro}}, "Velaria Trim.setting")
+print("wrote Velaria Trim.setting")

@@ -1,6 +1,6 @@
 {
 	Tools = ordered() {
-		Kalyx_CanvasControl = MacroOperator {
+		Velaria_CanvasControl = MacroOperator {
 			Inputs = ordered() {
 				-- ===== FOOTAGE (connect your clips here) =====
 				MainInput1 = InstanceInput {
@@ -17,10 +17,10 @@
 				},
 				SceneInput = InstanceInput {
 					SourceOp = "Scene_Offset", Source = "SceneInput",
-					Name = "3D Scene (Kalyx 3D Titles, FBX / OBJ, built before this node)",
+					Name = "3D Scene (Velaria 3D Titles, FBX / OBJ, built before this node)",
 				},
 				Source = InstanceInput {
-					SourceOp = "Kalyx_Controls", Source = "WindowShows",
+					SourceOp = "Velaria_Controls", Source = "WindowShows",
 					Name = "Window shows",
 					Default = 0, MinScale = 0, MaxScale = 2, Page = "Frame",
 				},
@@ -221,7 +221,7 @@
 				Right_Window_Plane = ImagePlane3D {
 					Inputs = {
 						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
-						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Kalyx_Controls.WindowShows > 1.5, 0, 1)", },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Velaria_Controls.WindowShows > 1.5, 0, 1)", },
 						["Transform3DOp.Translate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Translate.Z", },
 						["Transform3DOp.Rotate.X"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.X", },
 						["Transform3DOp.Rotate.Y"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Y", },
@@ -301,7 +301,7 @@
 				Left_Window_Plane = ImagePlane3D {
 					Inputs = {
 						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
-						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Kalyx_Controls.WindowShows > 1.5, 0, 1)", },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Velaria_Controls.WindowShows > 1.5, 0, 1)", },
 						["Transform3DOp.Translate.Z"] = Input { Value = -3, },
 						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input { Value = 1, },
 						MaterialInput = Input {
@@ -620,7 +620,7 @@
 					},
 					ViewInfo = OperatorInfo { Pos = { -2237.54, -559.998 } },
 				},
-				Kalyx_Controls = PipeRouter {
+				Velaria_Controls = PipeRouter {
 					CtrlWZoom = false,
 					Inputs = {
 						WindowShows = Input { Value = 0, },
@@ -664,7 +664,7 @@
 						[0] = "DFTDissolve"
 					},
 					Inputs = {
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 						Background = Input {
 							SourceOp = "Left_Framed_Window",
 							Source = "Output",
@@ -681,7 +681,7 @@
 						[0] = "DFTDissolve"
 					},
 					Inputs = {
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 						Background = Input {
 							SourceOp = "Right_Framed_Window",
 							Source = "Output",
@@ -698,7 +698,7 @@
 						[0] = "DFTDissolve"
 					},
 					Inputs = {
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 						Background = Input {
 							SourceOp = "Left_Rounded_Footage",
 							Source = "Output",
@@ -715,7 +715,7 @@
 						[0] = "DFTDissolve"
 					},
 					Inputs = {
-						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
 						Background = Input {
 							SourceOp = "Right_Rounded_Footage",
 							Source = "Output",
@@ -774,5 +774,5 @@
 			},
 		}
 	},
-	ActiveTool = "Kalyx_CanvasControl"
+	ActiveTool = "Velaria_CanvasControl"
 }

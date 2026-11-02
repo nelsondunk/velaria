@@ -1,6 +1,6 @@
 {
 	Tools = {
-		Kalyx3DTitle_Salmon = MacroOperator {
+		Velaria3DTitle_Salmon = MacroOperator {
 			ViewInfo = GroupInfo {
 				Pos = { 109.640922546387, 86.2522506713867 },
 			},

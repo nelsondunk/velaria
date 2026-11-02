@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ca.skylightproductions.vrlink"
+    package="ca.skylightproductions.velaria"
     android:installLocation="auto">
 
     <uses-sdk android:minSdkVersion="32" android:targetSdkVersion="32" />
@@ -24,7 +24,7 @@
     </queries>
 
     <application
-        android:label="Kalyx View"
+        android:label="Velaria View"
         android:hasCode="false"
         android:allowBackup="false"
         android:extractNativeLibs="true">

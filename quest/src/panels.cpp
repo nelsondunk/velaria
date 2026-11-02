@@ -1,4 +1,4 @@
-// The Kalyx View panels: Instance strip, Placement (ring / arc / throttles / dials), Look (View settings + the
+// The Velaria View panels: Instance strip, Placement (ring / arc / throttles / dials), Look (View settings + the
 // macro's remaining sections as tabs) and the Timeline deck. Pure drawing: every interactive region is returned as
 // a ButtonRect and the frame loop does the hit-testing and the drags.
 #include <algorithm>
@@ -283,10 +283,10 @@ void throttleWidget(Chrome& ch, const EditParam& p, int pi, float x, float y, fl
 
 // ---- the panels
 
-// A readable name for a group's tool: no Skylight_/Kalyx_ prefixes, the macro families spelled out.
+// A readable name for a group's tool: no Skylight_/Velaria_/Kalyx_ prefixes, the macro families spelled out.
 static std::string prettyTool(const std::string& t) {
     std::string n = t;
-    for (const char* pre : {"Skylight_", "Skylight", "Kalyx_", "Kalyx"})
+    for (const char* pre : {"Skylight_", "Skylight", "Velaria_", "Velaria", "Kalyx_", "Kalyx"})
         if (n.rfind(pre, 0) == 0) { n = n.substr(strlen(pre)); break; }
     auto sub = [&](const char* from, const char* to) { size_t i = n.find(from); if (i != std::string::npos) n.replace(i, strlen(from), to); };
     sub("FactCard360", "Fact Card \xC2\xB7 ");
@@ -566,10 +566,10 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
             c.text(40, y + 104, "The plate stays as it is set in Resolve.", M30, Colour{1, 1, 1, 0.38f});
         } else if (m && m->bridgeOk && m->layer == 2) {
             c.text(40, y + 60, "No PanoMap or Orient 360 at this frame.", M30, kDim);
-            c.text(40, y + 104, "Add Kalyx Orient 360 at the end of the plate's chain.", M30, Colour{1, 1, 1, 0.38f});
+            c.text(40, y + 104, "Add Velaria Orient 360 at the end of the plate's chain.", M30, Colour{1, 1, 1, 0.38f});
         } else {
             c.text(40, y + 60, m && m->bridgeOk ? "No overlay at this frame." : "Waiting for the Resolve bridge\xE2\x80\xA6", M30, kDim);
-            c.text(40, y + 104, "Park on a clip with a Kalyx overlay (title or footage window).", M30, Colour{1, 1, 1, 0.38f});
+            c.text(40, y + 104, "Park on a clip with a Velaria overlay (title or footage window).", M30, Colour{1, 1, 1, 0.38f});
         }
         return rects;
     }
@@ -658,7 +658,7 @@ void drawViewTab(Chrome& ch, float y) {
             if (in.source == "ndi")
                 row("SOURCE", "For Resolve, tap SOURCE below to Auto \xC2\xB7 Adobe needs the NDI Tools output on", kSignal);
             else
-                row("RESOLVE", "Video I/O \xE2\x80\xBA Kalyx (Quest) \xC2\xB7 square 360: output scaling 3840");
+                row("RESOLVE", "Video I/O \xE2\x80\xBA Velaria (Quest) \xC2\xB7 square 360: output scaling 3840");
         }
     } else {
         snprintf(b, sizeof b, "%d \xC3\x97 %d  \xC2\xB7  %s %s  \xC2\xB7  %.2f fps  \xC2\xB7  %.0f Mb/s", in.width, in.height,
@@ -749,12 +749,12 @@ void drawViewTab(Chrome& ch, float y) {
     const char* hint = in.hands ? "Look down to open \xC2\xB7 look up to close \xC2\xB7 grab a top bar to move a panel"
                                 : "Trigger to press \xC2\xB7 look down to open \xC2\xB7 menu button places the panels";
     c.text(pad, y + 14, fitText(hint, S20, inner), S20, Colour{1, 1, 1, 0.30f});
-#ifndef KALYX_BUILD
-#define KALYX_BUILD "dev"
+#ifndef VELARIA_BUILD
+#define VELARIA_BUILD "dev"
 #endif
     {
         // every part a bug report needs to name: headset build, Mac package, bridge, Resolve
-        std::string ver = std::string("Kalyx View ") + KALYX_BUILD;
+        std::string ver = std::string("Velaria View ") + VELARIA_BUILD;
         const EditModel* m = ch.s.edit.get();
         if (m && m->bridgeOk) {
             if (!m->installedVersion.empty()) ver += "  \xC2\xB7  Mac " + m->installedVersion;

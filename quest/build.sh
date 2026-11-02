@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds the VR Link Quest APK without Gradle: NDK clang -> libvrlink.so, aapt2 link, zipalign, apksigner.
+# Builds the Velaria View Quest APK without Gradle: NDK clang -> libvrlink.so, aapt2 link, zipalign, apksigner.
 # Needs ANDROID_HOME-style layout in $ANDROID (sdk/, ndk/, openxr/ unpacked from the Khronos loader AAR).
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -19,7 +19,7 @@ OUT=build
 VER=${1:-${VER:-1.0.7}}
 BUILD=${2:-${BUILD:-41}}
 rm -rf $OUT && mkdir -p $OUT/obj $OUT/apk/lib/arm64-v8a
-CFLAGS="-O2 -g -fPIC -Wall -Wno-unused-parameter -DXR_USE_PLATFORM_ANDROID -DXR_USE_GRAPHICS_API_OPENGL_ES -DXR_USE_TIMESPEC -DKALYX_BUILD=\"$VER+$BUILD\""
+CFLAGS="-O2 -g -fPIC -Wall -Wno-unused-parameter -DXR_USE_PLATFORM_ANDROID -DXR_USE_GRAPHICS_API_OPENGL_ES -DXR_USE_TIMESPEC -DVELARIA_BUILD=\"$VER+$BUILD\""
 $CC $CFLAGS -c $GLUE/android_native_app_glue.c -o $OUT/obj/glue.o
 for f in src/*.cpp ../common/timing.cpp; do
   $CXX -std=c++17 $CFLAGS -I../common -Isrc -I$GLUE -I$OXR/prefab/modules/headers/include -c $f -o $OUT/obj/$(basename $f .cpp).o &
@@ -36,5 +36,5 @@ $BT/zipalign -p -f 4 $OUT/unsigned.apk $OUT/aligned.apk
 KS=${KEYSTORE:-$HOME/.vrlink-debug.keystore}
 [ -f "$KS" ] || keytool -genkeypair -keystore "$KS" -storepass android -alias vrlink -keypass android \
   -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=VR Link Debug,O=Skylight Visual Media,C=CA" >/dev/null 2>&1
-$BT/apksigner sign --ks "$KS" --ks-pass pass:android --key-pass pass:android --out $OUT/VRLink.apk $OUT/aligned.apk
-$BT/apksigner verify $OUT/VRLink.apk && ls -la $OUT/VRLink.apk
+$BT/apksigner sign --ks "$KS" --ks-pass pass:android --key-pass pass:android --out $OUT/Velaria.apk $OUT/aligned.apk
+$BT/apksigner verify $OUT/Velaria.apk && ls -la $OUT/Velaria.apk
