@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- VR Link settings. Restart DaVinci Resolve after editing. -->
+<plist version="1.0">
+<dict>
+	<!-- auto | sbs | tb | mono   (auto: 2:1 -> SBS, 1:1 -> TB) -->
+	<key>Layout</key><string>auto</string>
+	<!-- auto | 180 | 360 | flat -->
+	<key>Projection</key><string>auto</string>
+	<!-- auto (find the picture inside Resolve's output raster) | full | fit -->
+	<key>Crop</key><string>auto</string>
+	<!-- Widest picture sent to the headset; larger active areas are scaled down. -->
+	<key>MaxEncodeWidth</key><integer>5760</integer>
+	<!-- 0 = automatic (about 80 Mbit/s for 5.6K24, capped at 150). Raise for Wi-Fi 6E headroom tests. -->
+	<key>BitrateMbps</key><integer>0</integer>
+	<key>KeyframeIntervalSec</key><integer>2</integer>
+	<key>Port</key><integer>47810</integer>
+</dict>
+</plist>

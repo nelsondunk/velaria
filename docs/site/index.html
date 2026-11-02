@@ -1,0 +1,457 @@
+<title>Kalyx Docs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@800&family=Red+Hat+Text:wght@500;600;700&display=swap">
+<style>
+/* Layout: a fixed left rail of pages on wide screens, a top strip of chips on phones; one reading column of ~70ch. */
+:root {
+  --ground: #15181d; --step: #1d222a; --step-2: #262c35; --well: #0d0f13;
+  --ink: #f2f3f5; --ink-2: #9a9ea5; --rule: #ffffff14;
+  --copper: #e0a97a; --copper-ink: #15181d; --ice: #8fc1d9; --signal: #ff5a4d;
+  --display: "Saira Extra Condensed", "Saira", "Arial Narrow", system-ui, sans-serif;
+  --body: "Red Hat Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --ground: #f3f1ec; --step: #ffffff; --step-2: #e9e5dd; --well: #e2ded6; --ink: #1b1d22; --ink-2: #5d6168; --rule: #00000014;
+  --copper: #b8703f; --copper-ink: #ffffff; --ice: #2f6f8f; --signal: #c93a2e; color-scheme: light; } }
+:root[data-theme="light"] {
+  --ground: #f3f1ec; --step: #ffffff; --step-2: #e9e5dd; --well: #e2ded6; --ink: #1b1d22; --ink-2: #5d6168; --rule: #00000014;
+  --copper: #b8703f; --copper-ink: #ffffff; --ice: #2f6f8f; --signal: #c93a2e; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ground); }
+a { color: var(--copper); }
+.frame { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100%; }
+.rail { position: sticky; top: env(safe-area-inset-top, 0px); align-self: start; height: calc(100vh - env(safe-area-inset-top, 0px)); overflow: auto; padding-block: 28px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px; border-right: 1px solid var(--rule); background: var(--step); }
+.brand { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 30px; line-height: 1; letter-spacing: 0.02em; margin: 0 0 4px; }
+.brand small { display: block; font-family: var(--body); font-weight: 600; font-size: 12px; letter-spacing: 0.18em; color: var(--ink-2); margin-top: 8px; }
+.pages { list-style: none; margin: 28px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pages a { display: block; padding: 10px 12px; border-radius: 10px; color: var(--ink-2); text-decoration: none; font-weight: 600; }
+.pages a:hover { color: var(--ink); background: var(--step-2); }
+.pages a[aria-current="page"] { color: var(--copper-ink); background: linear-gradient(180deg, #f4cfa8 0%, #e3a676 42%, #cd8a5b 62%, #e2a878 100%); box-shadow: inset 0 1px 0 #ffffff99, inset 0 -1px 0 #7a442280; }
+.toc { margin: 22px 0 0; padding: 0; list-style: none; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.toc a { color: var(--ink-2); text-decoration: none; padding: 4px 12px; display: block; border-left: 2px solid var(--rule); border-radius: 0; }
+.toc a:hover { color: var(--ink); border-left-color: var(--copper); }
+.rail-foot { margin-top: 28px; font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+main { padding-block: 40px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.page { max-width: 72ch; margin: 0 auto; min-width: 0; }
+.page[hidden] { display: none; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--copper); margin: 0 0 10px; }
+h1 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(38px, 6vw, 64px); line-height: 0.95; letter-spacing: -0.005em; margin: 0 0 18px; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 30px; line-height: 1; margin: 48px 0 14px; padding-top: 22px; border-top: 1px solid var(--rule); text-wrap: balance; }
+h3 { font-size: 18px; margin: 28px 0 8px; }
+p, li { max-width: 70ch; }
+ul, ol { padding-left: 22px; }
+li { margin: 4px 0; }
+strong { font-weight: 700; }
+code { font-family: var(--mono); font-size: 0.88em; background: var(--step-2); padding: 1px 6px; border-radius: 6px; }
+pre { background: var(--well); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; margin: 12px 0; }
+.table-wrap { overflow-x: auto; }
+th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); font-weight: 700; }
+img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--rule); background: #15181d; margin: 18px 0 6px; display: block; }
+img + p em, p > em:only-child { color: var(--ink-2); font-size: 14px; }
+.note { border-left: 3px solid var(--ice); padding: 10px 14px; background: var(--step); border-radius: 0 10px 10px 0; margin: 18px 0; }
+.chips { display: none; }
+:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+@media (max-width: 860px) {
+  .frame { grid-template-columns: 1fr; }
+  .rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding-block: 18px; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .pages { flex-direction: row; flex-wrap: wrap; margin-top: 14px; }
+  .toc, .rail-foot { display: none; }
+  main { padding-block: 24px 64px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+<div class="frame">
+  <nav class="rail" aria-label="Pages">
+    <p class="brand">Kalyx<small>Alpha docs · 1.0.8</small></p>
+    <ul class="pages"><li><a href="#setup" data-page="setup">Setup</a></li><li><a href="#effects" data-page="effects">Effects in Resolve</a></li><li><a href="#headset" data-page="headset">Headset reference</a></li><li><a href="#regression" data-page="regression">Macro regression</a></li></ul>
+    <ul class="toc" data-page="setup" hidden><li><a href="#setup--what-you-need">What you need</a></li><li><a href="#setup--1-headset-developer-mode-once">1. Headset: developer mode (once)</a></li><li><a href="#setup--2-mac-install-kalyx-once">2. Mac: install Kalyx (once)</a></li><li><a href="#setup--3-resolve-point-it-at-the-headset-once-per-machine">3. Resolve: point it at the headset (once per machine)</a></li><li><a href="#setup--4-first-picture">4. First picture</a></li><li><a href="#setup--5-placing-things-from-the-headset">5. Placing things from the headset</a></li><li><a href="#setup--6-premiere-pro-and-after-effects-monitor-only">6. Premiere Pro and After Effects (monitor only)</a></li><li><a href="#setup--7-known-limits-in-this-alpha">7. Known limits in this alpha</a></li><li><a href="#setup--8-when-something-goes-wrong">8. When something goes wrong</a></li><li><a href="#setup--9-uninstall">9. Uninstall</a></li></ul><ul class="toc" data-page="effects" hidden><li><a href="#effects--1-footage-window-or-flat-title-kalyx-canvas-control">1. Footage window or flat title — Kalyx Canvas Control</a></li><li><a href="#effects--2-3d-title-with-real-depth-kalyx-3d-card-vine-salmon-hay-bale">2. 3D title with real depth — Kalyx 3D Card · Vine / Salmon / Hay Bale</a></li><li><a href="#effects--3-patches-and-re-orientation-kalyx-orient-360">3. Patches and re-orientation — Kalyx Orient 360</a></li><li><a href="#effects--4-a-trim-pass-from-the-headset-kalyx-trim">4. A trim pass from the headset — Kalyx Trim</a></li><li><a href="#effects--quick-answers">Quick answers</a></li></ul><ul class="toc" data-page="headset" hidden><li><a href="#headset--the-strip">The strip</a></li><li><a href="#headset--placement">Placement</a></li><li><a href="#headset--look">Look</a></li><li><a href="#headset--timeline">Timeline</a></li><li><a href="#headset--scopes">Scopes</a></li><li><a href="#headset--level-grid">Level grid</a></li><li><a href="#headset--driving-the-app-without-hands-for-bug-reports-and-tests">Driving the app without hands (for bug reports and tests)</a></li></ul><ul class="toc" data-page="regression" hidden><li><a href="#regression--how-it-runs">How it runs</a></li><li><a href="#regression--variants">Variants</a></li><li><a href="#regression--results">Results</a></li></ul>
+    <p class="rail-foot">Mac + DaVinci Resolve Studio + Meta Quest. Pictures of the headset UI are rendered by the app itself, so they match the build they ship with.</p>
+  </nav>
+  <main><article class="page" data-page="setup" hidden><p class="eyebrow">Kalyx alpha · Setup</p><h1>Kalyx alpha — setup guide</h1>
+<p>For alpha testers. Mac + DaVinci Resolve Studio + Meta Quest 3. About 20 minutes the first time; most of it is the headset's developer mode. If anything here doesn't match what you see, that is a bug in the guide as much as in the software — tell us.</p>
+<h2 id="what-you-need">What you need</h2>
+<ul>
+<li><strong>Mac</strong> (Apple silicon or Intel, macOS 13 or newer) with <strong>DaVinci Resolve Studio 19 or 20/21</strong>. The free Resolve has no Fusion macros on the Edit page and no video I/O, so it won't work.</li>
+<li><strong>Meta Quest 3</strong> (Quest 2 and Quest Pro run it; Quest 3 is what we test on), charged, on the same Wi-Fi as the Mac or plugged into it over USB-C. USB is the better experience.</li>
+<li><strong>A Meta account with developer mode</strong> (free). Steps below.</li>
+<li>The <strong>Kalyx alpha zip</strong> we sent you (<code>VR-Link-1.0.x.zip</code>).</li>
+</ul>
+<p><strong>One thing to know before you install:</strong> Kalyx works by being a <em>software Blackmagic card</em>. Resolve plays out to it exactly as it would to a DeckLink or UltraStudio. That means Kalyx and Blackmagic's own Desktop Video driver can't be active at the same time in this alpha. If you have a real Blackmagic card, the installer sets its driver aside and the uninstaller puts it back; you can switch by running the uninstaller. Both drivers at once is on the roadmap.</p>
+<h2 id="1-headset-developer-mode-once">1. Headset: developer mode (once)</h2>
+<ol>
+<li>On your phone, open the <strong>Meta Horizon</strong> app → <strong>Menu</strong> → <strong>Devices</strong> → your Quest → <strong>Headset settings</strong> → <strong>Developer mode</strong> → on. If the app asks you to create or join a developer organisation, do that first (developers.meta.com → <em>Create organisation</em>, any name) and come back.</li>
+<li>Plug the Quest into the Mac with a USB-C data cable (the charging cable that came with it works).</li>
+<li>Put the headset on. A dialog says <strong>Allow USB debugging?</strong> — tick <em>Always allow from this computer</em> and allow it. If you don't see it, unplug and plug in again with the headset on your head.</li>
+</ol>
+<h2 id="2-mac-install-kalyx-once">2. Mac: install Kalyx (once)</h2>
+<ol>
+<li>Unzip <code>VR-Link-1.0.x.zip</code> into your home folder or Downloads. Keep the folder; the installer and uninstaller live in it.</li>
+<li>Open <strong>Terminal</strong> and run the installer from inside the folder:</li>
+</ol>
+<p><code>cd ~/Downloads/VR-Link-1.0.x
+   sudo ./install.sh</code></p>
+<p>Enter your Mac password when asked. (The alpha isn't signed by Apple yet; the installer clears macOS's download quarantine on what it places. If macOS still shows a "cannot be opened because the developer cannot be verified" dialog, choose <em>Open Anyway</em> in System Settings ▸ Privacy &amp; Security, then run the installer again.) The installer prints what it does: driver in place, Resolve bridge and USB helper started, Fusion library (the Kalyx effects) installed, the title fonts (Montserrat) added to your user fonts, and — if the Quest is plugged in and debugging is allowed — the headset app installed too.
+3. If the Quest wasn't connected, plug it in later and run <code>sudo ./install.sh --headset</code> from the same folder. (The package carries its own copy of Google's <code>adb</code>, so there is nothing else to install; if you already have Android platform-tools, yours is used.)
+4. <strong>Restart Resolve</strong> if it was open. It reads the video I/O and the Fusion library at launch.</p>
+<h2 id="3-resolve-point-it-at-the-headset-once-per-machine">3. Resolve: point it at the headset (once per machine)</h2>
+<ol>
+<li><strong>DaVinci Resolve → Preferences → Video and Audio I/O → For capture and playback use → Kalyx (Quest)</strong>. Save; restart if asked.</li>
+<li><strong>Project Settings → Master Settings → Video Monitoring</strong>: set the monitoring resolution to <strong>7680 × 4320 Ultra HD</strong> and the format to your timeline's frame rate. VR180 and anything up to 8K UHD then goes to the headset 1:1.</li>
+<li><strong>Square 360 timelines only (over/under, e.g. 5760 × 5760):</strong> Resolve crops anything taller than the monitoring raster, so set <strong>Output scaling to 3840 × 3840</strong> in Timeline Settings while you monitor (and back before you deliver). Full-size square output is on the roadmap.</li>
+</ol>
+<h2 id="4-first-picture">4. First picture</h2>
+<ol>
+<li>Put the headset on and open <strong>Kalyx View</strong> (App Library → filter <em>Unknown sources</em>).</li>
+<li>The status line at the top reads <strong>Waiting to connect → USB · Resolve</strong> on its own. No pairing, no IP addresses. Over Wi-Fi it finds the Mac in a few seconds.</li>
+<li>Press play in Resolve. The timeline is in the headset, in step with Resolve's viewer. Scrub, park, play — it follows.</li>
+<li><strong>Look down</strong> to open the panels. Look back up past the horizon to close them. Grab a panel's top bar to put it where you like; the layout is remembered.</li>
+</ol>
+<p>If the status says <strong>Premiere / After Effects</strong> instead of Resolve, the Source is set to Adobe from an earlier test: View panel → SOURCE → <strong>Auto</strong>.</p>
+<h2 id="5-placing-things-from-the-headset">5. Placing things from the headset</h2>
+<ul>
+<li>Edit page → <strong>Effects → Kalyx</strong>. Drop <strong>Kalyx Canvas Control</strong> on a clip above your plate for a footage window (PIP) or a flat title; drop <strong>Kalyx 3D Card · Vine / Salmon / Hay Bale</strong> straight onto the plate for a 3D title with real depth. The Inspector has every control; the headset has the ones you want to do by hand.</li>
+<li>In the headset, the strip shows <strong>Overlays · Patches · Picture</strong>. On Overlays, pinch a card in the picture and move it, or tap its name and use the Placement panel's ring (pan), arc (tilt), throttles (distance, scale) and dials. Release, and Resolve re-renders: "Resolve updated in 0.4 s".</li>
+<li>Undo is Resolve's undo. Every change you make in the headset is a real change to the comp.</li>
+<li><strong>Patches</strong> (LatLong Patcher paint-outs) and <strong>Picture</strong> (PanoMap / Kalyx Orient 360 re-orientation) live on their own layers and stay out of your way until you switch to them; lock a patch so a stray pinch can't move it.</li>
+</ul>
+<h2 id="6-premiere-pro-and-after-effects-monitor-only">6. Premiere Pro and After Effects (monitor only)</h2>
+<p>Install the free <strong>NDI Tools</strong> (ndi.video/tools) first, then run <code>sudo ./install.sh --ndi</code> from the Kalyx folder (the installer only starts the Adobe path when NDI Tools is present). In Premiere or After Effects: <strong>Preferences → Playback → Mercury Transmit → enable NDI</strong>. The headset's Source on Auto finds it. You get the picture, frame-locked; placement controls for Adobe are on the roadmap.</p>
+<h2 id="7-known-limits-in-this-alpha">7. Known limits in this alpha</h2>
+<ul>
+<li>Mac only. Windows is being evaluated (same driver interface; different encoder path).</li>
+<li>Kalyx replaces Blackmagic Desktop Video while installed (see the note at the top).</li>
+<li>Square 360 timelines monitor at 3840 × 3840 (set output scaling); VR180 and ≤ 8K UHD are full size.</li>
+<li>Hand tracking is the main input; controllers work for pointing and pressing.</li>
+<li>Apple Vision Pro and Pico are not targets for the alpha.</li>
+</ul>
+<h2 id="8-when-something-goes-wrong">8. When something goes wrong</h2>
+<ul>
+<li>
+<p><strong>The headset tells you first.</strong> When the Mac side is set up wrong, the strip's status line shows a warning with the fix in Resolve's own menu words: <em>Timeline 5760x5760 exceeds the 7680x4320 monitor: Timeline Settings &gt; Output scaling &gt; 3840 x 3840</em>, <em>Monitoring 1920x1080, timeline 5760x2880: Project Settings &gt; Video Monitoring &gt; 7680 x 4320</em>, <em>Monitoring at 24 fps, timeline 29.97…</em>, or <em>No picture: DaVinci Resolve &gt; Preferences &gt; Video and Audio I/O &gt; Kalyx (Quest)</em>. The same line is in <code>~/Library/Logs/VRLink/bridge.out</code>. Fix it, and the line goes away on its own.</p>
+</li>
+<li>
+<p><strong>No "Kalyx (Quest)" in Video I/O:</strong> Resolve was open during install. Quit and relaunch it. Still missing: <code>ls /Library/Frameworks/DeckLinkAPI.framework</code> should exist — if not, run the installer again and send us its output.</p>
+</li>
+<li><strong>Headset says Waiting to connect:</strong> check the cable and that USB debugging was allowed with the headset on; over Wi-Fi, make sure the Mac and Quest are on the same network (guest networks isolate devices). The USB helper logs to <code>~/Library/Logs/VRLink/usb-tether.log</code>.</li>
+<li><strong>Picture but no panels / "bridge isn't running":</strong> the Resolve bridge is a small background service; <code>launchctl kickstart -k gui/$(id -u)/ca.skylightproductions.vrlink.bridge</code> restarts it. Its log is <code>~/Library/Logs/VRLink/bridge.out</code>.</li>
+<li><strong>Black screen in the headset or it won't open:</strong> quit the app from the Quest menu and open it again; if that fails, restart the headset and tell us the time it happened.</li>
+<li><strong>Send logs:</strong> run <code>./send-logs.sh</code> from the install folder. It zips the Mac logs, the versions, and (if the headset is plugged in) the headset's log onto your Desktop; attach that zip. The View tab in the headset also shows every version in play (app, Mac package, bridge, Resolve), so a screenshot of it answers the first three questions we'd ask.</li>
+</ul>
+<h2 id="9-uninstall">9. Uninstall</h2>
+<pre><code>cd ~/Downloads/VR-Link-1.0.x
+sudo ./install.sh --uninstall
+</code></pre>
+<p>Removes the driver (and restores Blackmagic's if it was set aside), the bridge, the NDI and USB helpers. The Kalyx effects stay in your Fusion library so existing projects keep working; delete <code>~/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates/Edit/Effects/Kalyx</code> and the <code>Kalyx *.setting</code> files in <code>…/Fusion/Macros</code> if you want them gone too. On the headset: Settings → Apps → Kalyx View → Uninstall.</p></article><article class="page" data-page="effects" hidden><p class="eyebrow">Kalyx alpha · Effects in Resolve</p><h1>Kalyx effects in Resolve — how-to</h1>
+<p>The three things you place with Kalyx, as they appear in Resolve's Inspector and in the headset. Resolve Studio 19+, Fusion library installed by the Kalyx installer (Edit page ▸ Effects ▸ <strong>Kalyx</strong>; Fusion page ▸ Effects Library ▸ Macros).</p>
+<h2 id="1-footage-window-or-flat-title-kalyx-canvas-control">1. Footage window or flat title — Kalyx Canvas Control</h2>
+<p>What it is: one node that places a rectangle on the sphere — footage (a PIP), a flat graphic, or a 3D scene — at a pan, tilt, distance and size, in true stereo.</p>
+<p><strong>Drop it on a clip above the plate</strong> (a stacked clip on V2 or higher), not on the plate itself: its output is the window on transparency, composited by the timeline. On the Fusion page it wants:</p>
+<ul>
+<li><em>Left / Mono Footage</em> ← the clip (MediaIn1). For stereo footage in two files, <em>Right Footage</em> ← the right clip and <strong>Mono/Stereo</strong> = Stereo. One file with both eyes: add a <strong>Splitter</strong> first (Vert for top/bottom, Horiz for side by side); Image1 → Left, Image2 → Right.</li>
+<li><em>Graphic</em> ← a Text+ or any flat title, when <strong>Window shows</strong> = Graphic (alpha kept, no mask or frame).</li>
+<li><em>3D Scene</em> ← a Kalyx 3D Title or your own FBX/OBJ scene, when <strong>Window shows</strong> = Nothing (3D only).</li>
+</ul>
+<p>Inspector pages:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Controls</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frame</td>
+<td>Window shows (Footage / Graphic / Nothing), Window Aspect (1.778 = 16:9), Window Size, Crop Sides, Crop Top &amp; Bottom, Frame Colour, Frame Thickness, Corner Radius</td>
+<td>Crop shrinks the window to the content (pillarbox / letterbox bars), nothing zooms. Window Aspect means the window keeps its shape on a square 360 timeline.</td>
+</tr>
+<tr>
+<td>Glow</td>
+<td>Glow Amount (0 = off), Glow Size, Glow Brightness</td>
+<td>The glow is a blurred copy of the footage behind the frame.</td>
+</tr>
+<tr>
+<td>Placement</td>
+<td>Yaw (Pan), Pitch (Tilt), Roll, Distance (−3 = 3 m in front), Object Turn / Tilt / Spin</td>
+<td>Yaw/Pitch/Roll move it on the sphere; Object Turn/Tilt/Spin rotate the window in its own plane.</td>
+</tr>
+<tr>
+<td>Stereo / Output</td>
+<td>Mono (0) / Stereo (1), Window Depth in Z, Equirect Width (per eye)</td>
+<td>Window Depth shifts convergence: + = toward the viewer. Output width 2880 per eye is the default; match your plate for pixel-exact composites.</td>
+</tr>
+</tbody>
+</table></div>
+<p>In the headset the window is on the <strong>Overlays</strong> layer: pinch it in the picture and move, or tap its name on the strip and use the Placement panel. The Look panel carries the Frame, Glow and Stereo pages.</p>
+<h2 id="2-3d-title-with-real-depth-kalyx-3d-card-vine-salmon-hay-bale">2. 3D title with real depth — Kalyx 3D Card · Vine / Salmon / Hay Bale</h2>
+<p>What it is: Canvas Control and a 3D title in one node, pre-wired. <strong>Drop it straight on the plate clip</strong> (or an adjustment clip): it composites the card over the plate itself. Output 2, <em>Card only</em>, is the card on transparency if you'd rather put it on its own track.</p>
+<p>Inspector pages:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Controls</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Placement</td>
+<td>Yaw, Pitch, Roll, Distance, Object Turn / Tilt / Spin</td>
+</tr>
+<tr>
+<td>Stereo / Output</td>
+<td>Mono / Stereo, Window Depth, Equirect Width</td>
+</tr>
+<tr>
+<td>Text</td>
+<td>Title (auto CAPS), Body Text, Title scale (1 = as designed)</td>
+</tr>
+<tr>
+<td>3D Model</td>
+<td>Show 3D Model, Model Kit Folder, Model Scale / Position X Y Z / Rotation X Y Z, Model Brightness / Contrast / Saturation</td>
+</tr>
+<tr>
+<td>Animation</td>
+<td>Animation Start (frame), Animation Length (×), Fade out after (seconds, 0 = never), Sway amount</td>
+</tr>
+<tr>
+<td>Environment</td>
+<td>Environment is over/under (left eye on top)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Animation: the title fades in over the first 24 frames, the plate grows from frame 8, the body text from 24, the model from 30 (all × Animation Length). The card then <strong>stays for the length of the clip</strong> unless <em>Fade out after</em> is set.</p>
+<p>Environment: the card's plate reflects the footage around it. The plate it is dropped on is the environment; tick <em>over/under</em> for a top/bottom stereo plate, untick for mono.</p>
+<p>Model Kit Folder: the folder holding the kit's FBX files and textures. Today these point at Skylight's project drives; on another Mac set this to wherever the kit lives, or turn <em>Show 3D Model</em> off.</p>
+<p>Building your own: on the Fusion page, <strong>Kalyx 3D Title · Vine</strong> (Macros) is the title alone, with a 3D Scene output and an <em>Environment</em> input; connect it to Canvas Control's <em>3D Scene</em> and set Window shows = Nothing. Any 3D scene built before Canvas Control (FBXMesh3D → materials → lights → Merge3D) goes into the same input; Kalyx places it, your scene lights it.</p>
+<h2 id="3-patches-and-re-orientation-kalyx-orient-360">3. Patches and re-orientation — Kalyx Orient 360</h2>
+<p>What it is: a stereo re-orientation of a top/bottom 360 plate at the <strong>end</strong> of the chain — after the LatLong Patcher paint-outs — so patches turn with the plate. Splits the eyes, PanoMaps both identically, recombines. Inputs: the T/B plate. Controls: Pan, Tilt, Roll (Placement page).</p>
+<p>Add it on the Fusion page, between the last patch/paint and MediaOut. (Dropped from the Edit page onto a clip that already has a comp, Resolve adds it unwired — wire it on the Fusion page.) A mono plate takes a plain PanoMap instead and shows up on the same headset layer.</p>
+<p>In the headset: the <strong>Picture</strong> layer shows Orient 360 / PanoMap with pan, tilt and roll; turn on the <strong>Level grid</strong> (View tab) and bring the horizon to the copper line. The <strong>Patches</strong> layer lists each LatLong Patcher window; lock the ones you don't want a stray pinch to move.</p>
+<h2 id="4-a-trim-pass-from-the-headset-kalyx-trim">4. A trim pass from the headset — Kalyx Trim</h2>
+<p>What it is: one Fusion ColorCorrector in a macro, meant for an <strong>adjustment clip</strong> on top of the stack so it sees every grade below it. Not a grading tool (the Quest panel is not a reference display); a trim you make on the device the audience will wear, that Resolve's colour page never sees and that you can throw away.</p>
+<ol>
+<li>Put an adjustment clip over the section (Effects ▸ Toolbox ▸ Effects ▸ Adjustment Clip) and drop <strong>Kalyx Trim</strong> on it from Effects ▸ Kalyx.</li>
+<li>Controls, all on one <em>Trim</em> page: Exposure (an offset, −0.5…+0.5), Lift, Gamma, Gain, Contrast, Saturation, <strong>Temperature</strong> (blue ↔ amber) and <strong>Tint</strong> (green ↔ magenta), both approximated with per-channel gain, and <strong>Amount</strong> (0 turns the trim off, for before/after). Every one of them keyframes and undoes like any other Resolve control.</li>
+<li>In the headset: the <strong>Picture</strong> layer lists the trim as <em>Trim</em>; its controls are bars on the Look panel's <strong>Trim</strong> tab. The Placement panel has nothing to place for it and says so.</li>
+<li>When the trim is right, either leave it (it renders in the export like any Fusion effect) or read the values off the Inspector and build them into the grade on the colour page.</li>
+</ol>
+<p>Why a Fusion node and not the colour page's own CDL: Resolve's scripting can <em>set</em> a node's CDL but not read it back, so the headset would be blind to the colourist's wheels and would overwrite them. The Fusion route is readable, writable, keyframeable, undoable, and it stacks on top of the real grade instead of replacing it.</p>
+<h2 id="quick-answers">Quick answers</h2>
+<ul>
+<li><em>The window is black / the card is a dark slab:</em> the macro in your comp is an old copy; delete it and drop the current one from Effects ▸ Kalyx (Resolve bakes a copy of the macro into each clip).</li>
+<li><em>White bars above and below the footage:</em> Window Aspect is 1.778 but the footage isn't 16:9 — set Window Aspect to the footage's ratio, or use Crop.</li>
+<li><em>The card ignores the headset:</em> the strip is on the wrong layer, or the group is locked (lock icon on its name).</li>
+<li><em>Nothing in Effects ▸ Kalyx:</em> Resolve reads the library at launch — restart it after installing.</li>
+</ul></article><article class="page" data-page="headset" hidden><p class="eyebrow">Kalyx alpha · Headset reference</p><h1>Kalyx View — headset reference</h1>
+<p>Every panel as the headset draws it (these pictures come from the app's own renderer, so they are the current UI, pixel for pixel). Hand tracking: pinch to press, pinch-and-hold to drag. Controllers: trigger to press. <strong>Look down</strong> to open the panels, look back up past the horizon to close them; grab a panel's top bar to move it, and it stays where you put it.</p>
+<h2 id="the-strip">The strip</h2>
+<p>Always on screen when the panels are open. Its job is to answer two questions at a glance: which layer am I on, and which thing will my hand move?</p>
+<p><img alt="Strip, Overlays layer, a card picked" src="ref/strip-overlays.png" /></p>
+<ul>
+<li><strong>Overlays · Patches · Picture</strong> — the layer control, with a count of what is at this frame. Overlays are titles and footage windows (pickable in the picture). Patches are LatLong Patcher windows. Picture is the whole sphere (PanoMap, Kalyx Orient 360) and the <strong>Kalyx Trim</strong> pass (its controls are on the Look panel's Trim tab).</li>
+<li>The four icons on the right show and hide the <strong>Placement</strong>, <strong>Look</strong>, <strong>Timeline</strong> and <strong>Scopes</strong> panels (raised = shown). The chevron rolls the strip up to its bar.</li>
+<li>Row two: one chip per thing on this layer; the copper one is what your hand moves. Only ever one. Arrows page through them; a lock on a name means it is locked.</li>
+<li><strong>Copy · Paste · Undo</strong> act on the picked chip. Undo is Resolve's undo.</li>
+<li>Below: timecode · track · clip · what the overlay is built from, then the ice status line: link (USB / Wi-Fi), software, and the last round trip ("Resolve updated in 0.4 s" or "Rendering… 1.2 s").</li>
+</ul>
+<p><img alt="Strip, Patches layer, a locked patch picked" src="ref/strip-patches.png" /></p>
+<p>On Patches nothing in the picture is pickable; tap a name instead. <strong>Locked</strong> on the right is the switch for the picked patch; locked patches show a lock on their name and the panels refuse changes until you unlock.</p>
+<p><img alt="Strip, nothing on this layer" src="ref/strip-empty.png" /></p>
+<p>An empty layer says why and offers the nearest overlay on either side, with its timecode: one pinch to jump there.</p>
+<p><img alt="Strip while Resolve renders" src="ref/strip-rendering.png" /></p>
+<p><img alt="Strip with a setup warning" src="ref/strip-setup-warning.png" /></p>
+<p>When Resolve's monitoring, output scaling or frame rate is wrong, or no picture arrives, the status line says so with the fix in Resolve's own menu words. Fix it and the line clears on its own.</p>
+<p><img alt="Strip on the Picture layer, the Trim pass picked" src="ref/strip-trim.png" /></p>
+<h2 id="placement">Placement</h2>
+<p><img alt="Placement panel for a card" src="ref/placement-card.png" /></p>
+<ul>
+<li><strong>Ring (Pan)</strong>: you are the centre, front is up (the white notch). Drag the dot around; the copper arc shows how far from front you are. Ticks every 15°.</li>
+<li><strong>Arc (Tilt)</strong>: side view, up is up; the white line is the horizon.</li>
+<li><strong>Throttles (Distance, Scale)</strong>: vertical, up = nearer / bigger, log scale with the real units printed beside the travel.</li>
+<li><strong>Dials (Roll, Card yaw / pitch / roll)</strong>: drag up or down to turn; tap the centre to zero. The value sits under the dial.</li>
+<li>The diamond beside a control is its keyframe: outline = not animated, white = animated, copper = a key on this frame.</li>
+<li>Or skip the panel: pinch a card in the picture and drag it; Pan and Tilt follow your hand.</li>
+</ul>
+<p><img alt="Placement panel for a patch window" src="ref/placement-patch.png" /></p>
+<p>For a patch or the whole picture the same panel shows the tool's rotations; a locked patch shows LOCKED and ignores drags.</p>
+<h2 id="look">Look</h2>
+<p><img alt="Look panel, Frame tab" src="ref/look-frame.png" /></p>
+<p>Tabs are the macro's own pages (Frame, Glow, Stereo…). Bars have nudge chips for exact steps; a 0/1 control is a switch; colours get a wheel with a brightness bar and a swatch.</p>
+<p><img alt="Look panel, View tab" src="ref/look-view.png" /></p>
+<p><img alt="Look panel, Trim tab" src="ref/look-trim.png" /></p>
+<p>A <strong>Kalyx Trim</strong> on an adjustment clip gets a Trim tab: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.</p>
+<p>The <strong>View</strong> tab is the app's own settings: stream and playback status; <strong>Source</strong> (Auto / Resolve / Premiere · After Effects); <strong>Picture</strong> (layout, projection, swap eyes, delay); <strong>Overlays</strong> (status bar, level grid, card outline); <strong>Panels</strong> (recentre, placed / follow, scopes on/off). Diagnostics at the bottom, and the versions line: headset build · Mac package · bridge (when it differs) · Resolve. Read that line out, or screenshot it, when you report anything.</p>
+<p><img alt="View tab with the fisheye lens presets" src="ref/look-fisheye.png" /></p>
+<p>With the fisheye projection the lens presets appear: Canon RF 5.2 mm (190°), Canon RF-S 3.9 mm (144°), 180°, 200°, 220°, and a ±5° trim.</p>
+<h2 id="timeline">Timeline</h2>
+<p><img alt="Timeline deck" src="ref/deck-timeline.png" /></p>
+<p>Clip lanes per track, the playhead in red, markers above. Scrub by dragging in the lanes; <strong>‹ Clip</strong> / <strong>Clip ›</strong> jump to clip edges; <strong>−1 / +1</strong> step a frame; the chip on the right zooms to All / 60 s / 10 s.</p>
+<h2 id="scopes">Scopes</h2>
+<p><img alt="Scopes, waveform and vectorscope" src="ref/scopes-waveform.png" /></p>
+<p>Measured on the Mac from the uncompressed frame Resolve (or the NDI sender) plays out, before it is encoded for the headset, so they read the monitoring signal itself. Waveform + vectorscope, RGB parade, or histograms. Lines at 0 / 25 / 50 / 75 / 100 are video range (64…940 on the 10-bit scale); the vectorscope carries the 75 % colour-bar targets and the skin-tone line.</p>
+<h2 id="level-grid">Level grid</h2>
+<p>Turn it on from the View tab (Overlays ▸ Level grid): a world-level copper horizon with yaw ticks and pitch lines over the footage. Use it with the Picture layer to re-level a shot: bring the real horizon to the line.</p>
+<h2 id="driving-the-app-without-hands-for-bug-reports-and-tests">Driving the app without hands (for bug reports and tests)</h2>
+<p>The app reads a text file once every half second and acts on it, so a scripted session can press, point and quit exactly where a tester did. From a Mac with the headset on USB:</p>
+<pre><code>adb shell &quot;echo 'press Copy' &gt; /sdcard/Android/data/ca.skylightproductions.vrlink/files/cmd.txt&quot;
+</code></pre>
+<p>Commands, one per line: <code>press &lt;Button&gt; [arg]</code> (button names as in the source: Copy, Paste, Undo, Tab, Layer, Lock, Jump, FovPreset…), <code>point &lt;panel&gt; &lt;u&gt; &lt;v&gt; [press]</code> (aim a fake hand from your head at panel texels u, v: 0 = strip, 1 = placement, 2 = look, 3 = timeline, 4 = scopes; <code>point off</code> clears it), <code>slider &lt;row&gt; &lt;0..1&gt;</code>, <code>throttle &lt;row&gt; &lt;0..1&gt;</code>, <code>ring &lt;row&gt; &lt;degrees&gt;</code>, <code>scrub &lt;0..1&gt;</code>, <code>tab &lt;n&gt;</code>, <code>open</code> / <code>close</code> (the panels), <code>roll &lt;panel&gt;</code>, <code>status</code> (one line to the log), <code>quit</code> (the Quest-menu quit path). The headset has to be on a head: the Quest shows a Guardian dialog on a desk and blocks launches behind it.</p></article><article class="page" data-page="regression" hidden><p class="eyebrow">Kalyx alpha · Macro regression</p><h1>Kalyx macro render regression</h1>
+<p>Every Kalyx macro rendered through DaVinci Resolve's export path (the one that fails with "The Fusion composition at … could not be processed successfully" when something is wrong), on a Mac that is not the one the macros were built on. First run: 31 Oct 2026 on NYC (macOS 26.3.1, Resolve 21.1.0.17, clean Kalyx 1.0.7 install, project "KALYX TEST").</p>
+<h2 id="how-it-runs">How it runs</h2>
+<ul>
+<li><code>macros/gen_regression.py</code> builds one Fusion comp per variant from the <code>.setting</code> files: <code>MediaIn1 → macro(s) → MediaOut1</code> with the variant's published inputs set on the inner tools. A comp must reference a macro's output by its <strong>inner</strong> tool (<code>Stack_Eyes_OverUnder.Output</code>); <code>MacroName.MainOutput1</code> imports but renders nothing.</li>
+<li>On the test Mac, <code>rq/s_regress.py</code> (driven by <code>rq.py</code>, Resolve's scripting API) keeps a scratch timeline <strong>Kalyx regression</strong> (5760 × 2880, project frame rate), one 60-frame clip per variant (a real BRAW clip from the project — generator clips cannot take an imported comp), imports the comp with <code>TimelineItem.ImportFusionComp</code>, renders frames 40–41 to <code>out/&lt;variant&gt;/</code> as a render job, and records the job status, the files produced and every ERROR line Resolve logged during that job in <code>result.json</code>.</li>
+<li>Pass = job Complete with a file on disk. Fail = job Failed, or no file, or a 4-minute timeout.</li>
+</ul>
+<h2 id="variants">Variants</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>what</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cc_ws0 / ws1 / ws2</td>
+<td>Kalyx Canvas Control, Window shows = Footage / Graphic / Nothing, footage and graphic fed from the clip</td>
+</tr>
+<tr>
+<td>title_Vine / Salmon / HayBale</td>
+<td>Kalyx 3D Title → Canvas Control's 3D Scene input, Window shows = Nothing (the only way a title becomes pixels)</td>
+</tr>
+<tr>
+<td>card_X_ws0 / ws1 / ws2</td>
+<td>Kalyx 3D Card (Vine, Salmon, Hay Bale), Window shows 0 / 1 / 2</td>
+</tr>
+<tr>
+<td>card_X_hold1</td>
+<td>fade out after 1 s (frame 40 is mid-fade)</td>
+</tr>
+<tr>
+<td>card_X_env0</td>
+<td>Environment not over/under</td>
+</tr>
+<tr>
+<td>card_X_out2</td>
+<td>output 2 (card only, transparent)</td>
+</tr>
+<tr>
+<td>card_Vine_missingkit</td>
+<td>kit folder pointed at a path that does not exist</td>
+</tr>
+<tr>
+<td>orient360</td>
+<td>Kalyx Orient 360, pan 30</td>
+</tr>
+<tr>
+<td>p_direct / p_inner / p_inner_ws0</td>
+<td>harness probes: pass-through, and Canvas Control via the inner output</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="results">Results</h2>
+<h3>Pass 1 — 31 Oct 2026 09:14–09:21, NYC as installed (Kalyx 1.0.7, no Montserrat, no Salmon kit)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>variant</th>
+<th>result</th>
+<th>seconds</th>
+<th>why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cc_ws0, cc_ws1, cc_ws2</td>
+<td><strong>PASS</strong></td>
+<td>5–7</td>
+<td>—</td>
+</tr>
+<tr>
+<td>orient360</td>
+<td><strong>PASS</strong></td>
+<td>4.5</td>
+<td>—</td>
+</tr>
+<tr>
+<td>title_Vine / Salmon / HayBale</td>
+<td>FAIL</td>
+<td>6–16</td>
+<td><code>Could not find font: Montserrat</code> → <code>Exception caught while executing Fusion algorithms: Fonts Not Found</code> → the whole scene chain "cannot get Parameter" → <strong>job fails</strong></td>
+</tr>
+<tr>
+<td>card_Vine_* (6)</td>
+<td>FAIL</td>
+<td>14–28</td>
+<td>same: fonts</td>
+</tr>
+<tr>
+<td>card_Salmon_* (6)</td>
+<td>FAIL</td>
+<td>4–8</td>
+<td>fonts, and <code>Could not locate pool item "/Volumes/Earth-1610/…/Salmon_Kit/…"</code> (the kit's textures) — plus the Alembic mesh was an absolute path, so even a ModelKit override could not have found the fish</td>
+</tr>
+<tr>
+<td>card_HayBale_* (6)</td>
+<td>FAIL</td>
+<td>16–41</td>
+<td>fonts, and <code>Could not locate pool item "/Volumes/The Baxter Building/2609…/HayBale_Kit/…"</code> (to be read again in pass 2; the folder does exist on NYC's mount)</td>
+</tr>
+<tr>
+<td>card_Vine_missingkit</td>
+<td>FAIL</td>
+<td>19.5</td>
+<td><code>FBX Error: "FBX SDK error: "Unexpected file type" while importing file</code> — a missing kit fails the export, it does not degrade to "no model"</td>
+</tr>
+<tr>
+<td>p_direct, p_inner, p_inner_ws0</td>
+<td>PASS</td>
+<td>4–7</td>
+<td>harness probes</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>What this says.</strong> The parts of the library that carry no outside dependency (Canvas Control, Orient 360) export cleanly on a Mac that is not Bruce. Everything with a 3D Title in it fails there, and fails the way Nelson's Salmon export failed: "The Fusion composition at … could not be processed successfully". Two causes, both ours, both now fixed in the source:</p>
+<ol>
+<li><strong>Fonts.</strong> The titles are set in Montserrat Medium and ExtraBold Italic. A Mac without them does not fall back to another face — Resolve's Text3D throws <em>Fonts Not Found</em> and the frame is refused. Fix: <code>fonts/Montserrat-{Medium,ExtraBoldItalic}.ttf</code> (SIL OFL, licence beside them) ship in the package and <code>install.sh</code> copies them to <code>~/Library/Fonts</code> (Resolve reads fonts at launch). On NYC they are installed by hand for pass 2.</li>
+<li><strong>Model kit paths.</strong> The Salmon title's Alembic mesh (<code>Salmon_Swim.abc</code>) was a bare absolute path on Earth-1610, unlike every other model file, which follows <code>CARD_CONTROLS.ModelKit</code>. <code>make_3dtitle.py</code> now rewrites every <code>ImportFile</code> / <code>Filename</code> under the kit's default folder into a kit-relative expression, and the three titles and three cards were regenerated and redeployed (Bruce and NYC libraries, dated backups in <code>Fusion-archive/2026-10-31</code>).</li>
+</ol>
+<p>Still open from this pass: the kits themselves (Vine 22 MB, Salmon 131 MB, Hay Bale 167 MB) live on project volumes. A tester gets a 3D Card only if the kit travels with the package or they point <em>Model Kit Folder</em> at a copy; a missing kit fails the export outright. That is the licence/bundling decision already on Nelson's list, now with sizes.</p>
+<h3>Pass 2 — fonts installed, Salmon kit copied to NYC, fixed macros — <strong>not yet run to completion</strong></h3>
+<p>Blocked by the test rig, not the library: after Resolve is quit and relaunched over ssh on the headless NYC, its UI ends up behind a modal (the scripting API answers queries but <code>GetCurrentPage()</code> is <code>None</code> and <code>AppendToTimeline</code> / <code>ImportFusionComp</code> / <code>AddRenderJob</code> return nothing). One relaunch out of four came up clean (page Edit, edits worked) and then a 26-clip <code>DeleteClips</code> raised a confirmation dialog that cannot be dismissed without a screen. Harness changes made for the re-run: no bulk deletes (clips are reused, comps replaced per item), <code>LoadFusionCompByName</code> after import, job status tolerant of <code>None</code>.</p>
+<p><strong>To finish pass 2 (five minutes once Resolve is sane):</strong> on NYC via screen sharing, dismiss whatever Resolve is showing, open <em>KALYX TEST</em>, then from Bruce: <code>ssh -4 nyc.local 'cd ~/kalyx-test/rq &amp;&amp; rm -rf out result.json &amp;&amp; nohup python3 rq.py s_regress.py &gt; regress.out 2&gt;&amp;1 &amp;'</code>; results land in <code>result.json</code>. Expected: every title/card variant passes except <code>card_Vine_missingkit</code> (by design) — and card_HayBale_* tells us whether the Hay Bale "pool item" line was a real missing file.</p></article></main>
+</div>
+<script>
+(function () {
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
+  var links = Array.prototype.slice.call(document.querySelectorAll('.pages a'));
+  var tocs = Array.prototype.slice.call(document.querySelectorAll('.toc'));
+  function show(id) {
+    var found = pages.some(function (p) { return p.dataset.page === id; });
+    if (!found) id = pages[0].dataset.page;
+    pages.forEach(function (p) { p.hidden = p.dataset.page !== id; });
+    links.forEach(function (a) { if (a.dataset.page === id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    tocs.forEach(function (t) { t.hidden = t.dataset.page !== id; });
+    try { localStorage.setItem('kalyx-docs-page', id); } catch (e) {}
+  }
+  function fromHash() {
+    var h = (location.hash || '').replace('#', '');
+    if (h) { var parts = h.split('--'); show(parts[0]); if (parts[1]) { var el = document.getElementById(parts[1]); if (el) el.scrollIntoView(); } return; }
+    var saved = null; try { saved = localStorage.getItem('kalyx-docs-page'); } catch (e) {}
+    show(saved || pages[0].dataset.page);
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>

@@ -1,0 +1,1346 @@
+{
+	Tools = ordered() {
+		SkylightFactCard360Salmon = MacroOperator {
+			Inputs = ordered() {
+				Pitch = InstanceInput {
+					Page = "Placement",
+					Source = "Pitch",
+					SourceOp = "CARD_CONTROLS"
+				},
+				TitleText = InstanceInput {
+					Page = "Text",
+					Source = "TitleText",
+					SourceOp = "CARD_CONTROLS"
+				},
+				AnimStart = InstanceInput {
+					Page = "Animation",
+					Source = "AnimStart",
+					SourceOp = "CARD_CONTROLS"
+				},
+				Sway = InstanceInput {
+					Page = "Animation",
+					Source = "Sway",
+					SourceOp = "CARD_CONTROLS"
+				},
+				HoldSeconds = InstanceInput {
+					Page = "Animation",
+					Source = "HoldSeconds",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelSat = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelSat",
+					SourceOp = "CARD_CONTROLS"
+				},
+				Yaw = InstanceInput {
+					Page = "Placement",
+					Source = "Yaw",
+					SourceOp = "CARD_CONTROLS"
+				},
+				AnimSpeed = InstanceInput {
+					Page = "Animation",
+					Source = "AnimSpeed",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelY = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelY",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelShow = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelShow",
+					SourceOp = "CARD_CONTROLS"
+				},
+				MainInput1 = InstanceInput {
+					Source = "Input",
+					SourceOp = "FB_FootageIn"
+				},
+				CardScale = InstanceInput {
+					Page = "Placement",
+					Source = "CardScale",
+					SourceOp = "CARD_CONTROLS"
+				},
+				BodyText = InstanceInput {
+					Page = "Text",
+					Source = "BodyText",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelKit = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelKit",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelBright = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelBright",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelContrast = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelContrast",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelX = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelX",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelScale = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelScale",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelZ = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelZ",
+					SourceOp = "CARD_CONTROLS"
+				},
+				Distance = InstanceInput {
+					Page = "Placement",
+					Source = "Distance",
+					SourceOp = "CARD_CONTROLS"
+				},
+				CardRoll = InstanceInput {
+					Page = "Placement",
+					Source = "CardRoll",
+					SourceOp = "CARD_CONTROLS"
+				},
+				CardTurn = InstanceInput {
+					Page = "Placement",
+					Source = "CardTurn",
+					SourceOp = "CARD_CONTROLS"
+				},
+				CardTip = InstanceInput {
+					Page = "Placement",
+					Source = "CardTip",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelRotY = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelRotY",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelRotX = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelRotX",
+					SourceOp = "CARD_CONTROLS"
+				},
+				ModelRotZ = InstanceInput {
+					Page = "3D Model",
+					Source = "ModelRotZ",
+					SourceOp = "CARD_CONTROLS"
+				}
+			},
+			ViewInfo = GroupInfo { Pos = { 109.640922546387, 86.2522506713867 } },
+			Tools = ordered() {
+				FB_PlateReflect = MtlReflect {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1100, 371.257568359375 } },
+					Inputs = {
+						["Reflection.GlancingStrength"] = Input {
+							Expression = "math.min(1, FB_PlateCTRL.NumberIn8*4)*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3)",
+							Value = 1
+						},
+						["Reflection.Color.Material"] = Input {
+							Source = "MaterialOutput",
+							SourceOp = "FB_ReflSphere"
+						},
+						BackgroundMaterial = Input {
+							Source = "MaterialOutput",
+							SourceOp = "FB_PlateMtl"
+						},
+						["Reflection.FaceOnStrength"] = Input {
+							Expression = "FB_PlateCTRL.NumberIn8*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3)",
+							Value = 0.503
+						},
+						MaterialID = Input { Value = 22 }
+					}
+				},
+				LIGHT_Spot2 = LightSpot {
+					Inputs = {
+						Intensity = Input { Value = 2 },
+						["Transform3DOp.Rotate.X"] = Input { Value = -28.3922664318234 },
+						ConeAngle = Input { Value = 19.84 },
+						["Transform3DOp.Translate.Z"] = Input { Value = 1.22891345883979 },
+						["Transform3DOp.Translate.Y"] = Input { Value = 1.3405768786646 },
+						["Transform3DOp.Translate.X"] = Input { Value = -3.71491596925519 },
+						["ShadowLightInputs3D.ConstantSoftness"] = Input { Value = 0.0094 },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024 },
+						["ShadowLightInputs3D.SoftnessType"] = Input { Value = FuID { "Constant" } },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 18.407515885774 },
+						Dropoff = Input { Value = 0 },
+						PenumbraAngle = Input { Value = 20 },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1 },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -69.6339023131877 },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 0 }
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 660, 173.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_PlateReflect_1 = MtlReflect {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1100, 417.457580566406 } },
+					Inputs = {
+						["Reflection.GlancingStrength"] = Input {
+							Expression = "math.min(1, FB_PlateCTRL.NumberIn8*4)*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3)",
+							Value = 1
+						},
+						["Reflection.Color.Material"] = Input {
+							Source = "MaterialOutput",
+							SourceOp = "FB_ReflSphere"
+						},
+						BackgroundMaterial = Input {
+							Source = "MaterialOutput",
+							SourceOp = "FB_PlateMtl_1"
+						},
+						["Reflection.FaceOnStrength"] = Input {
+							Expression = "FB_PlateCTRL.NumberIn8*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3)",
+							Value = 0.503
+						},
+						MaterialID = Input { Value = 24 }
+					}
+				},
+				FB_MergeL = Merge3D {
+					Inputs = {
+						SceneInput1 = Input {
+							Source = "Output",
+							SourceOp = "FB_OrbitL"
+						},
+						SceneInput2 = Input {
+							Source = "Output",
+							SourceOp = "FB_CamL"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 880, 371.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_Plate_1 = Shape3D {
+					Inputs = {
+						["Transform3DOp.ScaleLock"] = Input { Value = 0 },
+						["SurfacePlaneInputs.Width"] = Input {
+							Value = Number {
+								Value = 2.6
+							}
+						},
+						["Transform3DOp.Scale.X"] = Input { Expression = "math.max(0.001,(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))" },
+						MaterialInput = Input {
+							Source = "MaterialOutput",
+							SourceOp = "FB_PlateReflect_1"
+						},
+						["MtlStdInputs.MaterialID"] = Input { Value = 1 },
+						["SurfaceCubeInputs.Height"] = Input {
+							Expression = "FB_PlateCTRL.NumberIn2 * FB_PlateCTRL.NumberIn4",
+							Value = 0.623914285714286
+						},
+						["SurfaceCubeInputs.Depth"] = Input { Value = 0.55 },
+						["SurfaceCubeInputs.SizeLock"] = Input { Value = 0 },
+						["SurfaceSphereInputs.ObjectID.ObjectID"] = Input {
+							Value = Number {
+								Value = 3
+							}
+						},
+						["MtlStdInputs.Specular.Nest"] = Input { Value = 1 },
+						["SurfaceCubeInputs.Width"] = Input {
+							Expression = "FB_PlateCTRL.NumberIn1 * FB_PlateCTRL.NumberIn3",
+							Value = 2.52
+						},
+						["MtlStdInputs.Diffuse.Color.Blue"] = Input { Value = 0.294117647058824 },
+						["MtlStdInputs.Diffuse.Color.Green"] = Input { Value = 0.290196078431373 },
+						["MtlStdInputs.Diffuse.Color.Red"] = Input { Value = 0.294117647058824 },
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input {
+							Value = Number {
+								Value = 1
+							}
+						},
+						["SurfaceCubeInputs.ObjectID.ObjectID"] = Input { Value = 2 },
+						Shape = Input { Value = FuID { "SurfaceCubeInputs" } },
+						["Transform3DOp.Translate.Z"] = Input { Value = -0.2010112 },
+						["Transform3DOp.Translate.Y"] = Input { Value = 0.0748815989870762 }
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -880, 417.457580566406 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_PlateTex_1 = Background {
+					Inputs = {
+						TopLeftRed = Input { Value = 0.129 },
+						GlobalOut = Input { Value = 119 },
+						Height = Input { Value = 512 },
+						TopLeftBlue = Input { Value = 0.029 },
+						Width = Input { Value = 512 },
+						TopLeftGreen = Input { Value = 0.139 }
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1540, 417.457580566406 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_EnvProbe = Custom {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1100, 8.257568359375 } },
+					Inputs = {
+						LUTIn2 = Input {
+							Source = "Value",
+							SourceOp = "CustomTool1LUTIn21"
+						},
+						NumberIn3 = Input {
+							Source = "Result",
+							SourceOp = "FB_EnvProbe_Blue"
+						},
+						LUTIn1 = Input {
+							Source = "Value",
+							SourceOp = "CustomTool1LUTIn11"
+						},
+						NumberIn2 = Input {
+							Source = "Result",
+							SourceOp = "FB_EnvProbe_Green"
+						},
+						NumberIn1 = Input {
+							Source = "Result",
+							SourceOp = "FB_EnvProbe_Red"
+						},
+						NameforNumber3 = Input { Value = "Env Blue" },
+						NameforNumber2 = Input { Value = "Env Green" },
+						LUTIn3 = Input {
+							Source = "Value",
+							SourceOp = "CustomTool1LUTIn31"
+						},
+						NameforNumber1 = Input { Value = "Env Red" },
+						LUTIn4 = Input {
+							Source = "Value",
+							SourceOp = "CustomTool1LUTIn41"
+						}
+					}
+				},
+				FB_EnvProbe_Red = Probe {
+					Inputs = {
+						ProbeRectangle = Input { Value = 1 },
+						ImageToProbe = Input {
+							Source = "Output",
+							SourceOp = "FB_ReflBlur"
+						},
+						Height = Input { Value = 1 },
+						Width = Input { Value = 1 }
+					},
+					PassThrough = true,
+					NameSet = true,
+					CtrlWZoom = false
+				},
+				FB_EnvProbe_Green = Probe {
+					Inputs = {
+						Height = Input { Value = 1 },
+						ProbeRectangle = Input { Value = 1 },
+						Channel = Input { Value = 1 },
+						ImageToProbe = Input {
+							Source = "Output",
+							SourceOp = "FB_ReflBlur"
+						},
+						Width = Input { Value = 1 }
+					},
+					PassThrough = true,
+					NameSet = true,
+					CtrlWZoom = false
+				},
+				FB_EnvProbe_Blue = Probe {
+					Inputs = {
+						Height = Input { Value = 1 },
+						ProbeRectangle = Input { Value = 1 },
+						Channel = Input { Value = 2 },
+						ImageToProbe = Input {
+							Source = "Output",
+							SourceOp = "FB_ReflBlur"
+						},
+						Width = Input { Value = 1 }
+					},
+					PassThrough = true,
+					NameSet = true,
+					CtrlWZoom = false
+				},
+				CustomTool1LUTIn11 = LUTBezier {
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.333333333333333, 0.333333333333333 } },
+							{ 1, Flags = { Linear = true }, LH = { 0.666666666666667, 0.666666666666667 } }
+						}
+					},
+					SplineColor = { Red = 0, Blue = 0, Green = 0 },
+					CtrlWZoom = false
+				},
+				CustomTool1LUTIn21 = LUTBezier {
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.333333333333333, 0.333333333333333 } },
+							{ 1, Flags = { Linear = true }, LH = { 0.666666666666667, 0.666666666666667 } }
+						}
+					},
+					SplineColor = { Red = 0, Blue = 0, Green = 0 },
+					CtrlWZoom = false
+				},
+				CustomTool1LUTIn31 = LUTBezier {
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.333333333333333, 0.333333333333333 } },
+							{ 1, Flags = { Linear = true }, LH = { 0.666666666666667, 0.666666666666667 } }
+						}
+					},
+					SplineColor = { Red = 0, Blue = 0, Green = 0 },
+					CtrlWZoom = false
+				},
+				CustomTool1LUTIn41 = LUTBezier {
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.333333333333333, 0.333333333333333 } },
+							{ 1, Flags = { Linear = true }, LH = { 0.666666666666667, 0.666666666666667 } }
+						}
+					},
+					SplineColor = { Red = 0, Blue = 0, Green = 0 },
+					CtrlWZoom = false
+				},
+				FB_Combiner = Combiner {
+					Inputs = {
+						Combine = Input { Value = FuID { "Vert" } },
+						Image1 = Input {
+							Source = "Output",
+							SourceOp = "FB_RendererL"
+						},
+						Image2 = Input {
+							Source = "Output",
+							SourceOp = "FB_RendererR"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 1320, 404.257568359375 } },
+					CustomData = { ToolVersion = 1, SxSFilename = "/Users/nelsondunk/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates/My Templates/Skylight Fact Bubble Kit w 3D Model.setting", Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				CustomTool1LUTIn4 = LUTBezier {
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.333333333333333, 0.333333333333333 } },
+							{ 1, Flags = { Linear = true }, LH = { 0.666666666666667, 0.666666666666667 } }
+						}
+					},
+					SplineColor = { Red = 0, Blue = 0, Green = 0 },
+					CtrlWZoom = false
+				},
+				FB_TitleMtl = MtlCookTorrance {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1540, 212.857559204102 } },
+					Inputs = {
+						MaterialID = Input { Value = 25 },
+						["Specular.Intensity"] = Input { Value = 0.6 },
+						["Diffuse.Color.Green"] = Input { Value = 0.78 },
+						["Specular.Roughness"] = Input { Value = 0.25 },
+						["Diffuse.Color.Blue"] = Input { Value = 0.08 }
+					}
+				},
+				FB_FootageIn = PipeRouter {
+					CtrlWShown = false,
+					ViewInfo = PipeRouterInfo { Pos = { -586, 39.7423706054688 } },
+					CtrlWZoom = false
+				},
+				FB_Title = Text3D {
+					Inputs = {
+						Extrusion = Input { Value = 1 },
+						BlueBevel = Input { Value = 0.168627450980392 },
+						["Transform3DOp.Translate.Z"] = Input { Value = 0.369140720055241 },
+						["Transform3DOp.Translate.Y"] = Input {
+							Expression = "FB_Plate.Transform3DOp.Translate.Y + FB_PlateCTRL.NumberIn2/2 + FB_PlateCTRL.NumberIn5",
+							Value = 0.2315
+						},
+						RedBevel = Input { Value = 0.333333333333333 },
+						Font = Input { Value = "Montserrat" },
+						StyledText = Input { Expression = "Text(string.upper(CARD_CONTROLS.TitleText.Value))" },
+						Green1 = Input { Value = 0.576 },
+						Opacity1 = Input { Expression = "(math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(24*CARD_CONTROLS.AnimSpeed))))^2*(3-2*(math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(24*CARD_CONTROLS.AnimSpeed)))))" },
+						VerticalTopCenterBottom = Input { Value = 1 },
+						AdvancedFontControls = Input { Value = 1 },
+						Size = Input { Value = 0.39 },
+						Comments = Input { Value = "Mechanical\nGrape Harvesting" },
+						ExtrusionDepth = Input { Value = 0.1482 },
+						HorizontalJustificationNew = Input { Value = 3 },
+						UseOneMaterial = Input { Value = 0 },
+						Style = Input { Value = "ExtraBold Italic" },
+						GreenBevel = Input { Value = 0.419607843137255 },
+						VerticalJustification = Input { Value = 3 },
+						CharacterSpacing = Input { Value = 0.963 },
+						VerticalJustificationNew = Input { Value = 3 },
+						LineSpacing = Input { Value = 0.737 },
+						Red1 = Input { Value = 0.959 },
+						Blue1 = Input { Value = 0.003 },
+						ExtrusionProfile = Input {
+							Source = "Value",
+							SourceOp = "FB_TitleExtrusionProfile"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1325.55895996094, 150.517562866211 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_TitleExtrusionProfile = LUTBezier {
+					SplineColor = { Red = 0, Blue = 255, Green = 180 },
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.0666666666666667, 0.333333333333333 } },
+							[0.2] = { 1, Flags = { Linear = true }, LH = { 0.133333333333333, 0.666666666666667 }, RH = { 0.4, 1 } },
+							[0.8] = { 1, Flags = { Linear = true }, LH = { 0.6, 1 }, RH = { 0.866666666666667, 0.666666666666667 } },
+							{ 0, Flags = { Linear = true }, LH = { 0.933333333333333, 0.333333333333333 } }
+						}
+					},
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } },
+					CtrlWZoom = false
+				},
+				FB_EnvLeftEye = Crop {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -440, 37.6453704833984 } },
+					Inputs = {
+						YOffset = Input { Value = 2880 },
+						XSize = Input { Value = 5760 },
+						YSize = Input { Value = 2880 },
+						Input = Input {
+							Source = "Output",
+							SourceOp = "FB_FootageIn"
+						}
+					}
+				},
+				FB_CamL = SphericalCamera3D {
+					Inputs = {
+						["Stereo.Mode"] = Input { Value = FuID { "ToeIn" } }
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 660, 344.857574462891 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_PlaceL = Transform3D {
+					Inputs = {
+						["Transform3DOp.Translate.X"] = Input { Value = -0.05 },
+						["Transform3DOp.Translate.Z"] = Input {
+							Expression = "-CARD_CONTROLS.Distance",
+							Value = -3
+						},
+						SceneInput = Input {
+							Source = "Output",
+							SourceOp = "FB_Scene"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 440, 371.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_PlateTex = Background {
+					Inputs = {
+						TopLeftRed = Input { Value = 0.337254901960784 },
+						GlobalOut = Input { Value = 1119 },
+						Height = Input { Value = 512 },
+						GlobalIn = Input { Value = 7 },
+						Width = Input { Value = 512 },
+						TopLeftBlue = Input { Value = 0.0431372549019608 },
+						TopLeftGreen = Input { Value = 0.349019607843137 }
+					},
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } },
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1540, 371.257568359375 } },
+					ExtentSet = true
+				},
+				FB_EnvSmall = BetterResize {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 0, 8.257568359375 } },
+					Inputs = {
+						Height = Input { Value = 512 },
+						Width = Input { Value = 1024 },
+						HiQOnly = Input { Value = 0 },
+						Input = Input {
+							Source = "Output",
+							SourceOp = "FB_EnvLeftEye"
+						},
+						PixelAspect = Input { Value = { 1, 1 } }
+					}
+				},
+				FB_PlateMtl = MtlCookTorrance {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1320, 371.257568359375 } },
+					Inputs = {
+						["Diffuse.Opacity"] = Input { Expression = "(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3)" },
+						["Diffuse.Color.Material"] = Input {
+							Source = "Output",
+							SourceOp = "FB_PlateTex"
+						},
+						["Specular.Intensity"] = Input { Value = 0.35 },
+						["Specular.Roughness"] = Input { Value = 0.28 },
+						MaterialID = Input { Value = 4 }
+					}
+				},
+				FB_Scene = Merge3D {
+					Inputs = {
+						SceneInput3 = Input {
+							Source = "Output",
+							SourceOp = "FB_Body"
+						},
+						["Transform3DOp.Rotate.X"] = Input { Expression = "CARD_CONTROLS.CardTip + CARD_CONTROLS.Sway*1.5*math.sin(time*2*math.pi/310)" },
+						SceneInput7 = Input {
+							Source = "Output",
+							SourceOp = "LIGHT_Key"
+						},
+						["Transform3DOp.Scale.X"] = Input {
+							Expression = "CARD_CONTROLS.CardScale*(1-0.12*math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-60*CARD_CONTROLS.AnimSpeed-CARD_CONTROLS.HoldSeconds*30)/(18*CARD_CONTROLS.AnimSpeed))))",
+							Value = 0.852
+						},
+						SceneInput10 = Input {
+							Source = "Output",
+							SourceOp = "FB_Plate_1"
+						},
+						SceneInput9 = Input {
+							Source = "Output",
+							SourceOp = "LIGHT_Spot2"
+						},
+						SceneInput6 = Input {
+							Source = "Output",
+							SourceOp = "MODEL_Transform"
+						},
+						SceneInput5 = Input {
+							Source = "Output",
+							SourceOp = "LIGHT_Fill_EnvTinted"
+						},
+						SceneInput1 = Input {
+							Source = "Output",
+							SourceOp = "FB_Plate"
+						},
+						SceneInput8 = Input {
+							Source = "Output",
+							SourceOp = "LIGHT_Spot1"
+						},
+						SceneInput2 = Input {
+							Source = "Output",
+							SourceOp = "FB_TitleNewMtl"
+						},
+						["Transform3DOp.Rotate.Y"] = Input {
+							Expression = "CARD_CONTROLS.CardTurn + CARD_CONTROLS.Sway*3.5*math.sin(time*2*math.pi/240)",
+							Value = -25
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 220, 404.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_RendererL = Renderer3D {
+					Inputs = {
+						["RendererSoftware.ShadowsEnabled"] = Input { Value = 1 },
+						GlobalOut = Input { Value = 119 },
+						SceneInput = Input {
+							Source = "Output",
+							SourceOp = "FB_MergeL"
+						},
+						Height = Input {
+							Expression = "FB_RendererL.Width/2",
+							Value = 1440
+						},
+						["RendererOpenGL.AntiAliasing.Presets.Aux.Supersampling.HighQuality.Rate"] = Input {
+							Value = Number {
+								Value = 3
+							}
+						},
+						["RendererOpenGL.AntiAliasing.Presets.Aux.Multisampling.HighQuality.SampleCount"] = Input {
+							Value = Number {
+								Value = 3
+							}
+						},
+						["RendererSoftware.LightingEnabled"] = Input { Value = 1 },
+						["RendererOpenGL.AntiAliasing.Presets.Color.Multisampling.LowQuality.SampleCount"] = Input {
+							Value = Number {
+								Value = 2
+							}
+						},
+						["RendererOpenGL.AntiAliasing.Channels.RGBA.HighQuality.Enable"] = Input {
+							Value = Number {
+								Value = 1
+							}
+						},
+						["RendererOpenGL.LightingEnabled"] = Input {
+							Value = Number {
+								Value = 1
+							}
+						},
+						["RendererOpenGL.ShadowsEnabled"] = Input {
+							Value = Number {
+								Value = 1
+							}
+						},
+						["RendererOpenGL.AccumQuality"] = Input {
+							Value = Number {
+								Value = 32
+							}
+						},
+						Width = Input { Value = 2880 },
+						["RendererOpenGL.AntiAliasing.Presets.Color.Supersampling.HighQuality.Rate"] = Input {
+							Value = Number {
+								Value = 3
+							}
+						},
+						["RendererOpenGL.AntiAliasing.Presets.Color.Multisampling.HighQuality.SampleCount"] = Input {
+							Value = Number {
+								Value = 3
+							}
+						},
+						["RendererOpenGL.AntiAliasing.Presets.Aux.Multisampling.LowQuality.SampleCount"] = Input {
+							Value = Number {
+								Value = 2
+							}
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 1100, 371.257568359375 } },
+					CustomData = { ToolVersion = 1, Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				CustomTool1LUTIn2 = LUTBezier {
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.333333333333333, 0.333333333333333 } },
+							{ 1, Flags = { Linear = true }, LH = { 0.666666666666667, 0.666666666666667 } }
+						}
+					},
+					SplineColor = { Red = 0, Blue = 0, Green = 0 },
+					CtrlWZoom = false
+				},
+				CustomTool1LUTIn1 = LUTBezier {
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.333333333333333, 0.333333333333333 } },
+							{ 1, Flags = { Linear = true }, LH = { 0.666666666666667, 0.666666666666667 } }
+						}
+					},
+					SplineColor = { Red = 0, Blue = 0, Green = 0 },
+					CtrlWZoom = false
+				},
+				FB_TitleReflect = MtlReflect {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1320, 212.857559204102 } },
+					Inputs = {
+						["Reflection.GlancingStrength"] = Input {
+							Expression = "math.min(1, FB_PlateCTRL.NumberIn8*3)*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(30*CARD_CONTROLS.AnimSpeed))))^3)",
+							Value = 1
+						},
+						["Reflection.Color.Material"] = Input {
+							Source = "MaterialOutput",
+							SourceOp = "FB_ReflSphere"
+						},
+						BackgroundMaterial = Input {
+							Source = "MaterialOutput",
+							SourceOp = "FB_TitleMtl"
+						},
+						["Reflection.FaceOnStrength"] = Input {
+							Expression = "FB_PlateCTRL.NumberIn8*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(30*CARD_CONTROLS.AnimSpeed))))^3)",
+							Value = 0.503
+						},
+						MaterialID = Input { Value = 26 }
+					}
+				},
+				FB_CardOverPlate = Merge {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 1540, 404.257568359375 } },
+					Inputs = {
+						Blend = Input { Expression = "1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-60*CARD_CONTROLS.AnimSpeed-CARD_CONTROLS.HoldSeconds*30)/(18*CARD_CONTROLS.AnimSpeed)))" },
+						PerformDepthMerge = Input { Value = 0 },
+						Foreground = Input {
+							Source = "Output",
+							SourceOp = "FB_Combiner"
+						},
+						Background = Input {
+							Source = "Output",
+							SourceOp = "FB_FootageIn"
+						}
+					}
+				},
+				FB_MergeR = Merge3D {
+					Inputs = {
+						SceneInput1 = Input {
+							Source = "Output",
+							SourceOp = "FB_OrbitR"
+						},
+						SceneInput2 = Input {
+							Source = "Output",
+							SourceOp = "FB_CamR"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 880, 437.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_BodyExtrusionProfile = LUTBezier {
+					SplineColor = { Red = 180, Blue = 0, Green = 255 },
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.0666666666666667, 0.333333333333333 } },
+							[0.2] = { 1, Flags = { Linear = true }, LH = { 0.133333333333333, 0.666666666666667 }, RH = { 0.4, 1 } },
+							[0.8] = { 1, Flags = { Linear = true }, LH = { 0.6, 1 }, RH = { 0.866666666666667, 0.666666666666667 } },
+							{ 0, Flags = { Linear = true }, LH = { 0.933333333333333, 0.333333333333333 } }
+						}
+					},
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } },
+					CtrlWZoom = false
+				},
+				FB_TitleNewMtl = ReplaceMaterial3D {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1100, 173.257568359375 } },
+					Inputs = {
+						["MtlStdInputs.MaterialID"] = Input { Value = 27 },
+						SceneInput = Input {
+							Source = "Output",
+							SourceOp = "FB_Title"
+						},
+						MaterialInput = Input {
+							Source = "MaterialOutput",
+							SourceOp = "FB_TitleReflect"
+						},
+						Enable = Input { Value = 0 }
+					}
+				},
+				LIGHT_Spot1 = LightSpot {
+					Inputs = {
+						Enabled = Input { Value = 0 },
+						["Transform3DOp.Rotate.X"] = Input { Value = -46.3163954992778 },
+						ConeAngle = Input { Value = 90 },
+						["Transform3DOp.Translate.Z"] = Input { Value = 4.0691047691091 },
+						["Transform3DOp.Translate.Y"] = Input { Value = 2.57569308682183 },
+						["Transform3DOp.Translate.X"] = Input { Value = -5.46810444432276 },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024 },
+						["ShadowLightInputs3D.SoftnessType"] = Input { Value = FuID { "Constant" } },
+						Intensity = Input { Value = 0.9 },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 34.4896793913814 },
+						Dropoff = Input { Value = 1.25 },
+						PenumbraAngle = Input { Value = 9.45 },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1 },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -36.7634131079193 },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 1 }
+					},
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } },
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 440, 173.257568359375 } },
+					CtrlWZoom = false
+				},
+				FB_Plate = Shape3D {
+					Inputs = {
+						["Transform3DOp.ScaleLock"] = Input { Value = 0 },
+						["SurfacePlaneInputs.Width"] = Input {
+							Value = Number {
+								Value = 2.6
+							}
+						},
+						["Transform3DOp.Scale.X"] = Input { Expression = "math.max(0.001,(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))" },
+						MaterialInput = Input {
+							Source = "MaterialOutput",
+							SourceOp = "FB_PlateReflect"
+						},
+						["MtlStdInputs.MaterialID"] = Input { Value = 1 },
+						["SurfaceCubeInputs.Height"] = Input {
+							Expression = "FB_PlateCTRL.NumberIn2",
+							Value = 0.753
+						},
+						["SurfaceCubeInputs.Depth"] = Input { Value = 0.55 },
+						["SurfaceCubeInputs.SizeLock"] = Input { Value = 0 },
+						["SurfaceSphereInputs.ObjectID.ObjectID"] = Input {
+							Value = Number {
+								Value = 3
+							}
+						},
+						["SurfaceCubeInputs.Width"] = Input {
+							Expression = "FB_PlateCTRL.NumberIn1",
+							Value = 2.88
+						},
+						["MtlStdInputs.Diffuse.Color.Blue"] = Input { Value = 0.294117647058824 },
+						["MtlStdInputs.Diffuse.Color.Green"] = Input { Value = 0.290196078431373 },
+						["MtlStdInputs.Diffuse.Color.Red"] = Input { Value = 0.294117647058824 },
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input {
+							Value = Number {
+								Value = 1
+							}
+						},
+						["SurfaceCubeInputs.ObjectID.ObjectID"] = Input { Value = 2 },
+						Shape = Input { Value = FuID { "SurfaceCubeInputs" } },
+						["Transform3DOp.Translate.Z"] = Input { Value = -0.316431593201029 },
+						["Transform3DOp.Translate.Y"] = Input { Value = 0.0748815989870762 }
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -880, 371.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_CamR = SphericalCamera3D {
+					Inputs = {
+						["Stereo.Mode"] = Input { Value = FuID { "ToeIn" } }
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 660, 463.657562255859 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_ReflSphere = SphereMap {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 220, 8.257568359375 } },
+					Inputs = {
+						Image = Input {
+							Source = "Output",
+							SourceOp = "FB_ReflBlur"
+						},
+						["Rotate.X"] = Input { Value = -40 },
+						MaterialID = Input { Value = 3 }
+					}
+				},
+				LIGHT_Fill_EnvTinted = LightAmbient {
+					Inputs = {
+						Intensity = Input { Value = 0.15 },
+						["Transform3DOp.Translate.Z"] = Input { Value = -1.16232127296343 },
+						["Transform3DOp.Translate.Y"] = Input { Value = 1.857 },
+						Green = Input { Value = 0.93 },
+						Blue = Input { Value = 1.0 },
+						Red = Input { Value = 0.885 }
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 0, 173.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				MODEL_RimLight = LightSpot {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -660, 678.157531738281 } },
+					Inputs = {
+						Intensity = Input { Value = 2.2 },
+						["Transform3DOp.Translate.Z"] = Input { Value = -7.03274132244912 },
+						["Transform3DOp.Translate.Y"] = Input { Value = 2.8 },
+						["Transform3DOp.Translate.X"] = Input { Value = 0.514118631727952 },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024 },
+						["Transform3DOp.Target.Y"] = Input { Value = 1.2 },
+						["Transform3DOp.UseTarget"] = Input { Value = 1 },
+						Green = Input { Value = 0.93 },
+						Blue = Input { Value = 0.78 }
+					}
+				},
+				MODEL_SkyFill = LightSpot {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -660, 635.257568359375 } },
+					Inputs = {
+						Enabled = Input { Value = 0 },
+						ConeAngle = Input { Value = 38 },
+						["Transform3DOp.Translate.Z"] = Input { Value = 3 },
+						["Transform3DOp.Translate.Y"] = Input { Value = 2.4 },
+						["Transform3DOp.Translate.X"] = Input { Value = -2 },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024 },
+						["Transform3DOp.Target.Y"] = Input { Value = 1 },
+						["Transform3DOp.UseTarget"] = Input { Value = 1 },
+						Blue = Input { Value = 0.980392156862745 },
+						Intensity = Input { Value = 0.8 }
+					}
+				},
+				FB_OrbitL = Transform3D {
+					Inputs = {
+						["Transform3DOp.Rotate.Z"] = Input {
+							Expression = "CARD_CONTROLS.CardRoll",
+							Value = -5
+						},
+						["Transform3DOp.Rotate.X"] = Input {
+							Expression = "CARD_CONTROLS.Pitch",
+							Value = 15
+						},
+						["Transform3DOp.Rotate.Y"] = Input {
+							Expression = "CARD_CONTROLS.Yaw",
+							Value = -60.9
+						},
+						SceneInput = Input {
+							Source = "Output",
+							SourceOp = "FB_PlaceL"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 660, 371.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_PlaceR = Transform3D {
+					Inputs = {
+						["Transform3DOp.Translate.X"] = Input {
+							Expression = "-FB_PlaceL.Transform3DOp.Translate.X",
+							Value = 0.05
+						},
+						["Transform3DOp.Translate.Z"] = Input {
+							Expression = "-CARD_CONTROLS.Distance",
+							Value = -3
+						},
+						SceneInput = Input {
+							Source = "Output",
+							SourceOp = "FB_Scene"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 440, 437.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_PlateCTRL = Custom {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1320, 8.257568359375 } },
+					Inputs = {
+						NumberIn3 = Input { Value = 0.875 },
+						NameforNumber4 = Input { Value = "Body Plate Height Ratio" },
+						NumberIn2 = Input {
+							Expression = "self.NumberIn6 + math.ceil(string.len(FB_Body.StyledText.Value) / self.NumberIn7) * FB_Body.Size * FB_Body.LineSpacing",
+							Value = 0.753
+						},
+						ShowLUT1 = Input { Value = 0 },
+						NumberIn1 = Input { Value = 2.88 },
+						ShowLUT4 = Input { Value = 0 },
+						NameforNumber3 = Input { Value = "Body Plate Width Ratio" },
+						NumberIn7 = Input { Value = 55 },
+						NameforNumber2 = Input { Value = "Plate Height" },
+						ShowLUT2 = Input { Value = 0 },
+						NameforNumber1 = Input { Value = "Plate Width" },
+						ShowPoint4 = Input { Value = 0 },
+						LUTIn2 = Input {
+							Source = "Value",
+							SourceOp = "CustomTool1LUTIn2"
+						},
+						ShowLUT3 = Input { Value = 0 },
+						NameforNumber5 = Input { Value = "Title Offset From Top" },
+						NameforNumber8 = Input { Value = "Plate Reflectivity" },
+						ShowPoint2 = Input { Value = 0 },
+						NumberIn4 = Input { Value = 0.828571428571429 },
+						NumberIn5 = Input { Value = -0.219881598987076 },
+						ShowPoint1 = Input { Value = 0 },
+						NumberIn6 = Input { Value = 0.489 },
+						NameforNumber7 = Input { Value = "Body Chars Per Line" },
+						ShowPoint3 = Input { Value = 0 },
+						NumberIn8 = Input { Value = 0.503 },
+						NameforNumber6 = Input { Value = "Padding (Height Without Body)" },
+						LUTIn3 = Input {
+							Source = "Value",
+							SourceOp = "CustomTool1LUTIn3"
+						},
+						LUTIn1 = Input {
+							Source = "Value",
+							SourceOp = "CustomTool1LUTIn1"
+						},
+						LUTIn4 = Input {
+							Source = "Value",
+							SourceOp = "CustomTool1LUTIn4"
+						}
+					}
+				},
+				CustomTool1LUTIn3 = LUTBezier {
+					KeyColorSplines = {
+						[0] = {
+							[0] = { 0, Flags = { Linear = true }, RH = { 0.333333333333333, 0.333333333333333 } },
+							{ 1, Flags = { Linear = true }, LH = { 0.666666666666667, 0.666666666666667 } }
+						}
+					},
+					SplineColor = { Red = 0, Blue = 0, Green = 0 },
+					CtrlWZoom = false
+				},
+				FB_RendererR = Renderer3D {
+					Inputs = {
+						GlobalOut = Input { Value = 119 },
+						Height = Input {
+							Expression = "FB_RendererL.Width/2",
+							Value = 1440
+						},
+						Width = Input {
+							Expression = "FB_RendererL.Width",
+							Value = 2880
+						},
+						["RendererSoftware.ShadowsEnabled"] = Input { Value = 1 },
+						["RendererSoftware.LightingEnabled"] = Input { Value = 1 },
+						SceneInput = Input {
+							Source = "Output",
+							SourceOp = "FB_MergeR"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 1100, 437.257568359375 } },
+					CustomData = { ToolVersion = 1, Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_PlateMtl_1 = MtlCookTorrance {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1320, 417.457580566406 } },
+					Inputs = {
+						["Diffuse.Opacity"] = Input { Expression = "(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3)" },
+						["Diffuse.Color.Material"] = Input {
+							Source = "Output",
+							SourceOp = "FB_PlateTex_1"
+						},
+						["Specular.Intensity"] = Input { Value = 0.35 },
+						["Specular.Roughness"] = Input { Value = 0.28 },
+						MaterialID = Input { Value = 23 }
+					}
+				},
+				FB_ReflBlur = Blur {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -220, 8.257568359375 } },
+					Inputs = {
+						XBlurSize = Input { Value = 0.75 },
+						Filter = Input { Value = FuID { "Fast Gaussian" } },
+						Input = Input {
+							Source = "Output",
+							SourceOp = "FB_EnvSmall"
+						}
+					}
+				},
+				MODEL_Transform = Transform3D {
+					Inputs = {
+						["Transform3DOp.Scale.X"] = Input {
+							Expression = "CARD_CONTROLS.ModelScale",
+							Value = 0.9
+						},
+						["Transform3DOp.Translate.Z"] = Input {
+							Expression = "CARD_CONTROLS.ModelZ",
+							Value = -0.0334605741066034
+						},
+						["Transform3DOp.Translate.Y"] = Input {
+							Expression = "CARD_CONTROLS.ModelY",
+							Value = -0.14
+						},
+						["Transform3DOp.Translate.X"] = Input {
+							Expression = "CARD_CONTROLS.ModelX",
+							Value = -1.58
+						},
+						["Transform3DOp.Rotate.Y"] = Input {
+							Expression = "CARD_CONTROLS.ModelRotY",
+							Value = 32
+						},
+						["Transform3DOp.Rotate.X"] = Input {
+							Expression = "CARD_CONTROLS.ModelRotX",
+							Value = 0
+						},
+						["Transform3DOp.Rotate.Z"] = Input {
+							Expression = "CARD_CONTROLS.ModelRotZ",
+							Value = 0
+						},
+						SceneInput = Input {
+							Source = "Output",
+							SourceOp = "MODEL_Merge"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -220, 701.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				LIGHT_Key = LightDirectional {
+					Inputs = {
+						["Transform3DOp.Rotate.X"] = Input { Value = -159.2 },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024 },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 88.8 },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1 },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -127.9 },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 1 }
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 220, 173.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_OrbitR = Transform3D {
+					Inputs = {
+						["Transform3DOp.Rotate.Z"] = Input {
+							Expression = "FB_OrbitL.Transform3DOp.Rotate.Z",
+							Value = -5
+						},
+						["Transform3DOp.Rotate.X"] = Input {
+							Expression = "CARD_CONTROLS.Pitch",
+							Value = 15
+						},
+						["Transform3DOp.Rotate.Y"] = Input {
+							Expression = "CARD_CONTROLS.Yaw",
+							Value = -60.9
+						},
+						SceneInput = Input {
+							Source = "Output",
+							SourceOp = "FB_PlaceR"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 660, 437.257568359375 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				FB_Body = Text3D {
+					Inputs = {
+						Center = Input { Value = { 0.5, 0.599 } },
+						["Transform3DOp.Translate.Z"] = Input { Value = 0.08 },
+						["Transform3DOp.Translate.Y"] = Input { Value = -0.06 },
+						Font = Input { Value = "Montserrat" },
+						StyledText = Input {
+							Expression = "Text(CARD_CONTROLS.BodyText.Value)",
+							Value = "Modern harvesters gently shake ripe grapes from the vine, collecting the fruit while leaving the vine intact."
+						},
+						End = Input { Expression = "math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-24*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed)))" },
+						Opacity1 = Input { Expression = "(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-24*CARD_CONTROLS.AnimSpeed)/(16*CARD_CONTROLS.AnimSpeed))))^3)" },
+						SpecularGreen = Input { Value = 0.23921568627451 },
+						LayoutType = Input { Value = 1 },
+						SpecularBlue = Input { Value = 0.243137254901961 },
+						Size = Input { Value = 0.12 },
+						SpecularRed = Input { Value = 0.243137254901961 },
+						LayoutWidth = Input { Value = 2.2 },
+						HorizontalJustificationNew = Input { Value = 3 },
+						LayoutHeight = Input { Value = 0.394 },
+						Style = Input { Value = "Medium" },
+						VerticalJustification = Input { Value = 3 },
+						VerticalJustificationNew = Input { Value = 3 },
+						LineSpacing = Input { Value = 1.1 },
+						ExtrusionDepth = Input { Value = 0.01 },
+						Wrap = Input { Value = 1 },
+						ExtrusionProfile = Input {
+							Source = "Value",
+							SourceOp = "FB_BodyExtrusionProfile"
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1320, 259.057586669922 } },
+					CustomData = { Path = { Map = { ["Setting:"] = "Templates:/My Templates/" } } }
+				},
+				CARD_CONTROLS = PipeRouter {
+					Inputs = {
+						ModelSat = Input { Value = 1.05 },
+						ModelX = Input { Value = -1.72 },
+						ModelScale = Input { Value = 3.3 },
+						ModelZ = Input { Value = -0.0334605741066034 },
+						ModelY = Input { Value = 0.06 },
+						ModelRotY = Input { Value = 82 },
+						ModelRotX = Input { Value = 0 },
+						ModelRotZ = Input { Value = 0 },
+						CardRoll = Input { Value = -5 },
+						CardTurn = Input { Value = -25 },
+						CardTip = Input { Value = 0 },
+						ModelContrast = Input { Value = 1.05 },
+						TitleText = Input { Value = "Title" },
+						ModelBright = Input { Value = 1.0 },
+						ModelKit = Input { Value = "/Volumes/Earth-1610/2608 - BC Salmon - Farm and Food Care/ASSETS/3D Models/Salmon_Kit" },
+						BodyText = Input { Value = "Body text goes here. Two or three short lines reads best." }
+					},
+					CtrlWShown = false,
+					ViewInfo = PipeRouterInfo { Pos = { -1429.771484375, 42.096809387207 } },
+					UserControls = ordered() { ModelKit = { ICS_ControlPage = "3D Model", INP_Default = "/Volumes/Earth-1610/2608 - BC Salmon - Farm and Food Care/ASSETS/3D Models/Salmon_Kit", LINKID_DataType = "Text", LINKS_Name = "Model Kit Folder", INPID_InputControl = "TextEditControl", TEC_Lines = 1 }, Yaw = { ICS_ControlPage = "Placement", INP_MaxScale = 180, INP_MinScale = -180, INP_Default = -60.9, LINKS_Name = "Position: Yaw (left/right)", INPID_InputControl = "SliderControl", LINKID_DataType = "Number" }, Pitch = { ICS_ControlPage = "Placement", INP_MaxScale = 60, INP_MinScale = -60, INP_Default = 15, LINKS_Name = "Position: Pitch (up/down)", INPID_InputControl = "SliderControl", LINKID_DataType = "Number" }, Distance = { ICS_ControlPage = "Placement", INP_MaxScale = 8, INP_MinScale = 1.5, INP_Default = 3, LINKS_Name = "Distance from viewer", INPID_InputControl = "SliderControl", LINKID_DataType = "Number" }, CardScale = { ICS_ControlPage = "Placement", INP_MaxScale = 2, INP_MinScale = 0.4, INP_Default = 0.852, LINKS_Name = "Card Size", INPID_InputControl = "SliderControl", LINKID_DataType = "Number" }, CardRoll = { ICS_ControlPage = "Placement", INP_MaxScale = 45, INP_MinScale = -45, INP_Default = -5, LINKS_Name = "Card Roll (0 = level)", INPID_InputControl = "SliderControl", LINKID_DataType = "Number" }, CardTurn = { ICS_ControlPage = "Placement", INP_MaxScale = 60, INP_MinScale = -60, INP_Default = -25, LINKS_Name = "Card Turn (0 = square to viewer)", INPID_InputControl = "SliderControl", LINKID_DataType = "Number" }, CardTip = { ICS_ControlPage = "Placement", INP_MaxScale = 60, INP_MinScale = -60, INP_Default = 0, LINKS_Name = "Card Tip (0 = square to viewer)", INPID_InputControl = "SliderControl", LINKID_DataType = "Number" }, HoldSeconds = { ICS_ControlPage = "Animation", INP_MaxScale = 20, INP_MinScale = 2, INP_Default = 9, LINKS_Name = "Hold (seconds)", INPID_InputControl = "SliderControl", LINKID_DataType = "Number" }, Sway = { ICS_ControlPage = "Animation", INP_MaxScale = 2, INP_MinScale = 0, INP_Default = 0, LINKS_Name = "Sway amount", INPID_InputControl = "SliderControl", LINKID_DataType = "Number" }, ModelContrast = { ICS_ControlPage = "3D Model", INP_MaxScale = 2, INP_MinScale = 0.5, INP_Default = 1, LINKS_Name = "Model Contrast", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, TitleText = { ICS_ControlPage = "Text", TEC_Lines = 3, INP_Default = "Title", LINKS_Name = "Title (auto CAPS)", INPID_InputControl = "TextEditControl", LINKID_DataType = "Text" }, AnimStart = { ICS_ControlPage = "Animation", INP_MaxScale = 120, INP_MinScale = 0, INP_Default = 0, LINKS_Name = "Animation Start (frame)", INPID_InputControl = "SliderControl", INP_Integer = true, LINKID_DataType = "Number" }, ModelBright = { ICS_ControlPage = "3D Model", INP_MaxScale = 2, INP_MinScale = 0.5, INP_Default = 1, LINKS_Name = "Model Brightness", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, ModelRotX = { ICS_ControlPage = "3D Model", INP_MaxScale = 180, INP_MinScale = -180, INP_Default = 0, LINKS_Name = "Model Rotation X (tilt)", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, ModelRotY = { ICS_ControlPage = "3D Model", INP_MaxScale = 180, INP_MinScale = -180, INP_Default = 0, LINKS_Name = "Model Rotation Y (spin)", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, ModelRotZ = { ICS_ControlPage = "3D Model", INP_MaxScale = 180, INP_MinScale = -180, INP_Default = 0, LINKS_Name = "Model Rotation Z (roll)", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, BodyText = { ICS_ControlPage = "Text", TEC_Lines = 5, INP_Default = "Body", LINKS_Name = "Body Text", INPID_InputControl = "TextEditControl", LINKID_DataType = "Text" }, ModelZ = { ICS_ControlPage = "3D Model", INP_MaxScale = 3, INP_MinScale = -3, INP_Default = 0, LINKS_Name = "Model Position Z", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, ModelSat = { ICS_ControlPage = "3D Model", INP_MaxScale = 2, INP_MinScale = 0, INP_Default = 1, LINKS_Name = "Model Saturation", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, ModelX = { ICS_ControlPage = "3D Model", INP_MaxScale = 3, INP_MinScale = -3, INP_Default = 0, LINKS_Name = "Model Position X", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, ModelScale = { ICS_ControlPage = "3D Model", INP_MaxScale = 3, INP_MinScale = 0.1, INP_Default = 1, LINKS_Name = "Model Scale", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, AnimSpeed = { ICS_ControlPage = "Animation", INP_MaxScale = 3, INP_MinScale = 0.25, INP_Default = 1, LINKS_Name = "Animation Length (x)", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, ModelY = { ICS_ControlPage = "3D Model", INP_MaxScale = 3, INP_MinScale = -3, INP_Default = 0, LINKS_Name = "Model Position Y", INPID_InputControl = "SliderControl", INP_Integer = false, LINKID_DataType = "Number" }, ModelShow = { ICS_ControlPage = "3D Model", INP_Default = 1, LINKS_Name = "Show 3D Model", INPID_InputControl = "CheckboxControl", LINKID_DataType = "Number" } },
+					CtrlWZoom = false
+				},
+				Salmon_Tex = Loader {
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Salmon_BaseColor_2k.png\"" },
+						["Gamut.SLogVersion"] = Input { Value = FuID { "SLog2" } }
+					},
+					Clips = {
+						Clip {
+							ID = "Clip1",
+							Loop = 0,
+							GlobalEnd = 0,
+							FormatID = "PNGFormat",
+							GlobalStart = 0,
+							TimeCode = 0,
+							ExtendFirst = 0,
+							Depth = 0,
+							AspectMode = 0,
+							StartFrame = -1,
+							LengthSetManually = true,
+							Filename = "/Volumes/Earth-1610/2608 - BC Salmon - Farm and Food Care/ASSETS/3D Models/Salmon_Kit/Salmon_BaseColor_2k.png",
+							TrimOut = 0,
+							TrimIn = 0,
+							ExtendLast = 0
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1540, 536 } }
+				},
+				Salmon_NrmTex = Loader {
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Salmon_Normal_2k.png\"" },
+						["Gamut.SLogVersion"] = Input { Value = FuID { "SLog2" } }
+					},
+					Clips = {
+						Clip {
+							ID = "Clip1",
+							Loop = 0,
+							GlobalEnd = 0,
+							FormatID = "PNGFormat",
+							GlobalStart = 0,
+							TimeCode = 0,
+							ExtendFirst = 0,
+							Depth = 0,
+							AspectMode = 0,
+							StartFrame = -1,
+							LengthSetManually = true,
+							Filename = "/Volumes/Earth-1610/2608 - BC Salmon - Farm and Food Care/ASSETS/3D Models/Salmon_Kit/Salmon_Normal_2k.png",
+							TrimOut = 0,
+							TrimIn = 0,
+							ExtendLast = 0
+						}
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1540, 600 } }
+				},
+				Salmon_CC = BrightnessContrast {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1320, 536 } },
+					Inputs = {
+						Gain = Input { Expression = "CARD_CONTROLS.ModelBright" },
+						Contrast = Input { Expression = "CARD_CONTROLS.ModelContrast-1" },
+						Saturation = Input { Expression = "CARD_CONTROLS.ModelSat" },
+						Input = Input {
+							Source = "Output",
+							SourceOp = "Salmon_Tex"
+						}
+					}
+				},
+				Salmon_Normal = BumpMap {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1320, 600 } },
+					Inputs = {
+						MaterialID = Input { Value = 5 },
+						Input = Input {
+							Source = "Output",
+							SourceOp = "Salmon_NrmTex"
+						},
+						SourceImageType = Input { Value = 1 }
+					}
+				},
+				Salmon_Mtl = MtlCookTorrance {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -1100, 536 } },
+					Inputs = {
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3)" },
+						["Bumpmap.Material"] = Input {
+							Source = "MaterialOutput",
+							SourceOp = "Salmon_Normal"
+						},
+						["Diffuse.Color.Material"] = Input {
+							Source = "Output",
+							SourceOp = "Salmon_CC"
+						},
+						["Specular.Intensity"] = Input { Value = 0.45 },
+						["Specular.Roughness"] = Input { Value = 0.35 },
+						MaterialID = Input { Value = 2 }
+					}
+				},
+				Salmon = SurfaceAlembicMesh {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -880, 536 } },
+					Inputs = {
+						TransformToWorld = Input { Value = 0 },
+						["ObjectID.ObjectID"] = Input { Value = 3 },
+						Filename = Input {
+							Expression = "CARD_CONTROLS.ModelKit.Value .. \"/Salmon_Swim.abc\"",
+							Value = "/Volumes/Earth-1610/2608 - BC Salmon - Farm and Food Care/ASSETS/3D Models/Salmon_Kit/Salmon_Swim.abc"
+						},
+						MaterialInput = Input {
+							Source = "MaterialOutput",
+							SourceOp = "Salmon_Mtl"
+						},
+						["MtlStdInputs.MaterialID"] = Input { Value = 6 }
+					}
+				},
+				MODEL_Merge = Merge3D {
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { -660, 709 } },
+					Inputs = {
+						SceneInput1 = Input { Source = "Output", SourceOp = "Salmon" },
+						SceneInput2 = Input { Source = "Output", SourceOp = "MODEL_RimLight" },
+						SceneInput3 = Input { Source = "Output", SourceOp = "MODEL_SkyFill" }
+					}
+				},
+			},
+			Outputs = {
+				MainOutput1 = InstanceOutput {
+					Source = "Output",
+					SourceOp = "FB_CardOverPlate"
+				}
+			}
+		}
+	}
+}

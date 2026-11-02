@@ -1,0 +1,1837 @@
+{
+	Tools = {
+		Kalyx3DCard_HayBale = MacroOperator {
+			Inputs = ordered() {
+				MainInput1 = InstanceInput { SourceOp = "Plate_In", Source = "Input", Name = "Plate (360 footage)", },
+				Yaw = InstanceInput {
+					MinScale = -180,
+					SourceOp = "Left_Place_On_Sphere",
+					Name = "Yaw (Pan)",
+					MaxScale = 180,
+					Page = "Placement",
+					Source = "Transform3DOp.Rotate.Y",
+					Default = 0,
+				},
+				Pitch = InstanceInput {
+					MinScale = -90,
+					SourceOp = "Left_Place_On_Sphere",
+					Name = "Pitch (Tilt)",
+					MaxScale = 90,
+					Page = "Placement",
+					Source = "Transform3DOp.Rotate.X",
+					Default = 0,
+				},
+				Roll = InstanceInput {
+					MinScale = -180,
+					SourceOp = "Left_Place_On_Sphere",
+					Name = "Roll",
+					MaxScale = 180,
+					Page = "Placement",
+					Source = "Transform3DOp.Rotate.Z",
+					Default = 0,
+				},
+				Distance = InstanceInput {
+					MinScale = -20,
+					SourceOp = "Left_Window_Plane",
+					Name = "Distance (-Z = forward)",
+					MaxScale = -0.5,
+					Page = "Placement",
+					Source = "Transform3DOp.Translate.Z",
+					Default = -3,
+				},
+				ObjectTurn = InstanceInput {
+					MinScale = -90,
+					SourceOp = "Left_Window_Plane",
+					Name = "Object Turn (angle left / right)",
+					MaxScale = 90,
+					Page = "Placement",
+					Source = "Transform3DOp.Rotate.Y",
+					Default = 0,
+				},
+				ObjectTilt = InstanceInput {
+					MinScale = -90,
+					SourceOp = "Left_Window_Plane",
+					Name = "Object Tilt (lean back / forward)",
+					MaxScale = 90,
+					Page = "Placement",
+					Source = "Transform3DOp.Rotate.X",
+					Default = 0,
+				},
+				ObjectSpin = InstanceInput {
+					MinScale = -180,
+					SourceOp = "Left_Window_Plane",
+					Name = "Object Spin (in its plane)",
+					MaxScale = 180,
+					Page = "Placement",
+					Source = "Transform3DOp.Rotate.Z",
+					Default = 0,
+				},
+				Mode = InstanceInput {
+					MinScale = 0,
+					SourceOp = "Mode_Mono0_Stereo1",
+					Name = "Mono (0) / Stereo (1)",
+					MaxScale = 1,
+					Page = "Stereo / Output",
+					Source = "TopLeftRed",
+					Default = 0,
+				},
+				WindowDepth = InstanceInput {
+					MinScale = 0,
+					SourceOp = "Depth_Convergence",
+					Name = "Window Depth in Z (+ = toward viewer)",
+					MaxScale = 0.02,
+					Page = "Stereo / Output",
+					Source = "TopLeftRed",
+					Default = 0,
+				},
+				OutputWidth = InstanceInput {
+					MinScale = 512,
+					SourceOp = "Render_LeftEye",
+					Name = "Equirect Width (per eye)",
+					MaxScale = 8192,
+					Page = "Stereo / Output",
+					Source = "Width",
+					Default = 2880,
+				},
+				TitleText = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Title (auto CAPS)",
+					Page = "Text",
+					Source = "TitleText",
+				},
+				BodyText = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Body Text",
+					Page = "Text",
+					Source = "BodyText",
+				},
+				CardScale = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Title scale (1 = as designed)",
+					Page = "Text",
+					Source = "CardScale",
+				},
+				ModelShow = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Show 3D Model",
+					Page = "3D Model",
+					Source = "ModelShow",
+				},
+				ModelKit = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Kit Folder",
+					Page = "3D Model",
+					Source = "ModelKit",
+				},
+				ModelScale = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Scale",
+					Page = "3D Model",
+					Source = "ModelScale",
+				},
+				ModelX = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Position X",
+					Page = "3D Model",
+					Source = "ModelX",
+				},
+				ModelY = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Position Y",
+					Page = "3D Model",
+					Source = "ModelY",
+				},
+				ModelZ = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Position Z",
+					Page = "3D Model",
+					Source = "ModelZ",
+				},
+				ModelRotX = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Rotation X (tilt)",
+					Page = "3D Model",
+					Source = "ModelRotX",
+				},
+				ModelRotY = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Rotation Y (spin)",
+					Page = "3D Model",
+					Source = "ModelRotY",
+				},
+				ModelRotZ = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Rotation Z (roll)",
+					Page = "3D Model",
+					Source = "ModelRotZ",
+				},
+				ModelBright = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Brightness",
+					Page = "3D Model",
+					Source = "ModelBright",
+				},
+				ModelContrast = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Contrast",
+					Page = "3D Model",
+					Source = "ModelContrast",
+				},
+				ModelSat = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Model Saturation",
+					Page = "3D Model",
+					Source = "ModelSat",
+				},
+				AnimStart = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Animation Start (frame)",
+					Page = "Animation",
+					Source = "AnimStart",
+				},
+				AnimSpeed = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Animation Length (x)",
+					Page = "Animation",
+					Source = "AnimSpeed",
+				},
+				HoldSeconds = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Fade out after (seconds, 0 = never)",
+					Page = "Animation",
+					Source = "HoldSeconds",
+				},
+				Sway = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Sway amount",
+					Page = "Animation",
+					Source = "Sway",
+				},
+				EnvOverUnder = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Name = "Environment is over/under (left eye on top)",
+					Source = "EnvOverUnder",
+					Page = "Environment",
+					Default = 1,
+				},
+			},
+			Outputs = {
+				MainOutput1 = InstanceOutput { SourceOp = "Card_Over_Plate", Source = "Output", Name = "Card over plate", },
+				MainOutput2 = InstanceOutput { SourceOp = "Stack_Eyes_OverUnder", Source = "Output", Name = "Card only (over/under, transparent)", },
+			},
+			Tools = {
+				Left_Footage_Input = Transform {
+					Inputs = {
+						Size = Input { Expression = "Window_Size_Value.TopLeftRed*Transparent_BG.Width/(comp:GetPrefs('Comp.FrameFormat.Width') or 1920)", },
+						Input = Input { SourceOp = "Plate_In", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -394.998 },
+					},
+				},
+				Graphic_Placed = Merge {
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Transparent_BG", },
+						Foreground = Input { Source = "Output", SourceOp = "Graphic_Input", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1907.54, -174.998 },
+					},
+				},
+				Kalyx_Controls = PipeRouter {
+					Inputs = {
+						WindowShows = Input { Value = 2, },
+					},
+					ViewInfo = PipeRouterInfo {
+						Pos = { -2237.54, -504.998 },
+					},
+					CtrlWZoom = false,
+					UserControls = {
+						WindowShows = {
+							INP_MaxScale = 2,
+							LINKS_Name = "Window shows",
+							INP_Integer = true,
+							LINKID_DataType = "Number",
+							ICS_ControlPage = "Frame",
+							INP_Default = 0,
+							CCS_AddString = { "Footage  (the Footage inputs, masked and framed)", "Graphic  (the Graphic input, alpha kept, no frame)", "Nothing  (3D Scene input only)" },
+							INP_MinScale = 0,
+							INPID_InputControl = "ComboControl",
+						},
+					},
+				},
+				Right_Glow_Blur = Blur {
+					Inputs = {
+						Filter = Input {
+							Value = FuID { "Gaussian", },
+						},
+						Input = Input { Source = "Output", SourceOp = "Right_Glow_Source", },
+						XBlurSize = Input { Expression = "Left_Glow_Blur.XBlurSize", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, 205.002 },
+					},
+				},
+				Left_Framed_Window = Merge {
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Frame_Colour", },
+						Foreground = Input { Source = "Output", SourceOp = "Left_Rounded_Footage", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, -444.998 },
+					},
+				},
+				Left_Glow_Brightness = ColorGain {
+					Inputs = {
+						Input = Input { Source = "Output", SourceOp = "Left_Glow_Blur", },
+						GainGreen = Input { Expression = "Left_Glow_Brightness.GainRed", },
+						GainRed = Input { Value = 1.6, },
+						GainBlue = Input { Expression = "Left_Glow_Brightness.GainRed", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, -334.998 },
+					},
+				},
+				Right_Camera = SphericalCamera3D {
+					Inputs = {
+						["Stereo.Mode"] = Input {
+							Value = FuID { "ToeIn", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1247.54, 125.002 },
+					},
+				},
+				Left_Rounded_Footage = Merge {
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Transparent_BG", },
+						Foreground = Input { Source = "Output", SourceOp = "Left_Footage_Input", },
+						EffectMask = Input { Source = "Mask", SourceOp = "RoundCorner_Mask", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1907.54, -394.998 },
+					},
+				},
+				RoundCorner_Mask = RectangleMask {
+					Inputs = {
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						CornerRadius = Input { Value = 0.06, },
+						Width = Input { Expression = "Window_Size_Value.TopLeftRed*(1-2*Crop_Sides_Value.TopLeftRed)", },
+						Height = Input { Expression = "Window_Size_Value.TopLeftRed*(1-2*Crop_TopBottom_Value.TopLeftRed)", },
+						MaskWidth = Input { Value = 320, },
+						MaskHeight = Input { Value = 240, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2017.54, -724.998 },
+					},
+				},
+				Right_Card_And_Scene = Merge3D {
+					Inputs = {
+						SceneInput1 = Input { Source = "Output", SourceOp = "Right_Window_Plane", },
+						SceneInput2 = Input { Source = "Output", SourceOp = "Scene_Offset", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1302.54, 45.0019 },
+					},
+				},
+				Left_Place_On_Sphere = Transform3D {
+					Inputs = {
+						SceneInput = Input { Source = "Output", SourceOp = "Left_Card_And_Scene", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1247.54, -394.998 },
+					},
+				},
+				Left_Glow_Blur = Blur {
+					Inputs = {
+						Filter = Input {
+							Value = FuID { "Gaussian", },
+						},
+						Input = Input { Source = "Output", SourceOp = "Left_Glow_Source", },
+						XBlurSize = Input { Value = 20, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, -334.998 },
+					},
+				},
+				Left_Glow_Layer = Merge {
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Transparent_BG", },
+						Foreground = Input { Source = "Output", SourceOp = "Left_Glow_Brightness", },
+						Blend = Input { Value = 0.7, },
+						EffectMask = Input { Source = "Mask", SourceOp = "Glow_FadeMask", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1577.54, -334.998 },
+					},
+				},
+				Right_Depth_Shift = Transform {
+					Inputs = {
+						Center = Input { Expression = "Point(0.5 - Depth_Convergence.TopLeftRed, 0.5)", },
+						Input = Input { Source = "Output", SourceOp = "Render_RightEye", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -917.542, 45.0019 },
+					},
+				},
+				Right_Rounded_Footage = Merge {
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Transparent_BG", },
+						Foreground = Input { Source = "Output", SourceOp = "Right_Eye_Source", },
+						EffectMask = Input { Source = "Mask", SourceOp = "RoundCorner_Mask", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1907.54, 45.0019 },
+					},
+				},
+				Right_Glow_Layer = Merge {
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Transparent_BG", },
+						Foreground = Input { Source = "Output", SourceOp = "Right_Glow_Brightness", },
+						Blend = Input { Expression = "Left_Glow_Layer.Blend", },
+						EffectMask = Input { Source = "Mask", SourceOp = "Glow_FadeMask", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1577.54, 205.002 },
+					},
+				},
+				Mode_Mono0_Stereo1 = Background {
+					CtrlWZoom = false,
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -834.998 },
+					},
+					Inputs = {
+						Width = Input { Value = 4, },
+						Height = Input { Value = 4, },
+					},
+				},
+				Left_Depth_Shift = Transform {
+					Inputs = {
+						Center = Input { Expression = "Point(0.5 + Depth_Convergence.TopLeftRed, 0.5)", },
+						Input = Input { Source = "Output", SourceOp = "Render_LeftEye", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -917.542, -394.998 },
+					},
+				},
+				Left_Card_And_Scene = Merge3D {
+					Inputs = {
+						SceneInput1 = Input { Source = "Output", SourceOp = "Left_Window_Plane", },
+						SceneInput2 = Input { Source = "Output", SourceOp = "Scene_Offset", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1302.54, -394.998 },
+					},
+				},
+				Left_Window_Plus_Glow = Merge {
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Left_Glow_Layer", },
+						Foreground = Input { Source = "Output", SourceOp = "Left_Window_Image", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1467.54, -394.998 },
+					},
+				},
+				Depth_Convergence = Background {
+					Inputs = {
+						Width = Input { Value = 4, },
+						Height = Input { Value = 4, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -917.542, -504.998 },
+					},
+				},
+				Scene_Offset = Transform3D {
+					Inputs = {
+						["Transform3DOp.Rotate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Z", },
+						["Transform3DOp.Rotate.X"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.X", },
+						["Transform3DOp.Scale.X"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Scale.X", },
+						["Transform3DOp.Translate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Translate.Z", },
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Y", },
+						SceneInput = Input { SourceOp = "FB_Scene", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1467.54, -174.998 },
+					},
+				},
+				Right_Window_Image = Dissolve {
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, 95.0019 },
+					},
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Right_Framed_Window", },
+						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Foreground = Input { Source = "Output", SourceOp = "Graphic_Placed", },
+					},
+				},
+				Transparent_BG = Background {
+					Inputs = {
+						Width = Input { Value = 2048, },
+						UseFrameFormatSettings = Input { Value = 0, },
+						TopLeftAlpha = Input { Value = 0, },
+						Height = Input { Expression = "math.floor(Transparent_BG.Width/Window_Aspect_Value.TopLeftRed/2+0.5)*2", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -614.998 },
+					},
+				},
+				Right_Glow_Source = Dissolve {
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -1852.54, 205.002 },
+					},
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Right_Rounded_Footage", },
+						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Foreground = Input { Source = "Output", SourceOp = "Graphic_Placed", },
+					},
+				},
+				Right_Scene = Merge3D {
+					Inputs = {
+						SceneInput1 = Input { Source = "Output", SourceOp = "Right_Place_On_Sphere", },
+						SceneInput2 = Input { Source = "Output", SourceOp = "Right_Camera", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1137.54, 45.0019 },
+					},
+				},
+				Graphic_Input = Transform {
+					Inputs = {
+						Size = Input { Expression = "Window_Size_Value.TopLeftRed*Transparent_BG.Width/(comp:GetPrefs('Comp.FrameFormat.Width') or 1920)", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -174.998 },
+					},
+				},
+				Frame_Inner_Cutout = RectangleMask {
+					Inputs = {
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						Height = Input { Expression = "RoundCorner_Mask.Height", },
+						CornerRadius = Input { Expression = "RoundCorner_Mask.CornerRadius", },
+						Width = Input { Expression = "RoundCorner_Mask.Width", },
+						PaintMode = Input {
+							Value = FuID { "Subtract", },
+						},
+						MaskHeight = Input { Value = 240, },
+						MaskWidth = Input { Value = 320, },
+						EffectMask = Input { Source = "Mask", SourceOp = "Frame_Mask", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1852.54, -790 },
+					},
+				},
+				Left_Window_Plane = ImagePlane3D {
+					Inputs = {
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input { Value = 1, },
+						["MtlStdInputs.MaterialID"] = Input { Value = 1, },
+						MaterialInput = Input { Source = "Output", SourceOp = "Left_Window_Plus_Glow", },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Kalyx_Controls.WindowShows > 1.5, 0, 1)", },
+						["Transform3DOp.Translate.Z"] = Input { Value = -3, },
+						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1357.54, -394.998 },
+					},
+				},
+				Right_Framed_Window = Merge {
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Frame_Colour", },
+						Foreground = Input { Source = "Output", SourceOp = "Right_Rounded_Footage", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, 95.0019 },
+					},
+				},
+				FrameThickness_Value = Background {
+					Inputs = {
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 0.012, },
+						Height = Input { Value = 4, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -724.998 },
+					},
+				},
+				Left_Scene = Merge3D {
+					Inputs = {
+						SceneInput1 = Input { Source = "Output", SourceOp = "Left_Place_On_Sphere", },
+						SceneInput2 = Input { Source = "Output", SourceOp = "Left_Camera", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1137.54, -394.998 },
+					},
+				},
+				Right_Window_Plane = ImagePlane3D {
+					Inputs = {
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input { Value = 2, },
+						MaterialInput = Input { Source = "Output", SourceOp = "Right_Window_Plus_Glow", },
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Y", },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Kalyx_Controls.WindowShows > 1.5, 0, 1)", },
+						["Transform3DOp.Translate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Translate.Z", },
+						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
+						["Transform3DOp.Rotate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Z", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 2, },
+						["Transform3DOp.Rotate.X"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.X", },
+						["Transform3DOp.Scale.X"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Scale.X", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1357.54, 45.0019 },
+					},
+				},
+				Right_Footage_Input = Transform {
+					Inputs = {
+						Size = Input { Expression = "Window_Size_Value.TopLeftRed*Transparent_BG.Width/(comp:GetPrefs('Comp.FrameFormat.Width') or 1920)", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, 45.0019 },
+					},
+				},
+				Render_LeftEye = Renderer3D {
+					Inputs = {
+						Height = Input { Expression = "Render_LeftEye.Width/2", },
+						["RendererOpenGL.LightingEnabled"] = Input { Value = 1, },
+						["RendererSoftware.LightingEnabled"] = Input { Value = 1, },
+						SceneInput = Input { Source = "Output", SourceOp = "Left_Scene", },
+						Width = Input { Value = 2880, },
+						OutputType = Input { Disabled = true, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1027.54, -394.998 },
+					},
+				},
+				Crop_TopBottom_Value = Background {
+					Inputs = {
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 0, },
+						Height = Input { Value = 4, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2237.54, -614.998 },
+					},
+				},
+				Render_RightEye = Renderer3D {
+					Inputs = {
+						Height = Input { Expression = "Render_LeftEye.Width/2", },
+						["RendererOpenGL.LightingEnabled"] = Input { Value = 1, },
+						["RendererSoftware.LightingEnabled"] = Input { Value = 1, },
+						SceneInput = Input { Source = "Output", SourceOp = "Right_Scene", },
+						Width = Input { Expression = "Render_LeftEye.Width", },
+						OutputType = Input { Disabled = true, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1027.54, 45.0019 },
+					},
+				},
+				Crop_Sides_Value = Background {
+					Inputs = {
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 0, },
+						Height = Input { Value = 4, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2237.54, -669.998 },
+					},
+				},
+				Right_Eye_Source = Dissolve {
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -2017.54, 45.0019 },
+					},
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Left_Footage_Input", },
+						Mix = Input { Expression = "Mode_Mono0_Stereo1.TopLeftRed", },
+						Foreground = Input { Source = "Output", SourceOp = "Right_Footage_Input", },
+					},
+				},
+				Left_Glow_Source = Dissolve {
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -1852.54, -334.998 },
+					},
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Left_Rounded_Footage", },
+						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Foreground = Input { Source = "Output", SourceOp = "Graphic_Placed", },
+					},
+				},
+				Left_Window_Image = Dissolve {
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, -444.998 },
+					},
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Left_Framed_Window", },
+						Mix = Input { Expression = "math.min(1, Kalyx_Controls.WindowShows)", },
+						Foreground = Input { Source = "Output", SourceOp = "Graphic_Placed", },
+					},
+				},
+				Right_Window_Plus_Glow = Merge {
+					Inputs = {
+						Background = Input { Source = "Output", SourceOp = "Right_Glow_Layer", },
+						Foreground = Input { Source = "Output", SourceOp = "Right_Window_Image", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1467.54, 45.0019 },
+					},
+				},
+				Frame_Colour = Background {
+					Inputs = {
+						Height = Input { Expression = "Transparent_BG.Height", },
+						UseFrameFormatSettings = Input { Value = 0, },
+						TopLeftBlue = Input { Value = 1, },
+						Width = Input { Value = 2048, },
+						TopLeftRed = Input { Value = 1, },
+						TopLeftGreen = Input { Value = 1, },
+						EffectMask = Input { Source = "Mask", SourceOp = "Frame_Inner_Cutout", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, -724.998 },
+					},
+				},
+				Right_Place_On_Sphere = Transform3D {
+					Inputs = {
+						["Transform3DOp.Rotate.X"] = Input { Expression = "Left_Place_On_Sphere.Transform3DOp.Rotate.X", },
+						["Transform3DOp.Rotate.Z"] = Input { Expression = "Left_Place_On_Sphere.Transform3DOp.Rotate.Z", },
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "Left_Place_On_Sphere.Transform3DOp.Rotate.Y", },
+						SceneInput = Input { Source = "Output", SourceOp = "Right_Card_And_Scene", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1247.54, 45.0019 },
+					},
+				},
+				Window_Size_Value = Background {
+					Inputs = {
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 0.8, },
+						Height = Input { Value = 4, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2237.54, -724.998 },
+					},
+				},
+				Frame_Mask = RectangleMask {
+					Inputs = {
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						CornerRadius = Input { Expression = "RoundCorner_Mask.CornerRadius", },
+						Width = Input { Expression = "RoundCorner_Mask.Width + 2*FrameThickness_Value.TopLeftRed", },
+						Height = Input { Expression = "RoundCorner_Mask.Height + 2*FrameThickness_Value.TopLeftRed*Window_Aspect_Value.TopLeftRed", },
+						MaskWidth = Input { Value = 320, },
+						MaskHeight = Input { Value = 240, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1907.54, -724.998 },
+					},
+				},
+				Left_Camera = SphericalCamera3D {
+					Inputs = {
+						["Stereo.Mode"] = Input {
+							Value = FuID { "ToeIn", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1247.54, -314.998 },
+					},
+				},
+				Stack_Eyes_OverUnder = Combiner {
+					Inputs = {
+						Image1 = Input { Source = "Output", SourceOp = "Right_Depth_Shift", },
+						Image2 = Input { Source = "Output", SourceOp = "Left_Depth_Shift", },
+						Combine = Input {
+							Value = FuID { "Vert", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -807.542, -174.998 },
+					},
+				},
+				Right_Glow_Brightness = ColorGain {
+					Inputs = {
+						Input = Input { Source = "Output", SourceOp = "Right_Glow_Blur", },
+						GainGreen = Input { Expression = "Left_Glow_Brightness.GainRed", },
+						GainRed = Input { Expression = "Left_Glow_Brightness.GainRed", },
+						GainBlue = Input { Expression = "Left_Glow_Brightness.GainRed", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, 205.002 },
+					},
+				},
+				Glow_FadeMask = RectangleMask {
+					Inputs = {
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						CornerRadius = Input { Value = 0.15, },
+						Height = Input { Value = 0.94, },
+						Width = Input { Value = 0.94, },
+						SoftEdge = Input { Value = 0.12, },
+						MaskWidth = Input { Value = 320, },
+						MaskHeight = Input { Value = 240, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, -724.998 },
+					},
+				},
+				Window_Aspect_Value = Background {
+					Inputs = {
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 1.778, },
+						Height = Input { Value = 4, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2237.54, -559.998 },
+					},
+				},
+				MODEL_Transform = Transform3D {
+					Inputs = {
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "CARD_CONTROLS.ModelRotY", Value = 32, },
+						["Transform3DOp.Translate.Y"] = Input { Expression = "CARD_CONTROLS.ModelY", Value = -0.14, },
+						["Transform3DOp.Translate.X"] = Input { Expression = "CARD_CONTROLS.ModelX", Value = -1.58, },
+						SceneInput = Input { SourceOp = "MODEL_Merge", Source = "Output", },
+						["Transform3DOp.Rotate.X"] = Input { Expression = "CARD_CONTROLS.ModelRotX", Value = 6, },
+						["Transform3DOp.Scale.X"] = Input { Expression = "CARD_CONTROLS.ModelScale", Value = 0.9, },
+						["Transform3DOp.Translate.Z"] = Input { Expression = "CARD_CONTROLS.ModelZ", Value = -0.0334605741066034, },
+						["Transform3DOp.Rotate.Z"] = Input { Expression = "CARD_CONTROLS.ModelRotZ", Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -220, 701.257568359375 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				FB_Plate = Shape3D {
+					Inputs = {
+						["MtlStdInputs.Diffuse.Color.Blue"] = Input { Value = 0.294117647058824, },
+						["SurfaceSphereInputs.ObjectID.ObjectID"] = Input {
+							Value = Number { Value = 3, },
+						},
+						["Transform3DOp.Translate.Z"] = Input { Value = -0.316431593201029, },
+						["SurfaceCubeInputs.Depth"] = Input { Value = 0.55, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 0.0748815989870762, },
+						Shape = Input {
+							Value = FuID { "SurfaceCubeInputs", },
+						},
+						["MtlStdInputs.Diffuse.Color.Green"] = Input { Value = 0.290196078431373, },
+						["SurfaceCubeInputs.Height"] = Input { Expression = "FB_PlateCTRL.NumberIn2", Value = 0.753, },
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input {
+							Value = Number { Value = 1, },
+						},
+						MaterialInput = Input { SourceOp = "FB_PlateReflect", Source = "MaterialOutput", },
+						["Transform3DOp.ScaleLock"] = Input { Value = 0, },
+						["Transform3DOp.Scale.X"] = Input { Expression = "math.max(0.001,(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 1, },
+						["SurfaceCubeInputs.Width"] = Input { Expression = "FB_PlateCTRL.NumberIn1", Value = 2.88, },
+						["SurfacePlaneInputs.Width"] = Input {
+							Value = Number { Value = 2.6, },
+						},
+						["SurfaceCubeInputs.SizeLock"] = Input { Value = 0, },
+						["SurfaceCubeInputs.ObjectID.ObjectID"] = Input { Value = 2, },
+						["MtlStdInputs.Diffuse.Color.Red"] = Input { Value = 0.294117647058824, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -880, 371.257568359375 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				FB_TitleMtl = MtlCookTorrance {
+					Inputs = {
+						["Diffuse.Color.Blue"] = Input { Value = 0.08, },
+						["Diffuse.Color.Green"] = Input { Value = 0.78, },
+						MaterialID = Input { Value = 25, },
+						["Specular.Roughness"] = Input { Value = 0.25, },
+						["Specular.Intensity"] = Input { Value = 0.6, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1540, 212.857559204102 },
+					},
+					CtrlWShown = false,
+				},
+				MODEL_Merge = Merge3D {
+					Inputs = {
+						SceneInput2 = Input { SourceOp = "MODEL_RimLight", Source = "Output", },
+						SceneInput1 = Input { SourceOp = "HayBale", Source = "Output", },
+						SceneInput3 = Input { SourceOp = "MODEL_SkyFill", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -440, 701.060546875 },
+					},
+					CtrlWShown = false,
+				},
+				FB_TitleReflect = MtlReflect {
+					Inputs = {
+						BackgroundMaterial = Input { SourceOp = "FB_TitleMtl", Source = "MaterialOutput", },
+						["Reflection.Color.Material"] = Input { SourceOp = "FB_ReflSphere", Source = "MaterialOutput", },
+						MaterialID = Input { Value = 26, },
+						["Reflection.FaceOnStrength"] = Input { Expression = "CARD_CONTROLS.FadeOut*(FB_PlateCTRL.NumberIn8*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(30*CARD_CONTROLS.AnimSpeed))))^3))", Value = 0.503, },
+						["Reflection.GlancingStrength"] = Input { Expression = "CARD_CONTROLS.FadeOut*(math.min(1, FB_PlateCTRL.NumberIn8*3)*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(30*CARD_CONTROLS.AnimSpeed))))^3))", Value = 1, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1320, 212.857559204102 },
+					},
+					CtrlWShown = false,
+				},
+				CARD_CONTROLS = PipeRouter {
+					Inputs = {
+						HoldSeconds = Input { Value = 0, },
+						ModelRotY = Input { Value = 68, },
+						FadeOut = Input { Expression = "iif(CARD_CONTROLS.HoldSeconds <= 0, 1, 1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-60*CARD_CONTROLS.AnimSpeed-CARD_CONTROLS.HoldSeconds*30)/(18*CARD_CONTROLS.AnimSpeed))))", },
+						EnvOverUnder = Input { Value = 1, },
+						ModelX = Input { Value = -1.75, },
+						TitleText = Input { Value = "Title", },
+						ModelRotX = Input { Value = 6, },
+						BodyText = Input { Value = "Body text goes here. Two or three short lines reads best.", },
+						ModelKit = Input { Value = "/Volumes/The Baxter Building/2609 - Northern Ontario Farm Innovation Alliance - Farm and Food Care/ASSETS/3D Models/HayBale_Kit", },
+						ModelSat = Input { Value = 1.1, },
+						ModelScale = Input { Value = 0.88, },
+						ModelZ = Input { Value = -0.0334605741066034, },
+						ModelContrast = Input { Value = 1.1, },
+						ModelRotZ = Input { Value = 0, },
+						ModelBright = Input { Value = 1.2, },
+						ModelY = Input { Value = -0.12, },
+					},
+					ViewInfo = PipeRouterInfo {
+						Pos = { -1429.771484375, 42.096809387207 },
+					},
+					CtrlWZoom = false,
+					CtrlWShown = false,
+					UserControls = {
+						ModelZ = {
+							INP_MaxScale = 3,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Position Z",
+							INP_MinScale = -3,
+							INP_Default = 0,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+						TitleText = {
+							ICS_ControlPage = "Text",
+							LINKID_DataType = "Text",
+							TEC_Lines = 3,
+							INP_Default = "Title",
+							LINKS_Name = "Title (auto CAPS)",
+							INPID_InputControl = "TextEditControl",
+						},
+						BodyText = {
+							ICS_ControlPage = "Text",
+							LINKID_DataType = "Text",
+							TEC_Lines = 5,
+							INP_Default = "Body",
+							LINKS_Name = "Body Text",
+							INPID_InputControl = "TextEditControl",
+						},
+						ModelKit = {
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Text",
+							TEC_Lines = 1,
+							INP_Default = "/Volumes/The Baxter Building/2609 - Northern Ontario Farm Innovation Alliance - Farm and Food Care/ASSETS/3D Models/HayBale_Kit",
+							LINKS_Name = "Model Kit Folder",
+							INPID_InputControl = "TextEditControl",
+						},
+						HoldSeconds = {
+							INP_MaxScale = 20,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Fade out after (seconds, 0 = never)",
+							INP_Default = 0,
+							INP_MinScale = 0,
+							ICS_ControlPage = "Animation",
+							INPID_InputControl = "SliderControl",
+						},
+						CardScale = {
+							INP_MaxScale = 2,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Title scale (1 = as designed)",
+							INP_Default = 0.852,
+							INP_MinScale = 0.4,
+							ICS_ControlPage = "Text",
+							INPID_InputControl = "SliderControl",
+						},
+						ModelScale = {
+							INP_MaxScale = 3,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Scale",
+							INP_MinScale = 0.1,
+							INP_Default = 1,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+						ModelRotY = {
+							INP_MaxScale = 180,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Rotation Y (spin)",
+							INP_MinScale = -180,
+							INP_Default = 0,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+						ModelShow = {
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_Default = 1,
+							LINKS_Name = "Show 3D Model",
+							INPID_InputControl = "CheckboxControl",
+						},
+						FadeOut = {
+							INP_MinScale = 0,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Fade out (driven)",
+							ICS_ControlPage = "Animation",
+							INP_Default = 1,
+							IC_Visible = false,
+							INP_MaxScale = 1,
+							INPID_InputControl = "SliderControl",
+						},
+						ModelX = {
+							INP_MaxScale = 3,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Position X",
+							INP_MinScale = -3,
+							INP_Default = 0,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+						ModelRotX = {
+							INP_MaxScale = 180,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Rotation X (tilt)",
+							INP_MinScale = -180,
+							INP_Default = 0,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+						Sway = {
+							INP_MaxScale = 2,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Sway amount",
+							INP_Default = 0,
+							INP_MinScale = 0,
+							ICS_ControlPage = "Animation",
+							INPID_InputControl = "SliderControl",
+						},
+						ModelY = {
+							INP_MaxScale = 3,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Position Y",
+							INP_MinScale = -3,
+							INP_Default = 0,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+						ModelSat = {
+							INP_MaxScale = 2,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Saturation",
+							INP_MinScale = 0,
+							INP_Default = 1,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+						ModelRotZ = {
+							INP_MaxScale = 180,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Rotation Z (roll)",
+							INP_MinScale = -180,
+							INP_Default = 0,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+						AnimSpeed = {
+							INP_MaxScale = 3,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Animation Length (x)",
+							INP_MinScale = 0.25,
+							INP_Default = 1,
+							INP_Integer = false,
+							ICS_ControlPage = "Animation",
+							INPID_InputControl = "SliderControl",
+						},
+						EnvOverUnder = {
+							ICS_ControlPage = "Environment",
+							LINKID_DataType = "Number",
+							INP_Default = 1,
+							LINKS_Name = "Environment is over/under (left eye on top)",
+							INPID_InputControl = "CheckboxControl",
+						},
+						ModelContrast = {
+							INP_MaxScale = 2,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Contrast",
+							INP_MinScale = 0.5,
+							INP_Default = 1,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+						AnimStart = {
+							INP_MaxScale = 120,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Animation Start (frame)",
+							INP_MinScale = 0,
+							INP_Default = 0,
+							INP_Integer = true,
+							ICS_ControlPage = "Animation",
+							INPID_InputControl = "SliderControl",
+						},
+						ModelBright = {
+							INP_MaxScale = 2,
+							LINKID_DataType = "Number",
+							LINKS_Name = "Model Brightness",
+							INP_MinScale = 0.5,
+							INP_Default = 1,
+							INP_Integer = false,
+							ICS_ControlPage = "3D Model",
+							INPID_InputControl = "SliderControl",
+						},
+					},
+				},
+				HayBale_CC = BrightnessContrast {
+					Inputs = {
+						Gain = Input { Expression = "CARD_CONTROLS.ModelBright", },
+						Input = Input { SourceOp = "HayBale_Tex", Source = "Output", },
+						Saturation = Input { Expression = "CARD_CONTROLS.ModelSat", },
+						Contrast = Input { Expression = "CARD_CONTROLS.ModelContrast-1", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1320, 536.060546875 },
+					},
+					CtrlWShown = false,
+				},
+				CustomTool1LUTIn4 = LUTBezier {
+					CtrlWZoom = false,
+					SplineColor = { Green = 0, Blue = 0, Red = 0, },
+					KeyColorSplines = { { {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.333333333333333, 0.333333333333333 },
+							}, {
+								1,
+								Flags = { Linear = true, },
+								LH = { 0.666666666666667, 0.666666666666667 },
+							} } },
+				},
+				HayBale_NrmTex = Loader {
+					Inputs = {
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Bale_Normal_2k.png\"", },
+					},
+					Clips = { Clip {
+							GlobalEnd = 0,
+							AspectMode = 0,
+							ExtendFirst = 0,
+							Loop = 0,
+							Depth = 0,
+							LengthSetManually = true,
+							FormatID = "PNGFormat",
+							Filename = "/Volumes/The Baxter Building/2609 - Northern Ontario Farm Innovation Alliance - Farm and Food Care/ASSETS/3D Models/HayBale_Kit/Bale_Normal_2k.png",
+							ExtendLast = 0,
+							StartFrame = -1,
+							GlobalStart = 0,
+							ID = "Clip1",
+							TrimOut = 0,
+							TrimIn = 0,
+							TimeCode = 0,
+						} },
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo {
+						Pos = { -1540, 592.060546875 },
+					},
+				},
+				FB_Body = Text3D {
+					Inputs = {
+						Center = Input {
+							Value = { 0.5, 0.599 },
+						},
+						ExtrusionDepth = Input { Value = 0.01, },
+						HorizontalJustificationNew = Input { Value = 3, },
+						Size = Input { Value = 0.12, },
+						SpecularBlue = Input { Value = 0.243137254901961, },
+						StyledText = Input { Expression = "Text(CARD_CONTROLS.BodyText.Value)", Value = "Modern harvesters gently shake ripe grapes from the vine, collecting the fruit while leaving the vine intact.", },
+						["Transform3DOp.Translate.Y"] = Input { Value = -0.06, },
+						LayoutType = Input { Value = 1, },
+						ExtrusionProfile = Input { SourceOp = "FB_BodyExtrusionProfile", Source = "Value", },
+						Style = Input { Value = "Medium", },
+						["Transform3DOp.Translate.Z"] = Input { Value = 0.08, },
+						LineSpacing = Input { Value = 1.1, },
+						Opacity1 = Input { Expression = "CARD_CONTROLS.FadeOut*((1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-24*CARD_CONTROLS.AnimSpeed)/(16*CARD_CONTROLS.AnimSpeed))))^3))", },
+						LayoutHeight = Input { Value = 0.394, },
+						SpecularRed = Input { Value = 0.243137254901961, },
+						LayoutWidth = Input { Value = 2.2, },
+						Wrap = Input { Value = 1, },
+						Font = Input { Value = "Montserrat", },
+						VerticalJustificationNew = Input { Value = 3, },
+						VerticalJustification = Input { Value = 3, },
+						SpecularGreen = Input { Value = 0.23921568627451, },
+						End = Input { Expression = "math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-24*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed)))", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1320, 259.057586669922 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				HayBale = SurfaceFBXMesh {
+					Inputs = {
+						["MtlStdInputs.MaterialID"] = Input { Value = 6, },
+						MaterialInput = Input { SourceOp = "HayBale_Mtl", Source = "MaterialOutput", },
+						ImportFile = Input { Expression = "CARD_CONTROLS.ModelKit.Value .. \"/HayBale.fbx\"", Value = "/Volumes/The Baxter Building/2609 - Northern Ontario Farm Innovation Alliance - Farm and Food Care/ASSETS/3D Models/HayBale_Kit/HayBale.fbx", },
+						TransformToWorld = Input { Value = 0, },
+						Size = Input { Value = 0.01, },
+						["ObjectID.ObjectID"] = Input { Value = 3, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -880, 536.060546875 },
+					},
+					CtrlWShown = false,
+				},
+				CustomTool1LUTIn2 = LUTBezier {
+					CtrlWZoom = false,
+					SplineColor = { Green = 0, Blue = 0, Red = 0, },
+					KeyColorSplines = { { {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.333333333333333, 0.333333333333333 },
+							}, {
+								1,
+								Flags = { Linear = true, },
+								LH = { 0.666666666666667, 0.666666666666667 },
+							} } },
+				},
+				FB_ReflSphere = SphereMap {
+					Inputs = {
+						Image = Input { SourceOp = "FB_ReflBlur", Source = "Output", },
+						["Rotate.X"] = Input { Value = -40, },
+						MaterialID = Input { Value = 3, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 220, 8.257568359375 },
+					},
+					CtrlWShown = false,
+				},
+				FB_Plate_1 = Shape3D {
+					Inputs = {
+						["MtlStdInputs.Diffuse.Color.Blue"] = Input { Value = 0.294117647058824, },
+						["SurfaceSphereInputs.ObjectID.ObjectID"] = Input {
+							Value = Number { Value = 3, },
+						},
+						["Transform3DOp.Translate.Z"] = Input { Value = -0.2010112, },
+						["SurfaceCubeInputs.Depth"] = Input { Value = 0.55, },
+						["MtlStdInputs.Specular.Nest"] = Input { Value = 1, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 0.0748815989870762, },
+						Shape = Input {
+							Value = FuID { "SurfaceCubeInputs", },
+						},
+						["MtlStdInputs.Diffuse.Color.Green"] = Input { Value = 0.290196078431373, },
+						["SurfaceCubeInputs.Height"] = Input { Expression = "FB_PlateCTRL.NumberIn2 * FB_PlateCTRL.NumberIn4", Value = 0.623914285714286, },
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input {
+							Value = Number { Value = 1, },
+						},
+						MaterialInput = Input { SourceOp = "FB_PlateReflect_1", Source = "MaterialOutput", },
+						["Transform3DOp.ScaleLock"] = Input { Value = 0, },
+						["Transform3DOp.Scale.X"] = Input { Expression = "math.max(0.001,(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 1, },
+						["SurfaceCubeInputs.Width"] = Input { Expression = "FB_PlateCTRL.NumberIn1 * FB_PlateCTRL.NumberIn3", Value = 2.52, },
+						["SurfacePlaneInputs.Width"] = Input {
+							Value = Number { Value = 2.6, },
+						},
+						["SurfaceCubeInputs.SizeLock"] = Input { Value = 0, },
+						["SurfaceCubeInputs.ObjectID.ObjectID"] = Input { Value = 2, },
+						["MtlStdInputs.Diffuse.Color.Red"] = Input { Value = 0.294117647058824, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -880, 417.457580566406 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				FB_EnvSmall = BetterResize {
+					Inputs = {
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						Width = Input { Value = 1024, },
+						Input = Input { Source = "Output", SourceOp = "FB_EnvTopEye", },
+						HiQOnly = Input { Value = 0, },
+						Height = Input { Value = 512, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 0, 8.257568359375 },
+					},
+					CtrlWShown = false,
+				},
+				MODEL_SkyFill = LightSpot {
+					Inputs = {
+						["Transform3DOp.Translate.X"] = Input { Value = -2, },
+						["Transform3DOp.Target.Y"] = Input { Value = 1, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						ConeAngle = Input { Value = 38, },
+						Intensity = Input { Value = 0.8, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 2.4, },
+						Enabled = Input { Value = 0, },
+						["Transform3DOp.UseTarget"] = Input { Value = 1, },
+						Blue = Input { Value = 0.980392156862745, },
+						["Transform3DOp.Translate.Z"] = Input { Value = 3, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -660, 635.257568359375 },
+					},
+					CtrlWShown = false,
+				},
+				HayBale_Normal = BumpMap {
+					Inputs = {
+						MaterialID = Input { Value = 5, },
+						Input = Input { SourceOp = "HayBale_NrmTex", Source = "Output", },
+						SourceImageType = Input { Value = 1, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1320, 592.060546875 },
+					},
+					CtrlWShown = false,
+				},
+				LIGHT_Key = LightDirectional {
+					Inputs = {
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 1, },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 88.8, },
+						["Transform3DOp.Rotate.X"] = Input { Value = -159.2, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1, },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -127.9, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 220, 173.257568359375 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				FB_PlateTex_1 = Background {
+					Inputs = {
+						Height = Input { Value = 512, },
+						TopLeftBlue = Input { Value = 0.029, },
+						TopLeftRed = Input { Value = 0.129, },
+						GlobalOut = Input { Value = 119, },
+						TopLeftGreen = Input { Value = 0.139, },
+						Width = Input { Value = 512, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1540, 417.457580566406 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				FB_TitleNewMtl = ReplaceMaterial3D {
+					Inputs = {
+						SceneInput = Input { SourceOp = "FB_Title", Source = "Output", },
+						Enable = Input { Value = 0, },
+						["MtlStdInputs.MaterialID"] = Input { Value = 27, },
+						MaterialInput = Input { SourceOp = "FB_TitleReflect", Source = "MaterialOutput", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1100, 173.257568359375 },
+					},
+					CtrlWShown = false,
+				},
+				LIGHT_Spot2 = LightSpot {
+					Inputs = {
+						ConeAngle = Input { Value = 19.84, },
+						["Transform3DOp.Translate.X"] = Input { Value = -3.71491596925519, },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 18.407515885774, },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -69.6339023131877, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						["ShadowLightInputs3D.ConstantSoftness"] = Input { Value = 0.0094, },
+						Intensity = Input { Value = 2, },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 0, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 1.3405768786646, },
+						["ShadowLightInputs3D.SoftnessType"] = Input {
+							Value = FuID { "Constant", },
+						},
+						["Transform3DOp.Translate.Z"] = Input { Value = 1.22891345883979, },
+						["Transform3DOp.Rotate.X"] = Input { Value = -28.3922664318234, },
+						PenumbraAngle = Input { Value = 20, },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1, },
+						Dropoff = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 660, 173.257568359375 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				FB_EnvTopEye = Crop {
+					Inputs = {
+						YSize = Input { Expression = "iif(CARD_CONTROLS.EnvOverUnder > 0.5, 512, 1024)", },
+						XSize = Input { Value = 1024, },
+						YOffset = Input { Expression = "iif(CARD_CONTROLS.EnvOverUnder > 0.5, 512, 0)", },
+						XOffset = Input { Value = 0, },
+						Input = Input { Source = "Output", SourceOp = "FB_EnvSquare", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 1155, 45.58 },
+					},
+				},
+				FB_EnvSquare = BetterResize {
+					Inputs = {
+						Width = Input { Value = 1024, },
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						HiQOnly = Input { Value = 0, },
+						Height = Input { Value = 1024, },
+						Input = Input { SourceOp = "Plate_In", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 1009, 47.68 },
+					},
+				},
+				LIGHT_Fill_EnvTinted = LightAmbient {
+					Inputs = {
+						["Transform3DOp.Translate.Y"] = Input { Value = 1.857, },
+						["Transform3DOp.Translate.Z"] = Input { Value = -1.16232127296343, },
+						Green = Input { Value = 0.93, },
+						Red = Input { Value = 0.885, },
+						Blue = Input { Value = 1.0, },
+						Intensity = Input { Value = 0.15, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 0, 173.257568359375 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				FB_PlateMtl_1 = MtlCookTorrance {
+					Inputs = {
+						["Diffuse.Color.Material"] = Input { SourceOp = "FB_PlateTex_1", Source = "Output", },
+						["Specular.Roughness"] = Input { Value = 0.28, },
+						MaterialID = Input { Value = 23, },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*((1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Specular.Intensity"] = Input { Value = 0.35, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1320, 417.457580566406 },
+					},
+					CtrlWShown = false,
+				},
+				FB_PlateTex = Background {
+					Inputs = {
+						Height = Input { Value = 512, },
+						GlobalIn = Input { Value = 7, },
+						TopLeftBlue = Input { Value = 0.0431372549019608, },
+						TopLeftRed = Input { Value = 0.337254901960784, },
+						GlobalOut = Input { Value = 1119, },
+						TopLeftGreen = Input { Value = 0.349019607843137, },
+						Width = Input { Value = 512, },
+					},
+					ExtentSet = true,
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo {
+						Pos = { -1540, 371.257568359375 },
+					},
+				},
+				MODEL_RimLight = LightSpot {
+					Inputs = {
+						["Transform3DOp.Translate.X"] = Input { Value = 0.514118631727952, },
+						["Transform3DOp.Target.Y"] = Input { Value = 1.2, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						["Transform3DOp.Translate.Z"] = Input { Value = -7.03274132244912, },
+						Intensity = Input { Value = 2.2, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 2.8, },
+						["Transform3DOp.UseTarget"] = Input { Value = 1, },
+						Blue = Input { Value = 0.78, },
+						Green = Input { Value = 0.93, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -660, 678.157531738281 },
+					},
+					CtrlWShown = false,
+				},
+				FB_TitleExtrusionProfile = LUTBezier {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					KeyColorSplines = { {
+							[0] = {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.0666666666666667, 0.333333333333333 },
+							},
+							[0.2] = {
+								1,
+								Flags = { Linear = true, },
+								RH = { 0.4, 1 },
+								LH = { 0.133333333333333, 0.666666666666667 },
+							},
+							[0.8] = {
+								1,
+								Flags = { Linear = true, },
+								RH = { 0.866666666666667, 0.666666666666667 },
+								LH = { 0.6, 1 },
+							},
+							[1] = {
+								0,
+								Flags = { Linear = true, },
+								LH = { 0.933333333333333, 0.333333333333333 },
+							},
+						} },
+					CtrlWZoom = false,
+					SplineColor = { Green = 180, Blue = 255, Red = 0, },
+				},
+				FB_Title = Text3D {
+					Inputs = {
+						ExtrusionDepth = Input { Value = 0.1482, },
+						HorizontalJustificationNew = Input { Value = 3, },
+						BlueBevel = Input { Value = 0.168627450980392, },
+						Extrusion = Input { Value = 1, },
+						StyledText = Input { Expression = "Text(string.upper(CARD_CONTROLS.TitleText.Value))", },
+						["Transform3DOp.Translate.Y"] = Input { Expression = "FB_Plate.Transform3DOp.Translate.Y + FB_PlateCTRL.NumberIn2/2 + FB_PlateCTRL.NumberIn5", Value = 0.2315, },
+						AdvancedFontControls = Input { Value = 1, },
+						Comments = Input { Value = "Mechanical\nGrape Harvesting", },
+						ExtrusionProfile = Input { SourceOp = "FB_TitleExtrusionProfile", Source = "Value", },
+						LineSpacing = Input { Value = 0.737, },
+						Style = Input { Value = "ExtraBold Italic", },
+						Green1 = Input { Value = 0.576, },
+						Blue1 = Input { Value = 0.003, },
+						Size = Input { Value = 0.39, },
+						VerticalTopCenterBottom = Input { Value = 1, },
+						Opacity1 = Input { Expression = "CARD_CONTROLS.FadeOut*((math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(24*CARD_CONTROLS.AnimSpeed))))^2*(3-2*(math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(24*CARD_CONTROLS.AnimSpeed))))))", },
+						Red1 = Input { Value = 0.959, },
+						GreenBevel = Input { Value = 0.419607843137255, },
+						UseOneMaterial = Input { Value = 0, },
+						["Transform3DOp.Translate.Z"] = Input { Value = 0.369140720055241, },
+						CharacterSpacing = Input { Value = 0.963, },
+						RedBevel = Input { Value = 0.333333333333333, },
+						VerticalJustification = Input { Value = 3, },
+						VerticalJustificationNew = Input { Value = 3, },
+						Font = Input { Value = "Montserrat", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1325.55895996094, 150.517562866211 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				HayBale_Tex = Loader {
+					Inputs = {
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Bale_Diffuse_2k.png\"", },
+					},
+					Clips = { Clip {
+							GlobalEnd = 0,
+							AspectMode = 0,
+							ExtendFirst = 0,
+							Loop = 0,
+							Depth = 0,
+							LengthSetManually = true,
+							FormatID = "PNGFormat",
+							Filename = "/Volumes/The Baxter Building/2609 - Northern Ontario Farm Innovation Alliance - Farm and Food Care/ASSETS/3D Models/HayBale_Kit/Bale_Diffuse_2k.png",
+							ExtendLast = 0,
+							StartFrame = -1,
+							GlobalStart = 0,
+							ID = "Clip1",
+							TrimOut = 0,
+							TrimIn = 0,
+							TimeCode = 0,
+						} },
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo {
+						Pos = { -1540, 536.060546875 },
+					},
+				},
+				FB_PlateMtl = MtlCookTorrance {
+					Inputs = {
+						["Diffuse.Color.Material"] = Input { SourceOp = "FB_PlateTex", Source = "Output", },
+						["Specular.Roughness"] = Input { Value = 0.28, },
+						MaterialID = Input { Value = 4, },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*((1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Specular.Intensity"] = Input { Value = 0.35, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1320, 371.257568359375 },
+					},
+					CtrlWShown = false,
+				},
+				LIGHT_Spot1 = LightSpot {
+					Inputs = {
+						["ShadowLightInputs3D.SoftnessType"] = Input {
+							Value = FuID { "Constant", },
+						},
+						["Transform3DOp.Translate.X"] = Input { Value = -5.46810444432276, },
+						["Transform3DOp.Translate.Z"] = Input { Value = 4.0691047691091, },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -36.7634131079193, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						ConeAngle = Input { Value = 90, },
+						Intensity = Input { Value = 0.9, },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 1, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 2.57569308682183, },
+						Enabled = Input { Value = 0, },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 34.4896793913814, },
+						["Transform3DOp.Rotate.X"] = Input { Value = -46.3163954992778, },
+						PenumbraAngle = Input { Value = 9.45, },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1, },
+						Dropoff = Input { Value = 1.25, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 440, 173.257568359375 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWZoom = false,
+					CtrlWShown = false,
+				},
+				CustomTool1LUTIn1 = LUTBezier {
+					CtrlWZoom = false,
+					SplineColor = { Green = 0, Blue = 0, Red = 0, },
+					KeyColorSplines = { { {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.333333333333333, 0.333333333333333 },
+							}, {
+								1,
+								Flags = { Linear = true, },
+								LH = { 0.666666666666667, 0.666666666666667 },
+							} } },
+				},
+				FB_ReflBlur = Blur {
+					Inputs = {
+						Filter = Input {
+							Value = FuID { "Fast Gaussian", },
+						},
+						Input = Input { SourceOp = "FB_EnvSmall", Source = "Output", },
+						XBlurSize = Input { Value = 0.75, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -220, 8.257568359375 },
+					},
+					CtrlWShown = false,
+				},
+				HayBale_Mtl = MtlCookTorrance {
+					Inputs = {
+						["Diffuse.Color.Material"] = Input { SourceOp = "HayBale_CC", Source = "Output", },
+						["Specular.Roughness"] = Input { Value = 0.85, },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*(CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3))", },
+						MaterialID = Input { Value = 2, },
+						["Bumpmap.Material"] = Input { SourceOp = "HayBale_Normal", Source = "MaterialOutput", },
+						["Specular.Intensity"] = Input { Value = 0.08, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1100, 536.060546875 },
+					},
+					CtrlWShown = false,
+				},
+				FB_PlateReflect_1 = MtlReflect {
+					Inputs = {
+						BackgroundMaterial = Input { SourceOp = "FB_PlateMtl_1", Source = "MaterialOutput", },
+						["Reflection.Color.Material"] = Input { SourceOp = "FB_ReflSphere", Source = "MaterialOutput", },
+						MaterialID = Input { Value = 24, },
+						["Reflection.FaceOnStrength"] = Input { Expression = "CARD_CONTROLS.FadeOut*(FB_PlateCTRL.NumberIn8*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", Value = 0.503, },
+						["Reflection.GlancingStrength"] = Input { Expression = "CARD_CONTROLS.FadeOut*(math.min(1, FB_PlateCTRL.NumberIn8*4)*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", Value = 1, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1100, 417.457580566406 },
+					},
+					CtrlWShown = false,
+				},
+				FB_Scene = Merge3D {
+					Inputs = {
+						SceneInput6 = Input { SourceOp = "MODEL_Transform", Source = "Output", },
+						SceneInput7 = Input { SourceOp = "LIGHT_Key", Source = "Output", },
+						["Transform3DOp.Scale.X"] = Input { Expression = "CARD_CONTROLS.CardScale*(1-0.12*(1-CARD_CONTROLS.FadeOut))", },
+						SceneInput9 = Input { SourceOp = "LIGHT_Spot2", Source = "Output", },
+						SceneInput1 = Input { SourceOp = "FB_Plate", Source = "Output", },
+						SceneInput5 = Input { SourceOp = "LIGHT_Fill_EnvTinted", Source = "Output", },
+						SceneInput10 = Input { SourceOp = "FB_Plate_1", Source = "Output", },
+						SceneInput3 = Input { SourceOp = "FB_Body", Source = "Output", },
+						SceneInput8 = Input { SourceOp = "LIGHT_Spot1", Source = "Output", },
+						SceneInput2 = Input { SourceOp = "FB_TitleNewMtl", Source = "Output", },
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "CARD_CONTROLS.Sway*3.5*math.sin(time*2*math.pi/240)", },
+						["Transform3DOp.Rotate.X"] = Input { Expression = "CARD_CONTROLS.Sway*1.5*math.sin(time*2*math.pi/310)", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 220, 404.257568359375 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWShown = false,
+				},
+				FB_PlateReflect = MtlReflect {
+					Inputs = {
+						BackgroundMaterial = Input { SourceOp = "FB_PlateMtl", Source = "MaterialOutput", },
+						["Reflection.Color.Material"] = Input { SourceOp = "FB_ReflSphere", Source = "MaterialOutput", },
+						MaterialID = Input { Value = 22, },
+						["Reflection.FaceOnStrength"] = Input { Expression = "CARD_CONTROLS.FadeOut*(FB_PlateCTRL.NumberIn8*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", Value = 0.503, },
+						["Reflection.GlancingStrength"] = Input { Expression = "CARD_CONTROLS.FadeOut*(math.min(1, FB_PlateCTRL.NumberIn8*4)*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", Value = 1, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1100, 371.257568359375 },
+					},
+					CtrlWShown = false,
+				},
+				FB_BodyExtrusionProfile = LUTBezier {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					KeyColorSplines = { {
+							[0] = {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.0666666666666667, 0.333333333333333 },
+							},
+							[0.2] = {
+								1,
+								Flags = { Linear = true, },
+								RH = { 0.4, 1 },
+								LH = { 0.133333333333333, 0.666666666666667 },
+							},
+							[0.8] = {
+								1,
+								Flags = { Linear = true, },
+								RH = { 0.866666666666667, 0.666666666666667 },
+								LH = { 0.6, 1 },
+							},
+							[1] = {
+								0,
+								Flags = { Linear = true, },
+								LH = { 0.933333333333333, 0.333333333333333 },
+							},
+						} },
+					CtrlWZoom = false,
+					SplineColor = { Green = 255, Blue = 0, Red = 180, },
+				},
+				FB_PlateCTRL = Custom {
+					Inputs = {
+						ShowPoint3 = Input { Value = 0, },
+						LUTIn3 = Input { SourceOp = "CustomTool1LUTIn3", Source = "Value", },
+						NameforNumber1 = Input { Value = "Plate Width", },
+						LUTIn2 = Input { SourceOp = "CustomTool1LUTIn2", Source = "Value", },
+						ShowLUT3 = Input { Value = 0, },
+						ShowPoint1 = Input { Value = 0, },
+						ShowLUT4 = Input { Value = 0, },
+						NumberIn3 = Input { Value = 0.875, },
+						NameforNumber6 = Input { Value = "Padding (Height Without Body)", },
+						NumberIn2 = Input { Expression = "self.NumberIn6 + math.ceil(string.len(FB_Body.StyledText.Value) / self.NumberIn7) * FB_Body.Size * FB_Body.LineSpacing", Value = 0.753, },
+						ShowLUT2 = Input { Value = 0, },
+						ShowPoint2 = Input { Value = 0, },
+						NameforNumber2 = Input { Value = "Plate Height", },
+						NameforNumber3 = Input { Value = "Body Plate Width Ratio", },
+						NumberIn5 = Input { Value = -0.219881598987076, },
+						NumberIn4 = Input { Value = 0.828571428571429, },
+						NameforNumber4 = Input { Value = "Body Plate Height Ratio", },
+						NumberIn1 = Input { Value = 2.88, },
+						ShowLUT1 = Input { Value = 0, },
+						NameforNumber5 = Input { Value = "Title Offset From Top", },
+						ShowPoint4 = Input { Value = 0, },
+						NumberIn8 = Input { Value = 0.503, },
+						LUTIn1 = Input { SourceOp = "CustomTool1LUTIn1", Source = "Value", },
+						NumberIn6 = Input { Value = 0.489, },
+						NumberIn7 = Input { Value = 55, },
+						NameforNumber7 = Input { Value = "Body Chars Per Line", },
+						LUTIn4 = Input { SourceOp = "CustomTool1LUTIn4", Source = "Value", },
+						NameforNumber8 = Input { Value = "Plate Reflectivity", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1320, 8.257568359375 },
+					},
+					CtrlWShown = false,
+				},
+				CustomTool1LUTIn3 = LUTBezier {
+					CtrlWZoom = false,
+					SplineColor = { Green = 0, Blue = 0, Red = 0, },
+					KeyColorSplines = { { {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.333333333333333, 0.333333333333333 },
+							}, {
+								1,
+								Flags = { Linear = true, },
+								LH = { 0.666666666666667, 0.666666666666667 },
+							} } },
+				},
+				Plate_In = PipeRouter {
+					ViewInfo = PipeRouterInfo {
+						Pos = { -2300, -395 },
+					},
+				},
+				Card_Over_Plate = Merge {
+					ViewInfo = OperatorInfo {
+						Pos = { 1200, -395 },
+					},
+					Inputs = {
+						Background = Input { SourceOp = "Plate_In", Source = "Output", },
+						Foreground = Input { SourceOp = "Stack_Eyes_OverUnder", Source = "Output", },
+						PerformDepthMerge = Input { Value = 0, },
+					},
+				},
+			},
+			ViewInfo = GroupInfo {
+				Pos = { 0, 0 },
+			},
+		},
+	},
+}

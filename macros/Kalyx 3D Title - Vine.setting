@@ -1,0 +1,1708 @@
+{
+	Tools = {
+		Kalyx3DTitle_Vine = MacroOperator {
+			Outputs = {
+				MainOutput1 = InstanceOutput { SourceOp = "FB_Scene", Source = "Output", },
+			},
+			Tools = {
+				Vine_Trunk_Tex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 544.197021484375 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_trunk_1_d.jpg\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "JPEGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_trunk_1_d.jpg",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				LIGHT_Spot2 = LightSpot {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 2255, 181.197006225586 },
+					},
+					Inputs = {
+						["Transform3DOp.Rotate.X"] = Input { Value = -28.3922664318234, },
+						Intensity = Input { Value = 2, },
+						ConeAngle = Input { Value = 19.84, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						PenumbraAngle = Input { Value = 20, },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -69.6339023131877, },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 18.407515885774, },
+						["ShadowLightInputs3D.SoftnessType"] = Input {
+							Value = FuID { "Constant", },
+						},
+						["Transform3DOp.Translate.Y"] = Input { Value = 1.3405768786646, },
+						["Transform3DOp.Translate.X"] = Input { Value = -3.71491596925519, },
+						["ShadowLightInputs3D.ConstantSoftness"] = Input { Value = 0.0094, },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 0, },
+						["Transform3DOp.Translate.Z"] = Input { Value = 1.22891345883979, },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1, },
+						Dropoff = Input { Value = 0, },
+					},
+				},
+				Vine_Twig_2_Tex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 629.997009277344 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_twig_2_d.jpg\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "JPEGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_twig_2_d.jpg",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				Vine_Twig_1_NrmTex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 606.89697265625 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_branch_1_n.jpg\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "JPEGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_branch_1_n.jpg",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				FB_PlateMtl_1 = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 425.397003173828 },
+					},
+					Inputs = {
+						["Specular.Roughness"] = Input { Value = 0.28, },
+						MaterialID = Input { Value = 23, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "FB_PlateTex_1", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*((1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Specular.Intensity"] = Input { Value = 0.35, },
+					},
+				},
+				FB_TitleReflect = MtlReflect {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 220.796997070312 },
+					},
+					Inputs = {
+						["Reflection.Color.Material"] = Input { Source = "MaterialOutput", SourceOp = "FB_ReflSphere", },
+						BackgroundMaterial = Input { Source = "MaterialOutput", SourceOp = "FB_TitleMtl", },
+						["Reflection.GlancingStrength"] = Input { Value = 1, Expression = "CARD_CONTROLS.FadeOut*(math.min(1, FB_PlateCTRL.NumberIn8*3)*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(30*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Reflection.FaceOnStrength"] = Input { Value = 0.503, Expression = "CARD_CONTROLS.FadeOut*(FB_PlateCTRL.NumberIn8*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(30*CARD_CONTROLS.AnimSpeed))))^3))", },
+						MaterialID = Input { Value = 26, },
+					},
+				},
+				Vine_Trunk_CC = ColorCorrector {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 544.197021484375 },
+					},
+					Inputs = {
+						Input = Input { Source = "Output", SourceOp = "Vine_Trunk_Tex", },
+						WheelSaturation1 = Input { Value = 0.6, Expression = "0.5*CARD_CONTROLS.ModelSat", },
+						Saturation1 = Input { Expression = "0.5*CARD_CONTROLS.ModelSat", },
+						ColorRanges = Input {
+							Value = ColorCurves {
+								Curves = { {
+										Points = { { 0, 1 }, { 0.4, 0.2 }, { 0.6, 0 }, { 1, 0 } },
+									}, {
+										Points = { { 0, 0 }, { 0.4, 0 }, { 0.6, 0.2 }, { 1, 1 } },
+									} },
+							},
+						},
+						MasterRGBGain = Input { Value = 1.15, Expression = "CARD_CONTROLS.ModelBright", },
+						HistogramIgnoreTransparent = Input { Value = 1, },
+						MasterRGBContrast = Input { Value = 0.3, Expression = "CARD_CONTROLS.ModelContrast-1", },
+					},
+				},
+				FB_PlateTex = Background {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 379.196990966797 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					Inputs = {
+						Height = Input { Value = 512, },
+						GlobalIn = Input { Value = 7, },
+						TopLeftRed = Input { Value = 0.337254901960784, },
+						TopLeftGreen = Input { Value = 0.349019607843137, },
+						Width = Input { Value = 512, },
+						GlobalOut = Input { Value = 1119, },
+						TopLeftBlue = Input { Value = 0.0431372549019608, },
+					},
+					ExtentSet = true,
+				},
+				CustomTool1LUTIn2 = LUTBezier {
+					KeyColorSplines = { { {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.333333333333333, 0.333333333333333 },
+							}, {
+								1,
+								LH = { 0.666666666666667, 0.666666666666667 },
+								Flags = { Linear = true, },
+							} } },
+					CtrlWZoom = false,
+					SplineColor = { Red = 0, Blue = 0, Green = 0, },
+				},
+				Vine_Grape_2_Tex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 844.497009277344 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_skin_d_2.jpg\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "JPEGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_skin_d_2.jpg",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				MODEL_RimLight = LightSpot {
+					ViewInfo = OperatorInfo {
+						Pos = { 935, 686.096984863281 },
+					},
+					Inputs = {
+						Intensity = Input { Value = 2.2, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 2.8, },
+						["Transform3DOp.Translate.X"] = Input { Value = 0.514118631727952, },
+						["Transform3DOp.Target.Y"] = Input { Value = 1.2, },
+						["Transform3DOp.UseTarget"] = Input { Value = 1, },
+						["Transform3DOp.Translate.Z"] = Input { Value = -7.03274132244912, },
+						Blue = Input { Value = 0.78, },
+						Green = Input { Value = 0.93, },
+					},
+				},
+				Vine_Leaf_2_Mtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 715.796997070312 },
+					},
+					Inputs = {
+						["Diffuse.Color.Red"] = Input { Value = 0.9, },
+						["Diffuse.Color.Green"] = Input { Value = 0.92, },
+						UseTwoSidedLighting = Input { Value = 1, },
+						["Transmittance.Color.Blue"] = Input { Value = 0.12, },
+						["Transmittance.Color.Red"] = Input { Value = 0.35, },
+						["Specular.Roughness"] = Input { Value = 0.4, },
+						["Transmittance.Color.Green"] = Input { Value = 0.55, },
+						MaterialID = Input { Value = 13, },
+						["Specular.Intensity"] = Input { Value = 0.18, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "Vine_Leaf_2_CC", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*(CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Diffuse.Color.Blue"] = Input { Value = 0.62, },
+					},
+				},
+				FB_Scene = Merge3D {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 1815, 412.196990966797 },
+					},
+					Inputs = {
+						["Transform3DOp.Rotate.X"] = Input { Expression = "CARD_CONTROLS.Sway*1.5*math.sin(time*2*math.pi/310)", },
+						SceneInput7 = Input { Source = "Output", SourceOp = "LIGHT_Key", },
+						SceneInput5 = Input { Source = "Output", SourceOp = "LIGHT_Fill_EnvTinted", },
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "CARD_CONTROLS.Sway*3.5*math.sin(time*2*math.pi/240)", },
+						SceneInput3 = Input { Source = "Output", SourceOp = "FB_Body", },
+						SceneInput9 = Input { Source = "Output", SourceOp = "LIGHT_Spot2", },
+						SceneInput6 = Input { Source = "Output", SourceOp = "MODEL_Transform", },
+						SceneInput1 = Input { Source = "Output", SourceOp = "FB_Plate", },
+						SceneInput10 = Input { Source = "Output", SourceOp = "FB_Plate_1", },
+						SceneInput8 = Input { Source = "Output", SourceOp = "LIGHT_Spot1", },
+						["Transform3DOp.Scale.X"] = Input { Expression = "CARD_CONTROLS.CardScale*(1-0.12*(1-CARD_CONTROLS.FadeOut))", },
+						SceneInput2 = Input { Source = "Output", SourceOp = "FB_TitleNewMtl", },
+					},
+				},
+				Vine_Trunk_NrmTex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 563.997009277344 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_branch_1_n.jpg\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "JPEGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_branch_1_n.jpg",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				LIGHT_Spot1 = LightSpot {
+					ViewInfo = OperatorInfo {
+						Pos = { 2035, 181.197006225586 },
+					},
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWZoom = false,
+					Inputs = {
+						["Transform3DOp.Rotate.X"] = Input { Value = -46.3163954992778, },
+						Intensity = Input { Value = 0.9, },
+						ConeAngle = Input { Value = 90, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						PenumbraAngle = Input { Value = 9.45, },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -36.7634131079193, },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 34.4896793913814, },
+						["ShadowLightInputs3D.SoftnessType"] = Input {
+							Value = FuID { "Constant", },
+						},
+						["Transform3DOp.Translate.Y"] = Input { Value = 2.57569308682183, },
+						["Transform3DOp.Translate.X"] = Input { Value = -5.46810444432276, },
+						Enabled = Input { Value = 0, },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 1, },
+						["Transform3DOp.Translate.Z"] = Input { Value = 4.0691047691091, },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1, },
+						Dropoff = Input { Value = 1.25, },
+					},
+				},
+				Vine_Grape_2_Mtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 844.497009277344 },
+					},
+					Inputs = {
+						["Diffuse.Color.Red"] = Input { Value = 0.5, },
+						["Diffuse.Color.Green"] = Input { Value = 0.42, },
+						["Specular.Color.Green"] = Input { Value = 0.78, },
+						["Specular.Color.Red"] = Input { Value = 0.75, },
+						["Specular.Intensity"] = Input { Value = 0.3, },
+						MaterialID = Input { Value = 19, },
+						["Diffuse.Color.Blue"] = Input { Value = 0.5, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "Vine_Grape_2_Tex", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*(CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Specular.Color.Blue"] = Input { Value = 0.85, },
+					},
+				},
+				MODEL_Merge = Merge3D {
+					ViewInfo = OperatorInfo {
+						Pos = { 1155, 709.197021484375 },
+					},
+					Inputs = {
+						SceneInput7 = Input { Source = "Output", SourceOp = "Vine_Grape", },
+						SceneInput5 = Input { Source = "Output", SourceOp = "Vine_Leaf_2", },
+						SceneInput2 = Input { Source = "Output", SourceOp = "Vine_Twig_1", },
+						SceneInput3 = Input { Source = "Output", SourceOp = "Vine_Twig_2", },
+						SceneInput9 = Input { Source = "Output", SourceOp = "MODEL_SkyFill", },
+						SceneInput1 = Input { Source = "Output", SourceOp = "Vine_Trunk", },
+						SceneInput10 = Input { Source = "Output", SourceOp = "MODEL_RimLight", },
+						SceneInput8 = Input { Source = "Output", SourceOp = "Vine_Grape_2", },
+						SceneInput4 = Input { Source = "Output", SourceOp = "Vine_Leaf_1", },
+						SceneInput6 = Input { Source = "Output", SourceOp = "Vine_Leaf_3", },
+					},
+				},
+				CustomTool1LUTIn3 = LUTBezier {
+					KeyColorSplines = { { {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.333333333333333, 0.333333333333333 },
+							}, {
+								1,
+								LH = { 0.666666666666667, 0.666666666666667 },
+								Flags = { Linear = true, },
+							} } },
+					CtrlWZoom = false,
+					SplineColor = { Red = 0, Blue = 0, Green = 0, },
+				},
+				Vine_Trunk_Mtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 544.197021484375 },
+					},
+					Inputs = {
+						["Diffuse.Color.Red"] = Input { Value = 0.55, },
+						["Diffuse.Color.Green"] = Input { Value = 0.52, },
+						["Bumpmap.Material"] = Input { Source = "MaterialOutput", SourceOp = "Vine_Trunk_Normal", },
+						["Specular.Roughness"] = Input { Value = 0.7, },
+						MaterialID = Input { Value = 2, },
+						["Specular.Intensity"] = Input { Value = 0.1, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "Vine_Trunk_CC", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*(CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Diffuse.Color.Blue"] = Input { Value = 0.5, },
+					},
+				},
+				Vine_Grape = SurfaceFBXMesh {
+					CustomData = {
+						MediaProps = { MEDIA_ID = "78f2468c-f8a6-4057-a219-c388afdb02a3", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 801.596984863281 },
+					},
+					Inputs = {
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "Vine_Grape_Mtl", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 18, },
+						ImportFile = Input { Value = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Vine_Grape.fbx", Expression = "CARD_CONTROLS.ModelKit.Value .. \"/Vine_Grape.fbx\"", },
+						TransformToWorld = Input { Value = 0, },
+						["ObjectID.ObjectID"] = Input { Value = 9, },
+					},
+				},
+				CARD_CONTROLS = PipeRouter {
+					UserControls = {
+						CardScale = {
+							INP_MaxScale = 2,
+							INPID_InputControl = "SliderControl",
+							LINKID_DataType = "Number",
+							LINKS_Name = "Title scale (1 = as designed)",
+							INP_MinScale = 0.4,
+							ICS_ControlPage = "Text",
+							INP_Default = 0.852,
+						},
+						ModelZ = {
+							LINKS_Name = "Model Position Z",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 3,
+							INP_MinScale = -3,
+							INP_Integer = false,
+							INP_Default = 0,
+						},
+						TitleText = {
+							LINKS_Name = "Title (auto CAPS)",
+							INPID_InputControl = "TextEditControl",
+							LINKID_DataType = "Text",
+							TEC_Lines = 3,
+							ICS_ControlPage = "Text",
+							INP_Default = "Title",
+						},
+						ModelRotZ = {
+							LINKS_Name = "Model Rotation Z (roll)",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 180,
+							INP_MinScale = -180,
+							INP_Integer = false,
+							INP_Default = 0,
+						},
+						ModelKit = {
+							LINKS_Name = "Model Kit Folder",
+							INPID_InputControl = "TextEditControl",
+							LINKID_DataType = "Text",
+							TEC_Lines = 1,
+							ICS_ControlPage = "3D Model",
+							INP_Default = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit",
+						},
+						AnimStart = {
+							LINKS_Name = "Animation Start (frame)",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "Animation",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 120,
+							INP_MinScale = 0,
+							INP_Integer = true,
+							INP_Default = 0,
+						},
+						ModelContrast = {
+							LINKS_Name = "Model Contrast",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 2,
+							INP_MinScale = 0.5,
+							INP_Integer = false,
+							INP_Default = 1,
+						},
+						ModelScale = {
+							LINKS_Name = "Model Scale",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 3,
+							INP_MinScale = 0.1,
+							INP_Integer = false,
+							INP_Default = 1,
+						},
+						ModelRotX = {
+							LINKS_Name = "Model Rotation X (tilt)",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 180,
+							INP_MinScale = -180,
+							INP_Integer = false,
+							INP_Default = 0,
+						},
+						ModelShow = {
+							LINKS_Name = "Show 3D Model",
+							INPID_InputControl = "CheckboxControl",
+							LINKID_DataType = "Number",
+							ICS_ControlPage = "3D Model",
+							INP_Default = 1,
+						},
+						ModelY = {
+							LINKS_Name = "Model Position Y",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 3,
+							INP_MinScale = -3,
+							INP_Integer = false,
+							INP_Default = 0,
+						},
+						AnimSpeed = {
+							LINKS_Name = "Animation Length (x)",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "Animation",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 3,
+							INP_MinScale = 0.25,
+							INP_Integer = false,
+							INP_Default = 1,
+						},
+						ModelX = {
+							LINKS_Name = "Model Position X",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 3,
+							INP_MinScale = -3,
+							INP_Integer = false,
+							INP_Default = 0,
+						},
+						ModelSat = {
+							LINKS_Name = "Model Saturation",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 2,
+							INP_MinScale = 0,
+							INP_Integer = false,
+							INP_Default = 1,
+						},
+						BodyText = {
+							LINKS_Name = "Body Text",
+							INPID_InputControl = "TextEditControl",
+							LINKID_DataType = "Text",
+							TEC_Lines = 5,
+							ICS_ControlPage = "Text",
+							INP_Default = "Body",
+						},
+						ModelBright = {
+							LINKS_Name = "Model Brightness",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 2,
+							INP_MinScale = 0.5,
+							INP_Integer = false,
+							INP_Default = 1,
+						},
+						ModelRotY = {
+							LINKS_Name = "Model Rotation Y (spin)",
+							INPID_InputControl = "SliderControl",
+							ICS_ControlPage = "3D Model",
+							LINKID_DataType = "Number",
+							INP_MaxScale = 180,
+							INP_MinScale = -180,
+							INP_Integer = false,
+							INP_Default = 0,
+						},
+						HoldSeconds = {
+							INP_MaxScale = 20,
+							INPID_InputControl = "SliderControl",
+							LINKID_DataType = "Number",
+							LINKS_Name = "Fade out after (seconds, 0 = never)",
+							INP_MinScale = 0,
+							ICS_ControlPage = "Animation",
+							INP_Default = 0,
+						},
+						Sway = {
+							INP_MaxScale = 2,
+							INPID_InputControl = "SliderControl",
+							LINKID_DataType = "Number",
+							LINKS_Name = "Sway amount",
+							INP_MinScale = 0,
+							ICS_ControlPage = "Animation",
+							INP_Default = 0,
+						},
+						EnvOverUnder = {
+							LINKID_DataType = "Number",
+							INPID_InputControl = "CheckboxControl",
+							INP_Default = 1,
+							ICS_ControlPage = "Environment",
+							LINKS_Name = "Environment is over/under (left eye on top)",
+						},
+						FadeOut = {
+							LINKID_DataType = "Number",
+							INPID_InputControl = "SliderControl",
+							INP_Default = 1,
+							INP_MinScale = 0,
+							INP_MaxScale = 1,
+							IC_Visible = false,
+							ICS_ControlPage = "Animation",
+							LINKS_Name = "Fade out (driven)",
+						},
+					},
+					ViewInfo = PipeRouterInfo {
+						Pos = { 165.228469848633, 50.0362434387207 },
+					},
+					Inputs = {
+						ModelKit = Input { Value = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit", },
+						ModelScale = Input { Value = 0.81, },
+						ModelY = Input { Value = -0.201178285262067, },
+						ModelBright = Input { Value = 1.15, },
+						BodyText = Input { Value = "Modern harvesters gently shake ripe grapes from the vine, collecting the fruit while leaving the vine intact.", },
+						TitleText = Input { Value = "Mechanical\nGrape Harvesting", },
+						ModelRotX = Input { Value = 0, },
+						ModelRotZ = Input { Value = 0, },
+						ModelRotY = Input { Value = 31.3, },
+						ModelX = Input { Value = -1.35334434794259, },
+						ModelSat = Input { Value = 1.2, },
+						ModelZ = Input { Value = -0.0334605741066034, },
+						ModelContrast = Input { Value = 1.3, },
+						EnvOverUnder = Input { Value = 1, },
+						FadeOut = Input { Expression = "iif(CARD_CONTROLS.HoldSeconds <= 0, 1, 1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-60*CARD_CONTROLS.AnimSpeed-CARD_CONTROLS.HoldSeconds*30)/(18*CARD_CONTROLS.AnimSpeed))))", },
+						HoldSeconds = Input { Value = 0, },
+					},
+					CtrlWZoom = false,
+				},
+				Vine_Leaf_1_Mtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 672.89697265625 },
+					},
+					Inputs = {
+						["Diffuse.Color.Red"] = Input { Value = 0.9, },
+						["Diffuse.Color.Green"] = Input { Value = 0.92, },
+						UseTwoSidedLighting = Input { Value = 1, },
+						["Transmittance.Color.Blue"] = Input { Value = 0.12, },
+						["Transmittance.Color.Red"] = Input { Value = 0.35, },
+						["Specular.Roughness"] = Input { Value = 0.4, },
+						["Transmittance.Color.Green"] = Input { Value = 0.55, },
+						MaterialID = Input { Value = 11, },
+						["Specular.Intensity"] = Input { Value = 0.18, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "Vine_Leaf_1_CC", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*(CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Diffuse.Color.Blue"] = Input { Value = 0.62, },
+					},
+				},
+				Vine_Twig_2 = SurfaceFBXMesh {
+					CustomData = {
+						MediaProps = { MEDIA_ID = "3fc2e95a-370e-463b-aead-26afed6110d6", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 629.997009277344 },
+					},
+					Inputs = {
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "Vine_Twig_2_Mtl", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 10, },
+						ImportFile = Input { Value = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Vine_Twig_2.fbx", Expression = "CARD_CONTROLS.ModelKit.Value .. \"/Vine_Twig_2.fbx\"", },
+						TransformToWorld = Input { Value = 0, },
+						["ObjectID.ObjectID"] = Input { Value = 5, },
+					},
+				},
+				FB_PlateTex_1 = Background {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 425.397003173828 },
+					},
+					Inputs = {
+						TopLeftBlue = Input { Value = 0.029, },
+						TopLeftRed = Input { Value = 0.129, },
+						Height = Input { Value = 512, },
+						TopLeftGreen = Input { Value = 0.139, },
+						GlobalOut = Input { Value = 565, },
+						Width = Input { Value = 512, },
+					},
+				},
+				Vine_Twig_1_Normal = BumpMap {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 606.89697265625 },
+					},
+					Inputs = {
+						Input = Input { Source = "Output", SourceOp = "Vine_Twig_1_NrmTex", },
+						SourceImageType = Input { Value = 1, },
+						MaterialID = Input { Value = 21, },
+					},
+				},
+				Vine_Twig_2_Mtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 629.997009277344 },
+					},
+					Inputs = {
+						["Specular.Roughness"] = Input { Value = 0.7, },
+						["Diffuse.Color.Green"] = Input { Value = 0.38, },
+						["Specular.Intensity"] = Input { Value = 0.1, },
+						MaterialID = Input { Value = 9, },
+						["Diffuse.Color.Red"] = Input { Value = 0.36, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "Vine_Twig_2_Tex", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*(CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Diffuse.Color.Blue"] = Input { Value = 0.24, },
+					},
+				},
+				Vine_Grape_Tex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 801.596984863281 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_skin_d.jpg\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "JPEGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_skin_d.jpg",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				Vine_Twig_1_Mtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 587.096984863281 },
+					},
+					Inputs = {
+						["Diffuse.Color.Red"] = Input { Value = 0.55, },
+						["Diffuse.Color.Green"] = Input { Value = 0.52, },
+						["Bumpmap.Material"] = Input { Source = "MaterialOutput", SourceOp = "Vine_Twig_1_Normal", },
+						["Specular.Roughness"] = Input { Value = 0.7, },
+						MaterialID = Input { Value = 7, },
+						["Specular.Intensity"] = Input { Value = 0.1, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "Vine_Twig_1_CC", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*(CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Diffuse.Color.Blue"] = Input { Value = 0.5, },
+					},
+				},
+				Vine_Twig_1_CC = ColorCorrector {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 587.096984863281 },
+					},
+					Inputs = {
+						Input = Input { Source = "Output", SourceOp = "Vine_Twig_1_Tex", },
+						WheelSaturation1 = Input { Value = 0.6, Expression = "0.5*CARD_CONTROLS.ModelSat", },
+						Saturation1 = Input { Expression = "0.5*CARD_CONTROLS.ModelSat", },
+						ColorRanges = Input {
+							Value = ColorCurves {
+								Curves = { {
+										Points = { { 0, 1 }, { 0.4, 0.2 }, { 0.6, 0 }, { 1, 0 } },
+									}, {
+										Points = { { 0, 0 }, { 0.4, 0 }, { 0.6, 0.2 }, { 1, 1 } },
+									} },
+							},
+						},
+						MasterRGBGain = Input { Value = 1.15, Expression = "CARD_CONTROLS.ModelBright", },
+						HistogramIgnoreTransparent = Input { Value = 1, },
+						MasterRGBContrast = Input { Value = 0.3, Expression = "CARD_CONTROLS.ModelContrast-1", },
+					},
+				},
+				FB_Body = Text3D {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 266.997009277344 },
+					},
+					Inputs = {
+						Center = Input {
+							Value = { 0.5, 0.599 },
+						},
+						VerticalJustification = Input { Value = 3, },
+						SpecularGreen = Input { Value = 0.23921568627451, },
+						SpecularBlue = Input { Value = 0.243137254901961, },
+						Wrap = Input { Value = 1, },
+						LayoutType = Input { Value = 1, },
+						Font = Input { Value = "Montserrat", },
+						HorizontalJustificationNew = Input { Value = 3, },
+						["Transform3DOp.Translate.Z"] = Input { Value = 0.08, },
+						ExtrusionProfile = Input { Source = "Value", SourceOp = "FB_BodyExtrusionProfile", },
+						End = Input { Expression = "math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-24*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed)))", },
+						SpecularRed = Input { Value = 0.243137254901961, },
+						["Transform3DOp.Translate.Y"] = Input { Value = -0.06, },
+						Size = Input { Value = 0.12, },
+						LayoutHeight = Input { Value = 0.394, },
+						Style = Input { Value = "Medium", },
+						LayoutWidth = Input { Value = 2.2, },
+						VerticalJustificationNew = Input { Value = 3, },
+						LineSpacing = Input { Value = 1.1, },
+						StyledText = Input { Value = "Modern harvesters gently shake ripe grapes from the vine, collecting the fruit while leaving the vine intact.", Expression = "Text(CARD_CONTROLS.BodyText.Value)", },
+						Opacity1 = Input { Expression = "CARD_CONTROLS.FadeOut*((1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-24*CARD_CONTROLS.AnimSpeed)/(16*CARD_CONTROLS.AnimSpeed))))^3))", },
+						ExtrusionDepth = Input { Value = 0.01, },
+					},
+				},
+				Vine_Leaf_1_Tex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 672.89697265625 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_leaf_1_d.png\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "PNGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_leaf_1_d.png",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				FB_EnvSmall = BetterResize {
+					ViewInfo = OperatorInfo {
+						Pos = { 1595, 16.19700050354 },
+					},
+					Inputs = {
+						HiQOnly = Input { Value = 0, },
+						Height = Input { Value = 512, },
+						Input = Input { SourceOp = "FB_EnvTopEye", Source = "Output", },
+						Width = Input { Value = 1024, },
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+					},
+				},
+				Vine_Leaf_2 = SurfaceFBXMesh {
+					CustomData = {
+						MediaProps = { MEDIA_ID = "8e78b171-b1b5-4951-9e15-55fba790ddba", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 715.796997070312 },
+					},
+					Inputs = {
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "Vine_Leaf_2_Mtl", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 14, },
+						ImportFile = Input { Value = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Vine_Leaf_2.fbx", Expression = "CARD_CONTROLS.ModelKit.Value .. \"/Vine_Leaf_2.fbx\"", },
+						TransformToWorld = Input { Value = 0, },
+						["ObjectID.ObjectID"] = Input { Value = 7, },
+					},
+				},
+				Vine_Trunk_Normal = BumpMap {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 563.997009277344 },
+					},
+					Inputs = {
+						Input = Input { Source = "Output", SourceOp = "Vine_Trunk_NrmTex", },
+						SourceImageType = Input { Value = 1, },
+						MaterialID = Input { Value = 5, },
+					},
+				},
+				Vine_Trunk = SurfaceFBXMesh {
+					CustomData = {
+						MediaProps = { MEDIA_ID = "715d0b0f-5814-450d-812e-726ce26d3ebf", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 544.197021484375 },
+					},
+					Inputs = {
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "Vine_Trunk_Mtl", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 6, },
+						ImportFile = Input { Value = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Vine_Trunk.fbx", Expression = "CARD_CONTROLS.ModelKit.Value .. \"/Vine_Trunk.fbx\"", },
+						TransformToWorld = Input { Value = 0, },
+						["ObjectID.ObjectID"] = Input { Value = 3, },
+					},
+				},
+				Vine_Leaf_3_Tex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 758.697021484375 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_leaf_3_d.png\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "PNGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_leaf_3_d.png",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				LIGHT_Key = LightDirectional {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 1815, 181.197006225586 },
+					},
+					Inputs = {
+						["Transform3DOp.Rotate.X"] = Input { Value = -159.2, },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 1, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -127.9, },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1, },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 88.8, },
+					},
+				},
+				Vine_Grape_Mtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 801.596984863281 },
+					},
+					Inputs = {
+						["Diffuse.Color.Red"] = Input { Value = 0.28, },
+						["Diffuse.Color.Green"] = Input { Value = 0.32, },
+						["Specular.Color.Green"] = Input { Value = 0.85, },
+						["Specular.Color.Red"] = Input { Value = 0.8, },
+						["Specular.Roughness"] = Input { Value = 0.45, },
+						MaterialID = Input { Value = 17, },
+						["Specular.Intensity"] = Input { Value = 0.1, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "Vine_Grape_Tex", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*(CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Diffuse.Color.Blue"] = Input { Value = 0.2, },
+					},
+				},
+				MODEL_SkyFill = LightSpot {
+					ViewInfo = OperatorInfo {
+						Pos = { 935, 643.197021484375 },
+					},
+					Inputs = {
+						Intensity = Input { Value = 0.8, },
+						ConeAngle = Input { Value = 38, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 1024, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 2.4, },
+						Enabled = Input { Value = 0, },
+						["Transform3DOp.Translate.X"] = Input { Value = -2, },
+						["Transform3DOp.Target.Y"] = Input { Value = 1, },
+						["Transform3DOp.UseTarget"] = Input { Value = 1, },
+						["Transform3DOp.Translate.Z"] = Input { Value = 3, },
+						Blue = Input { Value = 0.980392156862745, },
+					},
+				},
+				Vine_Leaf_3_CC = ColorCorrector {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 758.697021484375 },
+					},
+					Inputs = {
+						Input = Input { Source = "Output", SourceOp = "Vine_Leaf_3_Tex", },
+						WheelSaturation1 = Input { Value = 1.02, Expression = "0.85*CARD_CONTROLS.ModelSat", },
+						Saturation1 = Input { Expression = "0.85*CARD_CONTROLS.ModelSat", },
+						ColorRanges = Input {
+							Value = ColorCurves {
+								Curves = { {
+										Points = { { 0, 1 }, { 0.4, 0.2 }, { 0.6, 0 }, { 1, 0 } },
+									}, {
+										Points = { { 0, 0 }, { 0.4, 0 }, { 0.6, 0.2 }, { 1, 1 } },
+									} },
+							},
+						},
+						MasterRGBGain = Input { Value = 1.15, Expression = "CARD_CONTROLS.ModelBright", },
+						HistogramIgnoreTransparent = Input { Value = 1, },
+						MasterRGBContrast = Input { Value = 0.3, Expression = "CARD_CONTROLS.ModelContrast-1", },
+					},
+				},
+				Vine_Twig_1 = SurfaceFBXMesh {
+					CustomData = {
+						MediaProps = { MEDIA_ID = "96fd6de3-db8b-42dd-aef7-58bb5d9351d8", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 587.096984863281 },
+					},
+					Inputs = {
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "Vine_Twig_1_Mtl", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 8, },
+						ImportFile = Input { Value = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Vine_Twig_1.fbx", Expression = "CARD_CONTROLS.ModelKit.Value .. \"/Vine_Twig_1.fbx\"", },
+						TransformToWorld = Input { Value = 0, },
+						["ObjectID.ObjectID"] = Input { Value = 4, },
+					},
+				},
+				FB_ReflBlur = Blur {
+					ViewInfo = OperatorInfo {
+						Pos = { 1375, 16.19700050354 },
+					},
+					Inputs = {
+						XBlurSize = Input { Value = 0.75, },
+						Filter = Input {
+							Value = FuID { "Fast Gaussian", },
+						},
+						Input = Input { Source = "Output", SourceOp = "FB_EnvSmall", },
+					},
+				},
+				Vine_Leaf_2_CC = ColorCorrector {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 715.796997070312 },
+					},
+					Inputs = {
+						Input = Input { Source = "Output", SourceOp = "Vine_Leaf_2_Tex", },
+						WheelSaturation1 = Input { Value = 1.02, Expression = "0.85*CARD_CONTROLS.ModelSat", },
+						Saturation1 = Input { Expression = "0.85*CARD_CONTROLS.ModelSat", },
+						ColorRanges = Input {
+							Value = ColorCurves {
+								Curves = { {
+										Points = { { 0, 1 }, { 0.4, 0.2 }, { 0.6, 0 }, { 1, 0 } },
+									}, {
+										Points = { { 0, 0 }, { 0.4, 0 }, { 0.6, 0.2 }, { 1, 1 } },
+									} },
+							},
+						},
+						MasterRGBGain = Input { Value = 1.15, Expression = "CARD_CONTROLS.ModelBright", },
+						HistogramIgnoreTransparent = Input { Value = 1, },
+						MasterRGBContrast = Input { Value = 0.3, Expression = "CARD_CONTROLS.ModelContrast-1", },
+					},
+				},
+				FB_PlateCTRL = Custom {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 16.19700050354 },
+					},
+					Inputs = {
+						NumberIn8 = Input { Value = 0.503, },
+						ShowLUT3 = Input { Value = 0, },
+						NameforNumber6 = Input { Value = "Padding (Height Without Body)", },
+						LUTIn2 = Input { Source = "Value", SourceOp = "CustomTool1LUTIn2", },
+						ShowLUT2 = Input { Value = 0, },
+						LUTIn4 = Input { Source = "Value", SourceOp = "CustomTool1LUTIn4", },
+						NumberIn6 = Input { Value = 0.489, },
+						NameforNumber5 = Input { Value = "Title Offset From Top", },
+						NumberIn5 = Input { Value = -0.219881598987076, },
+						LUTIn3 = Input { Source = "Value", SourceOp = "CustomTool1LUTIn3", },
+						NameforNumber7 = Input { Value = "Body Chars Per Line", },
+						NumberIn7 = Input { Value = 55, },
+						ShowPoint3 = Input { Value = 0, },
+						NumberIn1 = Input { Value = 2.88, },
+						ShowPoint4 = Input { Value = 0, },
+						ShowPoint2 = Input { Value = 0, },
+						ShowLUT1 = Input { Value = 0, },
+						ShowLUT4 = Input { Value = 0, },
+						NumberIn4 = Input { Value = 0.828571428571429, },
+						NameforNumber3 = Input { Value = "Body Plate Width Ratio", },
+						ShowPoint1 = Input { Value = 0, },
+						NameforNumber2 = Input { Value = "Plate Height", },
+						NumberIn3 = Input { Value = 0.875, },
+						NameforNumber1 = Input { Value = "Plate Width", },
+						LUTIn1 = Input { Source = "Value", SourceOp = "CustomTool1LUTIn1", },
+						NameforNumber8 = Input { Value = "Plate Reflectivity", },
+						NameforNumber4 = Input { Value = "Body Plate Height Ratio", },
+						NumberIn2 = Input { Value = 0.753, Expression = "self.NumberIn6 + math.ceil(string.len(FB_Body.StyledText.Value) / self.NumberIn7) * FB_Body.Size * FB_Body.LineSpacing", },
+					},
+				},
+				Vine_Leaf_2_Tex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 715.796997070312 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_leaf_2_d.png\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "PNGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_leaf_2_d.png",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				LIGHT_Fill_EnvTinted = LightAmbient {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 1595, 181.197006225586 },
+					},
+					Inputs = {
+						Red = Input { Value = 0.885, },
+						Intensity = Input { Value = 0.15, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 1.857, },
+						["Transform3DOp.Translate.Z"] = Input { Value = -1.16232127296343, },
+						Blue = Input { Value = 1.0, },
+						Green = Input { Value = 0.93, },
+					},
+				},
+				MODEL_Transform = Transform3D {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 1375, 709.197021484375 },
+					},
+					Inputs = {
+						["Transform3DOp.Rotate.X"] = Input { Value = 0, Expression = "CARD_CONTROLS.ModelRotX", },
+						["Transform3DOp.Translate.Y"] = Input { Value = -0.201178285262067, Expression = "CARD_CONTROLS.ModelY", },
+						["Transform3DOp.Translate.X"] = Input { Value = -1.35334434794259, Expression = "CARD_CONTROLS.ModelX", },
+						["Transform3DOp.Scale.X"] = Input { Value = 0.81, Expression = "CARD_CONTROLS.ModelScale", },
+						SceneInput = Input { Source = "Output", SourceOp = "MODEL_Merge", },
+						["Transform3DOp.Translate.Z"] = Input { Value = -0.0334605741066034, Expression = "CARD_CONTROLS.ModelZ", },
+						["Transform3DOp.Rotate.Y"] = Input { Value = 31.3, Expression = "CARD_CONTROLS.ModelRotY", },
+						["Transform3DOp.Rotate.Z"] = Input { Value = 0, Expression = "CARD_CONTROLS.ModelRotZ", },
+					},
+				},
+				Vine_Grape_2 = SurfaceFBXMesh {
+					CustomData = {
+						MediaProps = { MEDIA_ID = "ad428a1d-8d9a-458b-9fd4-0e320ed4b9d0", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 844.497009277344 },
+					},
+					Inputs = {
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "Vine_Grape_2_Mtl", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 20, },
+						ImportFile = Input { Value = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Vine_Grape_2.fbx", Expression = "CARD_CONTROLS.ModelKit.Value .. \"/Vine_Grape_2.fbx\"", },
+						TransformToWorld = Input { Value = 0, },
+						["ObjectID.ObjectID"] = Input { Value = 10, },
+					},
+				},
+				FB_ReflSphere = SphereMap {
+					ViewInfo = OperatorInfo {
+						Pos = { 1815, 16.19700050354 },
+					},
+					Inputs = {
+						["Rotate.X"] = Input { Value = -40, },
+						Image = Input { Source = "Output", SourceOp = "FB_ReflBlur", },
+						MaterialID = Input { Value = 3, },
+					},
+				},
+				CustomTool1LUTIn1 = LUTBezier {
+					KeyColorSplines = { { {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.333333333333333, 0.333333333333333 },
+							}, {
+								1,
+								LH = { 0.666666666666667, 0.666666666666667 },
+								Flags = { Linear = true, },
+							} } },
+					CtrlWZoom = false,
+					SplineColor = { Red = 0, Blue = 0, Green = 0, },
+				},
+				Vine_Leaf_3 = SurfaceFBXMesh {
+					CustomData = {
+						MediaProps = { MEDIA_ID = "ae5ca4ad-d8df-4451-9f11-adbc6cefd992", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 758.697021484375 },
+					},
+					Inputs = {
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "Vine_Leaf_3_Mtl", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 16, },
+						ImportFile = Input { Value = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Vine_Leaf_3.fbx", Expression = "CARD_CONTROLS.ModelKit.Value .. \"/Vine_Leaf_3.fbx\"", },
+						TransformToWorld = Input { Value = 0, },
+						["ObjectID.ObjectID"] = Input { Value = 8, },
+					},
+				},
+				CustomTool1LUTIn4 = LUTBezier {
+					KeyColorSplines = { { {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.333333333333333, 0.333333333333333 },
+							}, {
+								1,
+								LH = { 0.666666666666667, 0.666666666666667 },
+								Flags = { Linear = true, },
+							} } },
+					CtrlWZoom = false,
+					SplineColor = { Red = 0, Blue = 0, Green = 0, },
+				},
+				FB_Plate = Shape3D {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 379.196990966797 },
+					},
+					Inputs = {
+						["SurfaceCubeInputs.Height"] = Input { Value = 0.753, Expression = "FB_PlateCTRL.NumberIn2", },
+						["Transform3DOp.ScaleLock"] = Input { Value = 0, },
+						["SurfaceCubeInputs.Depth"] = Input { Value = 0.55, },
+						["SurfaceSphereInputs.ObjectID.ObjectID"] = Input {
+							Value = Number { Value = 3, },
+						},
+						["SurfaceCubeInputs.SizeLock"] = Input { Value = 0, },
+						["Transform3DOp.Translate.Z"] = Input { Value = -0.316431593201029, },
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "FB_PlateReflect", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 1, },
+						Shape = Input {
+							Value = FuID { "SurfaceCubeInputs", },
+						},
+						["MtlStdInputs.Diffuse.Color.Blue"] = Input { Value = 0.294117647058824, },
+						["Transform3DOp.Scale.X"] = Input { Expression = "math.max(0.001,(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["SurfaceCubeInputs.Width"] = Input { Value = 2.88, Expression = "FB_PlateCTRL.NumberIn1", },
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input {
+							Value = Number { Value = 1, },
+						},
+						["SurfacePlaneInputs.Width"] = Input {
+							Value = Number { Value = 2.6, },
+						},
+						["SurfaceCubeInputs.ObjectID.ObjectID"] = Input { Value = 2, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 0.0748815989870762, },
+						["MtlStdInputs.Diffuse.Color.Green"] = Input { Value = 0.290196078431373, },
+						["MtlStdInputs.Diffuse.Color.Red"] = Input { Value = 0.294117647058824, },
+					},
+				},
+				FB_TitleNewMtl = ReplaceMaterial3D {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 181.197006225586 },
+					},
+					Inputs = {
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "FB_TitleReflect", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 27, },
+						Enable = Input { Value = 0, },
+						SceneInput = Input { Source = "Output", SourceOp = "FB_Title", },
+					},
+				},
+				FB_BodyExtrusionProfile = LUTBezier {
+					KeyColorSplines = { {
+							[0] = {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.0666666666666667, 0.333333333333333 },
+							},
+							[0.2] = {
+								1,
+								Flags = { Linear = true, },
+								LH = { 0.133333333333333, 0.666666666666667 },
+								RH = { 0.4, 1 },
+							},
+							[0.8] = {
+								1,
+								Flags = { Linear = true, },
+								LH = { 0.6, 1 },
+								RH = { 0.866666666666667, 0.666666666666667 },
+							},
+							[1] = {
+								0,
+								LH = { 0.933333333333333, 0.333333333333333 },
+								Flags = { Linear = true, },
+							},
+						} },
+					SplineColor = { Red = 180, Blue = 0, Green = 255, },
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWZoom = false,
+				},
+				Vine_Leaf_3_Mtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 758.697021484375 },
+					},
+					Inputs = {
+						["Diffuse.Color.Red"] = Input { Value = 0.9, },
+						["Diffuse.Color.Green"] = Input { Value = 0.92, },
+						UseTwoSidedLighting = Input { Value = 1, },
+						["Transmittance.Color.Blue"] = Input { Value = 0.12, },
+						["Transmittance.Color.Red"] = Input { Value = 0.35, },
+						["Specular.Roughness"] = Input { Value = 0.4, },
+						["Transmittance.Color.Green"] = Input { Value = 0.55, },
+						MaterialID = Input { Value = 15, },
+						["Specular.Intensity"] = Input { Value = 0.18, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "Vine_Leaf_3_CC", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*(CARD_CONTROLS.ModelShow*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-30*CARD_CONTROLS.AnimSpeed)/(20*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Diffuse.Color.Blue"] = Input { Value = 0.62, },
+					},
+				},
+				Vine_Leaf_1 = SurfaceFBXMesh {
+					CustomData = {
+						MediaProps = { MEDIA_ID = "b6b6b750-5574-4da8-aa1b-948021a174f9", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 672.89697265625 },
+					},
+					Inputs = {
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "Vine_Leaf_1_Mtl", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 12, },
+						ImportFile = Input { Value = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Vine_Leaf_1.fbx", Expression = "CARD_CONTROLS.ModelKit.Value .. \"/Vine_Leaf_1.fbx\"", },
+						TransformToWorld = Input { Value = 0, },
+						["ObjectID.ObjectID"] = Input { Value = 6, },
+					},
+				},
+				FB_PlateReflect_1 = MtlReflect {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 425.397003173828 },
+					},
+					Inputs = {
+						["Reflection.Color.Material"] = Input { Source = "MaterialOutput", SourceOp = "FB_ReflSphere", },
+						BackgroundMaterial = Input { Source = "MaterialOutput", SourceOp = "FB_PlateMtl_1", },
+						["Reflection.GlancingStrength"] = Input { Value = 1, Expression = "CARD_CONTROLS.FadeOut*(math.min(1, FB_PlateCTRL.NumberIn8*4)*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Reflection.FaceOnStrength"] = Input { Value = 0.503, Expression = "CARD_CONTROLS.FadeOut*(FB_PlateCTRL.NumberIn8*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						MaterialID = Input { Value = 24, },
+					},
+				},
+				FB_Plate_1 = Shape3D {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 715, 425.397003173828 },
+					},
+					Inputs = {
+						["SurfaceCubeInputs.Height"] = Input { Value = 0.623914285714286, Expression = "FB_PlateCTRL.NumberIn2 * FB_PlateCTRL.NumberIn4", },
+						["Transform3DOp.ScaleLock"] = Input { Value = 0, },
+						["SurfaceCubeInputs.Depth"] = Input { Value = 0.55, },
+						["SurfaceSphereInputs.ObjectID.ObjectID"] = Input {
+							Value = Number { Value = 3, },
+						},
+						["SurfaceCubeInputs.SizeLock"] = Input { Value = 0, },
+						["Transform3DOp.Translate.Z"] = Input { Value = -0.2010112, },
+						MaterialInput = Input { Source = "MaterialOutput", SourceOp = "FB_PlateReflect_1", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 1, },
+						Shape = Input {
+							Value = FuID { "SurfaceCubeInputs", },
+						},
+						["Transform3DOp.Translate.Y"] = Input { Value = 0.0748815989870762, },
+						["Transform3DOp.Scale.X"] = Input { Expression = "math.max(0.001,(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-12*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["SurfaceCubeInputs.Width"] = Input { Value = 2.52, Expression = "FB_PlateCTRL.NumberIn1 * FB_PlateCTRL.NumberIn3", },
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input {
+							Value = Number { Value = 1, },
+						},
+						["SurfacePlaneInputs.Width"] = Input {
+							Value = Number { Value = 2.6, },
+						},
+						["MtlStdInputs.Specular.Nest"] = Input { Value = 1, },
+						["SurfaceCubeInputs.ObjectID.ObjectID"] = Input { Value = 2, },
+						["MtlStdInputs.Diffuse.Color.Blue"] = Input { Value = 0.294117647058824, },
+						["MtlStdInputs.Diffuse.Color.Green"] = Input { Value = 0.290196078431373, },
+						["MtlStdInputs.Diffuse.Color.Red"] = Input { Value = 0.294117647058824, },
+					},
+				},
+				FB_TitleMtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 220.796997070312 },
+					},
+					Inputs = {
+						["Specular.Roughness"] = Input { Value = 0.25, },
+						["Diffuse.Color.Green"] = Input { Value = 0.78, },
+						MaterialID = Input { Value = 25, },
+						["Specular.Intensity"] = Input { Value = 0.6, },
+						["Diffuse.Color.Blue"] = Input { Value = 0.08, },
+					},
+				},
+				FB_Title = Text3D {
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 269.441009521484, 158.457000732422 },
+					},
+					Inputs = {
+						Opacity1 = Input { Expression = "CARD_CONTROLS.FadeOut*((math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(24*CARD_CONTROLS.AnimSpeed))))^2*(3-2*(math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-0*CARD_CONTROLS.AnimSpeed)/(24*CARD_CONTROLS.AnimSpeed))))))", },
+						VerticalJustification = Input { Value = 3, },
+						Blue1 = Input { Value = 0.003, },
+						BlueBevel = Input { Value = 0.168627450980392, },
+						RedBevel = Input { Value = 0.333333333333333, },
+						AdvancedFontControls = Input { Value = 1, },
+						Font = Input { Value = "Montserrat", },
+						HorizontalJustificationNew = Input { Value = 3, },
+						["Transform3DOp.Translate.Z"] = Input { Value = 0.369140720055241, },
+						ExtrusionProfile = Input { Source = "Value", SourceOp = "FB_TitleExtrusionProfile", },
+						Comments = Input { Value = "Mechanical\nGrape Harvesting", },
+						StyledText = Input { Expression = "Text(string.upper(CARD_CONTROLS.TitleText.Value))", },
+						Red1 = Input { Value = 0.959, },
+						Extrusion = Input { Value = 1, },
+						["Transform3DOp.Translate.Y"] = Input { Value = 0.2315, Expression = "FB_Plate.Transform3DOp.Translate.Y + FB_PlateCTRL.NumberIn2/2 + FB_PlateCTRL.NumberIn5", },
+						Size = Input { Value = 0.39, },
+						CharacterSpacing = Input { Value = 0.963, },
+						Style = Input { Value = "ExtraBold Italic", },
+						GreenBevel = Input { Value = 0.419607843137255, },
+						LineSpacing = Input { Value = 0.737, },
+						VerticalJustificationNew = Input { Value = 3, },
+						UseOneMaterial = Input { Value = 0, },
+						Green1 = Input { Value = 0.576, },
+						ExtrusionDepth = Input { Value = 0.1482, },
+						VerticalTopCenterBottom = Input { Value = 1, },
+					},
+				},
+				FB_PlateMtl = MtlCookTorrance {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 379.196990966797 },
+					},
+					Inputs = {
+						["Specular.Roughness"] = Input { Value = 0.28, },
+						MaterialID = Input { Value = 4, },
+						["Diffuse.Color.Material"] = Input { Source = "Output", SourceOp = "FB_PlateTex", },
+						["Diffuse.Opacity"] = Input { Expression = "CARD_CONTROLS.FadeOut*((1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Specular.Intensity"] = Input { Value = 0.35, },
+					},
+				},
+				Vine_Leaf_1_CC = ColorCorrector {
+					ViewInfo = OperatorInfo {
+						Pos = { 275, 672.89697265625 },
+					},
+					Inputs = {
+						Input = Input { Source = "Output", SourceOp = "Vine_Leaf_1_Tex", },
+						WheelSaturation1 = Input { Value = 1.02, Expression = "0.85*CARD_CONTROLS.ModelSat", },
+						Saturation1 = Input { Expression = "0.85*CARD_CONTROLS.ModelSat", },
+						ColorRanges = Input {
+							Value = ColorCurves {
+								Curves = { {
+										Points = { { 0, 1 }, { 0.4, 0.2 }, { 0.6, 0 }, { 1, 0 } },
+									}, {
+										Points = { { 0, 0 }, { 0.4, 0 }, { 0.6, 0.2 }, { 1, 1 } },
+									} },
+							},
+						},
+						MasterRGBGain = Input { Value = 1.15, Expression = "CARD_CONTROLS.ModelBright", },
+						HistogramIgnoreTransparent = Input { Value = 1, },
+						MasterRGBContrast = Input { Value = 0.3, Expression = "CARD_CONTROLS.ModelContrast-1", },
+					},
+				},
+				FB_TitleExtrusionProfile = LUTBezier {
+					KeyColorSplines = { {
+							[0] = {
+								0,
+								Flags = { Linear = true, },
+								RH = { 0.0666666666666667, 0.333333333333333 },
+							},
+							[0.2] = {
+								1,
+								Flags = { Linear = true, },
+								LH = { 0.133333333333333, 0.666666666666667 },
+								RH = { 0.4, 1 },
+							},
+							[0.8] = {
+								1,
+								Flags = { Linear = true, },
+								LH = { 0.6, 1 },
+								RH = { 0.866666666666667, 0.666666666666667 },
+							},
+							[1] = {
+								0,
+								LH = { 0.933333333333333, 0.333333333333333 },
+								Flags = { Linear = true, },
+							},
+						} },
+					SplineColor = { Red = 0, Blue = 255, Green = 180, },
+					CustomData = {
+						Path = {
+							Map = { ["Setting:"] = "Templates:/My Templates/", },
+						},
+					},
+					CtrlWZoom = false,
+				},
+				Vine_Twig_1_Tex = Loader {
+					ViewInfo = OperatorInfo {
+						Pos = { 55, 587.096984863281 },
+					},
+					Inputs = {
+						Clip = Input { Expression = "CARD_CONTROLS.ModelKit .. \"/Grape_branch_1_d.jpg\"", },
+						["Gamut.SLogVersion"] = Input {
+							Value = FuID { "SLog2", },
+						},
+					},
+					Clips = { Clip {
+							StartFrame = -1,
+							GlobalEnd = 0,
+							Loop = 0,
+							ExtendLast = 0,
+							ID = "Clip1",
+							LengthSetManually = true,
+							FormatID = "JPEGFormat",
+							TrimIn = 0,
+							TrimOut = 0,
+							ExtendFirst = 0,
+							TimeCode = 0,
+							AspectMode = 0,
+							GlobalStart = 0,
+							Filename = "/Volumes/The Baxter Building/2605 - Grape Growers of Ontario - Farm and Food Care/ASSETS/3D Models/Vine_Kit/Grape_branch_1_d.jpg",
+							Depth = 0,
+						} },
+					CtrlWShown = false,
+				},
+				FB_PlateReflect = MtlReflect {
+					ViewInfo = OperatorInfo {
+						Pos = { 495, 379.196990966797 },
+					},
+					Inputs = {
+						["Reflection.Color.Material"] = Input { Source = "MaterialOutput", SourceOp = "FB_ReflSphere", },
+						BackgroundMaterial = Input { Source = "MaterialOutput", SourceOp = "FB_PlateMtl", },
+						["Reflection.GlancingStrength"] = Input { Value = 1, Expression = "CARD_CONTROLS.FadeOut*(math.min(1, FB_PlateCTRL.NumberIn8*4)*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						["Reflection.FaceOnStrength"] = Input { Value = 0.503, Expression = "CARD_CONTROLS.FadeOut*(FB_PlateCTRL.NumberIn8*(1-(1-math.min(1,math.max(0,(time-CARD_CONTROLS.AnimStart-8*CARD_CONTROLS.AnimSpeed)/(18*CARD_CONTROLS.AnimSpeed))))^3))", },
+						MaterialID = Input { Value = 22, },
+					},
+				},
+				FB_EnvSquare = BetterResize {
+					ViewInfo = OperatorInfo {
+						Pos = { 1009, 47.68 },
+					},
+					Inputs = {
+						Width = Input { Value = 1024, },
+						Height = Input { Value = 1024, },
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						HiQOnly = Input { Value = 0, },
+					},
+				},
+				FB_EnvTopEye = Crop {
+					ViewInfo = OperatorInfo {
+						Pos = { 1155, 45.58 },
+					},
+					Inputs = {
+						Input = Input { SourceOp = "FB_EnvSquare", Source = "Output", },
+						XOffset = Input { Value = 0, },
+						XSize = Input { Value = 1024, },
+						YOffset = Input { Expression = "iif(CARD_CONTROLS.EnvOverUnder > 0.5, 512, 0)", },
+						YSize = Input { Expression = "iif(CARD_CONTROLS.EnvOverUnder > 0.5, 512, 1024)", },
+					},
+				},
+			},
+			Inputs = ordered() {
+				MainInput1 = InstanceInput { SourceOp = "FB_EnvSquare", Source = "Input", Name = "Environment (your plate: the card reflects it)", },
+				TitleText = InstanceInput {
+					Page = "Text",
+					Name = "Title (auto CAPS)",
+					SourceOp = "CARD_CONTROLS",
+					Source = "TitleText",
+				},
+				BodyText = InstanceInput {
+					Page = "Text",
+					Name = "Body Text",
+					SourceOp = "CARD_CONTROLS",
+					Source = "BodyText",
+				},
+				CardScale = InstanceInput {
+					Page = "Text",
+					Name = "Title scale (1 = as designed)",
+					SourceOp = "CARD_CONTROLS",
+					Source = "CardScale",
+				},
+				ModelShow = InstanceInput {
+					Page = "3D Model",
+					Name = "Show 3D Model",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelShow",
+				},
+				ModelKit = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Kit Folder",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelKit",
+				},
+				ModelScale = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Scale",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelScale",
+				},
+				ModelX = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Position X",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelX",
+				},
+				ModelY = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Position Y",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelY",
+				},
+				ModelZ = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Position Z",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelZ",
+				},
+				ModelRotX = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Rotation X (tilt)",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelRotX",
+				},
+				ModelRotY = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Rotation Y (spin)",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelRotY",
+				},
+				ModelRotZ = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Rotation Z (roll)",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelRotZ",
+				},
+				ModelBright = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Brightness",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelBright",
+				},
+				ModelContrast = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Contrast",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelContrast",
+				},
+				ModelSat = InstanceInput {
+					Page = "3D Model",
+					Name = "Model Saturation",
+					SourceOp = "CARD_CONTROLS",
+					Source = "ModelSat",
+				},
+				AnimStart = InstanceInput {
+					Page = "Animation",
+					Name = "Animation Start (frame)",
+					SourceOp = "CARD_CONTROLS",
+					Source = "AnimStart",
+				},
+				AnimSpeed = InstanceInput {
+					Page = "Animation",
+					Name = "Animation Length (x)",
+					SourceOp = "CARD_CONTROLS",
+					Source = "AnimSpeed",
+				},
+				HoldSeconds = InstanceInput {
+					Page = "Animation",
+					Name = "Fade out after (seconds, 0 = never)",
+					SourceOp = "CARD_CONTROLS",
+					Source = "HoldSeconds",
+				},
+				Sway = InstanceInput {
+					Page = "Animation",
+					Name = "Sway amount",
+					SourceOp = "CARD_CONTROLS",
+					Source = "Sway",
+				},
+				EnvOverUnder = InstanceInput {
+					SourceOp = "CARD_CONTROLS",
+					Source = "EnvOverUnder",
+					Name = "Environment is over/under (left eye on top)",
+					Page = "Environment",
+					Default = 1,
+				},
+			},
+		},
+	},
+}

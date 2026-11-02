@@ -1,0 +1,82 @@
+{
+	Tools = ordered() {
+		Kalyx_Orient360 = MacroOperator {
+			Inputs = ordered() {
+				-- ===== FOOTAGE: a top/bottom stereo 360 clip, after all patches and paint =====
+				MainInput1 = InstanceInput {
+					SourceOp = "Orient_Split", Source = "Input",
+					Name = "Stereo 360 (Top / Bottom)",
+				},
+				-- ===== ORIENTATION: both eyes turn together =====
+				Pan = InstanceInput {
+					SourceOp = "Orient_Eye1", Source = "Rotate.Y",
+					Name = "Pan",
+					Default = 0, MinScale = -180, MaxScale = 180, Page = "Placement",
+				},
+				Tilt = InstanceInput {
+					SourceOp = "Orient_Eye1", Source = "Rotate.X",
+					Name = "Tilt",
+					Default = 0, MinScale = -90, MaxScale = 90, Page = "Placement",
+				},
+				Roll = InstanceInput {
+					SourceOp = "Orient_Eye1", Source = "Rotate.Z",
+					Name = "Roll",
+					Default = 0, MinScale = -180, MaxScale = 180, Page = "Placement",
+				},
+			},
+			Outputs = ordered() {
+				MainOutput1 = InstanceOutput {
+					SourceOp = "Orient_Combine", Source = "Output",
+					Name = "Stereo 360 (Top / Bottom)",
+				},
+			},
+			ViewInfo = GroupInfo { Pos = { 0, 0 } },
+			Tools = ordered() {
+				Orient_Split = Splitter {
+					CustomData = { ToolVersion = 2, },
+					Inputs = {
+						Split = Input { Value = FuID { "Vert" }, },
+					},
+					ViewInfo = OperatorInfo { Pos = { -330, 0 } },
+				},
+				Orient_Eye1 = PanoMap {
+					Inputs = {
+						Input = Input {
+							SourceOp = "Orient_Split",
+							Source = "Image1",
+						},
+					},
+					ViewInfo = OperatorInfo { Pos = { -165, -55 } },
+				},
+				Orient_Eye2 = PanoMap {
+					Inputs = {
+						["Rotate.X"] = Input { Expression = "Orient_Eye1.Rotate.X", },
+						["Rotate.Y"] = Input { Expression = "Orient_Eye1.Rotate.Y", },
+						["Rotate.Z"] = Input { Expression = "Orient_Eye1.Rotate.Z", },
+						Input = Input {
+							SourceOp = "Orient_Split",
+							Source = "Image2",
+						},
+					},
+					ViewInfo = OperatorInfo { Pos = { -165, 55 } },
+				},
+				Orient_Combine = Combiner {
+					CustomData = { ToolVersion = 2, },
+					Inputs = {
+						Combine = Input { Value = FuID { "Vert" }, },
+						Image1 = Input {
+							SourceOp = "Orient_Eye1",
+							Source = "Output",
+						},
+						Image2 = Input {
+							SourceOp = "Orient_Eye2",
+							Source = "Output",
+						}
+					},
+					ViewInfo = OperatorInfo { Pos = { 0, 0 } },
+				},
+			},
+		}
+	},
+	ActiveTool = "Kalyx_Orient360"
+}

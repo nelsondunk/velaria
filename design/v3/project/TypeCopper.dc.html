@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Type and copper options</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@500;600;700&family=Barlow:wght@500;600;700&family=IBM+Plex+Sans:wght@500;600;700&family=Manrope:wght@500;600;700;800&family=Red+Hat+Text:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Saira,system-ui,sans-serif;color:#f2f3f5}
+a{color:#e0a97a}a:hover{color:#f0c094}
+button{font:inherit;cursor:pointer}
+.card{border-radius:28px;background:linear-gradient(180deg,#232933,#1b2028);box-shadow:inset 0 1px 0 #ffffff29,inset 0 -1px 0 #00000099,0 30px 70px #00000099;padding:28px 32px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.h{font-family:Saira,system-ui,sans-serif;font-size:18px;line-height:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9a9ea5}
+.note{font-family:Saira,system-ui,sans-serif;font-size:18px;line-height:26px;font-weight:500;color:#9a9ea5}
+.note b{color:#f2f3f5;font-weight:600}
+.chip{height:60px;min-width:60px;padding:0 18px;border-radius:14px;border:0;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:22px;font-weight:600;color:#f2f3f5;background:linear-gradient(180deg,#363d49,#262c35);box-shadow:inset 0 1px 0 #ffffff24,inset 0 -2px 0 #00000059,0 6px 14px #00000073;white-space:nowrap;flex:0 0 auto}
+.chip svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.cu{color:#15181d;background:linear-gradient(180deg,#f0bc8c,#c9875a);box-shadow:inset 0 1px 0 #ffffff80,inset 0 -2px 0 #0000002e,0 6px 14px #00000073}
+.well{background:#00000073;box-shadow:inset 0 3px 10px #000000bf,inset 0 -1px 0 #ffffff12}
+.v{font-size:18px;font-weight:700;letter-spacing:1px;opacity:.65}
+</style>
+</helmet>
+<div style="width: 1920px; min-height: 1980px; box-sizing: border-box; background: #15181d; padding: 64px; display: flex; flex-direction: column; gap: 40px">
+
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <div style="font-size: 44px; line-height: 48px; font-weight: 700">Type and copper options</div>
+    <div style="font-size: 22px; line-height: 30px; color: #9a9ea5; max-width: 1300px">Same pieces of the strip in five typefaces, drawn 1:1. Judge them at 100% zoom on the Mac: that is the size you'll read them in the headset. All five are free to bundle in the app (SIL Open Font License).</div>
+  </div>
+
+  <div class="card" style="gap: 0; padding: 12px 32px">
+    <sc-for list="{{fonts}}" as="f" hint-placeholder-count="5">
+      <div style="display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 32px; align-items: center; padding: 26px 0; border-bottom: {{f.rule}}">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="font-size: 26px; font-weight: 700; font-family: {{f.stack}}">{{f.name}}</div>
+          <div class="note">{{f.note}}</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; font-family: {{f.stack}}; min-width: 0">
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
+            <button class="chip cu" style="font-family: {{f.stack}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v11H5z M9 5h10v10"></path></svg>Overlays <span style="font-weight: 700; opacity: .7">3</span></button>
+            <button class="chip" style="font-family: {{f.stack}}">Fact Card · Hay Bale <span class="v">V3</span></button>
+            <button class="chip" style="font-family: {{f.stack}}">Footage window <span class="v">V4</span></button>
+            <div style="font-size: 18px; font-weight: 700; letter-spacing: 3px; color: #9a9ea5; margin-left: 12px">PLACEMENT</div>
+          </div>
+          <div style="display: flex; gap: 36px; align-items: baseline; flex-wrap: wrap">
+            <div style="font-size: 36px; line-height: 40px; font-weight: 700; font-feature-settings: 'tnum'; font-variant-numeric: tabular-nums">−45.0°  +15.0°  3.2 m</div>
+            <div style="font-size: 22px; font-weight: 600; color: #9a9ea5; font-feature-settings: 'tnum'; font-variant-numeric: tabular-nums"><span style="color: #f2f3f5; font-weight: 700">01:01:24:11</span>  ·  V3  ·  C037_03122139</div>
+            <div style="font-size: 20px; font-weight: 600; color: #8fc1d9">Resolve updated in 0.4 s</div>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div class="note" style="font-size: 20px; line-height: 30px; max-width: 1600px"><b>My pick if Saira is out: Manrope, with IBM Plex Sans as the runner-up.</b> Manrope keeps the clean, machined feel but its bowls are round, so letters stop looking like squares, and its tall lowercase stays readable at 20 px. Plex is the most legible of the five and reads like an engineering instrument; it is a little plainer. Barlow is the closest to road signs and camera menus (DIN family), narrow enough to fit more on the strip, but it is almost as square as Saira. Red Hat Text is the friendliest and the least "pro tool".</div>
+
+  <div class="card">
+    <div class="h">Copper: current and three metallic finishes</div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px">
+      <sc-for list="{{coppers}}" as="c" hint-placeholder-count="4">
+        <div style="display: flex; flex-direction: column; gap: 18px; padding: 24px; border-radius: 20px; background: #ffffff06">
+          <div style="font-size: 24px; font-weight: 700">{{c.name}}</div>
+          <button class="chip" style="color: #15181d; background: {{c.fill}}; box-shadow: {{c.shadow}}; align-self: flex-start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v11H5z M9 5h10v10"></path></svg>Overlays <span style="font-weight: 700; opacity: .7">3</span></button>
+          <div style="display: flex; gap: 18px; align-items: center">
+            <div style="width: 96px; height: 52px; border-radius: 999px; position: relative; background: {{c.fill}}; box-shadow: {{c.shadow}}; flex: 0 0 auto"><div style="position: absolute; right: 6px; top: 6px; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(180deg, #ffffff, #cfd3d8); box-shadow: 0 4px 10px #00000099"></div></div>
+            <div class="well" style="flex: 1 1 auto; height: 14px; border-radius: 999px; position: relative"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 62%; border-radius: 999px; background: {{c.bar}}"></div></div>
+          </div>
+          <div class="note">{{c.note}}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div class="note" style="font-size: 20px; line-height: 30px"><b>My pick: Polished.</b> It reads as metal because of the bright band near the top and the darker band just below the middle, the way a curved copper surface reflects a room. Satin is the safe, quieter option. Brushed looks best here but its fine lines are finer than a headset pixel, so in the headset they turn into shimmer; I'd keep it for the website and print. Whichever you pick, text on it stays dark ink and passes 4.5:1 at its darkest band.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const fonts = [
+      { name: 'Saira (now)', stack: "Saira, system-ui, sans-serif", note: 'Squared bowls, wide. Machined, but the blockiness you noticed.' },
+      { name: 'Manrope', stack: "Manrope, system-ui, sans-serif", note: 'Round bowls, tall lowercase, crisp. Modern and premium.' },
+      { name: 'IBM Plex Sans', stack: "'IBM Plex Sans', system-ui, sans-serif", note: 'Engineered, very legible at small sizes. Instrument feel.' },
+      { name: 'Barlow', stack: "Barlow, system-ui, sans-serif", note: 'DIN-like, narrow, camera-menu feel. Still fairly square.' },
+      { name: 'Red Hat Text', stack: "'Red Hat Text', system-ui, sans-serif", note: 'Open and friendly. Softest of the five.' }
+    ].map((f, i, a) => ({ ...f, rule: i < a.length - 1 ? '1px solid #ffffff14' : '0' }));
+    const coppers = [
+      { name: 'Current', fill: 'linear-gradient(180deg, #f0bc8c, #c9875a)', shadow: 'inset 0 1px 0 #ffffff80, inset 0 -2px 0 #0000002e, 0 6px 14px #00000073', bar: 'linear-gradient(90deg, #c9875a, #f0bc8c)', note: 'Two-stop gradient. Reads as a warm colour, not a metal.' },
+      { name: 'Polished', fill: 'linear-gradient(180deg, #fbe3c8 0%, #eab389 20%, #cf8d5e 44%, #b97448 56%, #d99c6c 76%, #f3c79d 100%)', shadow: 'inset 0 1px 0 #ffffffb3, inset 0 -1px 0 #7a442299, 0 6px 14px #00000073', bar: 'linear-gradient(180deg, #f6d2ae 0%, #d4925f 50%, #b97448 70%, #e9b386 100%)', note: 'Specular band at the top, dark band below the middle, light bounce at the bottom.' },
+      { name: 'Satin', fill: 'linear-gradient(180deg, #f4cfa8 0%, #e3a676 42%, #cd8a5b 62%, #e2a878 100%)', shadow: 'inset 0 1px 0 #ffffff99, inset 0 -1px 0 #7a442280, 0 6px 14px #00000073', bar: 'linear-gradient(180deg, #f2c9a0, #cd8a5b)', note: 'Softer reflection, less contrast. Calmer next to footage.' },
+      { name: 'Brushed', fill: 'repeating-linear-gradient(90deg, #ffffff0f 0 1px, #ffffff00 1px 3px), linear-gradient(180deg, #fbe3c8 0%, #eab389 20%, #cf8d5e 44%, #b97448 56%, #d99c6c 76%, #f3c79d 100%)', shadow: 'inset 0 1px 0 #ffffffb3, inset 0 -1px 0 #7a442299, 0 6px 14px #00000073', bar: 'repeating-linear-gradient(90deg, #ffffff14 0 1px, #ffffff00 1px 3px), linear-gradient(180deg, #f6d2ae 0%, #d4925f 50%, #b97448 70%, #e9b386 100%)', note: 'Polished plus a fine grain. Too fine for the headset.' }
+    ];
+    return { fonts, coppers };
+  }
+}
+</script>
+</body>
+</html>

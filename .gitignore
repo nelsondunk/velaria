@@ -1,0 +1,22 @@
+# build outputs
+quest/build/
+quest/host/hudpreview
+quest/host/preview/
+*.apk
+*.zip
+*.dmg
+
+# large renders: the PNGs are kept, the raw PPM/PGM sources are not
+*.ppm
+*.pgm
+
+# scratch and transfer
+xfer_tmp/
+scratch_cc/
+scratch/
+release-staging-*
+*.log
+__pycache__/
+*.pyc
+.DS_Store
+._*

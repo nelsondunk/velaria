@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kalyx View — control vocabulary</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Saira,system-ui,sans-serif;font-feature-settings:'tnum';color:#f2f3f5}
+a{color:#e0a97a}a:hover{color:#f0c094}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1920px; height: 960px; box-sizing: border-box; background: radial-gradient(ellipse at 80% 0%, rgba(224,169,122,0.12), rgba(224,169,122,0) 45%), #15181d; padding: 56px 64px; display: flex; flex-direction: column; gap: 36px; font-family: Saira, system-ui, sans-serif; color: #f2f3f5">
+  <div style="display: flex; justify-content: space-between; align-items: baseline">
+    <div style="font-size: 36px; font-weight: 700">Control vocabulary</div>
+    <div style="font-size: 22px; color: rgba(242,243,245,0.55)">1 m-wide panel · 1280 px · 1 px ≈ 0.8 mm at 1.15 m · pinch jitter ≈ 8 mm</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px">
+
+    <!-- 1 ring -->
+    <div style="border-radius: 24px; background: linear-gradient(170deg, #232933, #171b21); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.6), 0 24px 50px rgba(0,0,0,0.55); padding: 24px; display: flex; flex-direction: column; gap: 14px; min-height: 360px">
+      <div style="font-size: 24px; font-weight: 700">Ring · pan</div>
+      <div style="font-size: 19px; line-height: 1.4; color: rgba(242,243,245,0.6)">You are the centre; front is up. Drag the dot around. Also fed by grabbing the card in the scene.</div>
+      <svg width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Pan ring example" style="align-self: center"><circle cx="100" cy="100" r="82" fill="#1a1e25" stroke="rgba(224,169,122,0.35)" stroke-width="16"></circle><circle cx="100" cy="100" r="7" fill="rgba(255,255,255,0.4)"></circle><circle cx="158" cy="42" r="16" fill="#fff" stroke="#15181d" stroke-width="3"></circle><text x="100" y="108" text-anchor="middle" font-size="22" font-weight="700" fill="#f2f3f5" font-family="Saira, sans-serif">−45°</text></svg>
+      <div style="font-size: 18px; color: rgba(242,243,245,0.5)">Used for: Yaw</div>
+    </div>
+
+    <!-- 2 arc -->
+    <div style="border-radius: 24px; background: linear-gradient(170deg, #232933, #171b21); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.6), 0 24px 50px rgba(0,0,0,0.55); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 24px; font-weight: 700">Arc · tilt</div>
+      <div style="font-size: 19px; line-height: 1.4; color: rgba(242,243,245,0.6)">Side view. Up is up. Half a ring, so it can't be confused with pan.</div>
+      <svg width="120" height="200" viewBox="0 0 120 200" role="img" aria-label="Tilt arc example" style="align-self: center"><path d="M 14 20 A 80 80 0 0 1 14 180" fill="none" stroke="rgba(224,169,122,0.35)" stroke-width="16" stroke-linecap="round"></path><line x1="14" y1="100" x2="30" y2="100" stroke="rgba(255,255,255,0.5)" stroke-width="3"></line><circle cx="90" cy="78" r="16" fill="#fff" stroke="#15181d" stroke-width="3"></circle><text x="40" y="160" font-size="22" font-weight="700" fill="#f2f3f5" font-family="Saira, sans-serif">+15°</text></svg>
+      <div style="font-size: 18px; color: rgba(242,243,245,0.5)">Used for: Pitch</div>
+    </div>
+
+    <!-- 3 dial -->
+    <div style="border-radius: 24px; background: linear-gradient(170deg, #232933, #171b21); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.6), 0 24px 50px rgba(0,0,0,0.55); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 24px; font-weight: 700">Dial · angles</div>
+      <div style="font-size: 19px; line-height: 1.4; color: rgba(242,243,245,0.6)">Pointer shows the angle. Drag up/down to turn it (not around the rim — that's the fatiguing one). Pinch the centre to zero it.</div>
+      <div style="display: flex; gap: 18px; justify-content: center">
+        <svg width="110" height="110" viewBox="0 0 96 96" role="img" aria-label="Dial at 0"><defs><radialGradient id="dialWell" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#2b323d"></stop><stop offset="1" stop-color="#12161c"></stop></radialGradient></defs><circle cx="48" cy="48" r="42" fill="url(#dialWell)" stroke="rgba(255,255,255,0.14)" stroke-width="2"></circle><line x1="48" y1="48" x2="48" y2="14" stroke="#e0a97a" stroke-width="6" stroke-linecap="round"></line><circle cx="48" cy="48" r="7" fill="rgba(255,255,255,0.5)"></circle></svg>
+        <svg width="110" height="110" viewBox="0 0 96 96" role="img" aria-label="Dial at minus 20, live"><defs><radialGradient id="dialWell" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#2b323d"></stop><stop offset="1" stop-color="#12161c"></stop></radialGradient></defs><circle cx="48" cy="48" r="42" fill="#1a1e25" stroke="#e0a97a" stroke-width="3" style="filter: drop-shadow(0 0 10px rgba(224,169,122,0.6))"></circle><line x1="48" y1="48" x2="36" y2="16" stroke="#e0a97a" stroke-width="6" stroke-linecap="round"></line><circle cx="48" cy="48" r="7" fill="#fff"></circle></svg>
+      </div>
+      <div style="font-size: 18px; color: rgba(242,243,245,0.5)">Used for: Roll, Object Spin / Turn / Lean. Glowing rim = being dragged (and raised in stereo).</div>
+    </div>
+
+    <!-- 4 throttle -->
+    <div style="border-radius: 24px; background: linear-gradient(170deg, #232933, #171b21); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.6), 0 24px 50px rgba(0,0,0,0.55); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 24px; font-weight: 700">Throttle · size, distance</div>
+      <div style="font-size: 19px; line-height: 1.4; color: rgba(242,243,245,0.6)">Vertical, so "up = bigger / nearer" matches the hand. Log scale: the first half of the travel is the useful range.</div>
+      <div style="display: flex; gap: 30px; justify-content: center; align-items: flex-end">
+        <div style="width: 56px; height: 160px; border-radius: 14px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 3px 10px rgba(0,0,0,0.75), inset 0 -1px 0 rgba(255,255,255,0.07); position: relative"><div style="position: absolute; left: 5px; right: 5px; bottom: 5px; height: 46%; border-radius: 10px; background: linear-gradient(180deg, rgba(240,188,140,0.7), rgba(201,135,90,0.45)); box-shadow: 0 0 18px rgba(224,169,122,0.4)"></div><div style="position: absolute; left: 3px; top: 48%; width: 50px; height: 26px; border-radius: 9px; background: radial-gradient(circle at 35% 30%, #fff, #cfd3d8); box-shadow: 0 4px 10px rgba(0,0,0,0.55)"></div></div>
+        <div style="font-size: 18px; color: rgba(242,243,245,0.5); max-width: 150px; line-height: 1.4">Size 0.25–6×<br>Distance 0.5–20 m, nearer is up</div>
+      </div>
+    </div>
+
+    <!-- 5 bar -->
+    <div style="border-radius: 24px; background: linear-gradient(170deg, #232933, #171b21); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.6), 0 24px 50px rgba(0,0,0,0.55); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 24px; font-weight: 700">Bar + nudges · amounts</div>
+      <div style="font-size: 19px; line-height: 1.4; color: rgba(242,243,245,0.6)">Coarse by dragging, exact with the chips (one step per tap, hold to repeat). The readout is large and tabular.</div>
+      <div style="display: flex; align-items: center; gap: 10px">
+        <button aria-label="Decrease" style="width: 56px; height: 56px; border-radius: 13px; border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(180deg, #363d49, #252b34); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.35), 0 6px 14px rgba(0,0,0,0.45); color: #f2f3f5; font-size: 26px">−</button>
+        <div style="flex: 1 1 auto; height: 12px; border-radius: 6px; background: rgba(0,0,0,0.45); box-shadow: inset 0 2px 6px rgba(0,0,0,0.7), inset 0 -1px 0 rgba(255,255,255,0.07); position: relative"><div style="position: absolute; left: 0; top: 0; width: 52%; height: 12px; border-radius: 6px; background: linear-gradient(90deg, #c9875a, #f0bc8c); box-shadow: 0 0 14px rgba(224,169,122,0.55)"></div><div style="position: absolute; left: 52%; top: -10px; width: 32px; height: 32px; margin-left: -16px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #cfd3d8); box-shadow: 0 4px 10px rgba(0,0,0,0.55)"></div></div>
+        <button aria-label="Increase" style="width: 56px; height: 56px; border-radius: 13px; border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(180deg, #363d49, #252b34); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.35), 0 6px 14px rgba(0,0,0,0.45); color: #f2f3f5; font-size: 26px">+</button>
+      </div>
+      <div style="font-size: 18px; color: rgba(242,243,245,0.5)">Used for: Glow, Thickness, Corner radius, Window depth, Opacity</div>
+    </div>
+
+    <!-- 6 switch -->
+    <div style="border-radius: 24px; background: linear-gradient(170deg, #232933, #171b21); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.6), 0 24px 50px rgba(0,0,0,0.55); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 24px; font-weight: 700">Switch · on/off</div>
+      <div style="font-size: 19px; line-height: 1.4; color: rgba(242,243,245,0.6)">A 0/1 input is a switch, never a slider. Label says the "on" meaning.</div>
+      <div style="display: flex; gap: 22px; align-items: center; justify-content: center">
+        <div style="width: 92px; height: 48px; border-radius: 24px; background: #e0a97a; position: relative; box-shadow: 0 0 18px rgba(224,169,122,0.4)"><div style="position: absolute; right: 5px; top: 5px; width: 38px; height: 38px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #cfd3d8); box-shadow: 0 4px 10px rgba(0,0,0,0.55)"></div></div>
+        <div style="width: 92px; height: 48px; border-radius: 24px; background: rgba(255,255,255,0.16); position: relative"><div style="position: absolute; left: 5px; top: 5px; width: 38px; height: 38px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #cfd3d8); box-shadow: 0 4px 10px rgba(0,0,0,0.55)"></div></div>
+      </div>
+      <div style="font-size: 18px; color: rgba(242,243,245,0.5)">Used for: Stereo footage, Frame on, Glow on</div>
+    </div>
+
+    <!-- 7 wheel -->
+    <div style="border-radius: 24px; background: linear-gradient(170deg, #232933, #171b21); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.6), 0 24px 50px rgba(0,0,0,0.55); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 24px; font-weight: 700">Wheel · colour</div>
+      <div style="font-size: 19px; line-height: 1.4; color: rgba(242,243,245,0.6)">Hue around, saturation outward, brightness on a bar. Swatch shows the result; numbers underneath for matching.</div>
+      <div aria-hidden="true" style="width: 150px; height: 150px; border-radius: 50%; align-self: center; background: conic-gradient(from 90deg, #ff4d4d, #ffd84d, #4dff6a, #4dfff2, #4d7bff, #d04dff, #ff4d4d); position: relative"><div style="position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, #fff 0%, rgba(255,255,255,0) 72%)"></div></div>
+    </div>
+
+    <!-- 8 chips & text -->
+    <div style="border-radius: 24px; background: linear-gradient(170deg, #232933, #171b21); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.6), 0 24px 50px rgba(0,0,0,0.55); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 24px; font-weight: 700">Chips, tabs, readouts</div>
+      <div style="font-size: 19px; line-height: 1.4; color: rgba(242,243,245,0.6)">One accent colour means "active". Pinch a readout to type a value on a number pad. Sizes: targets ≥ 60 px, labels ≥ 20 px, values ≥ 24 px.</div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <button style="height: 52px; padding: 0 18px; border-radius: 13px; border: 0; background: linear-gradient(180deg, #f0bc8c, #d4955f); color: #15181d; font-size: 22px; font-weight: 700; box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 30px rgba(224,169,122,0.6)">Frame</button>
+        <button style="height: 52px; padding: 0 18px; border-radius: 13px; border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(180deg, #363d49, #252b34); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.35), 0 6px 14px rgba(0,0,0,0.45); color: rgba(242,243,245,0.85); font-size: 22px; font-weight: 600">Glow</button>
+        <button style="height: 52px; padding: 0 18px; border-radius: 13px; border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(180deg, #363d49, #252b34); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.35), 0 6px 14px rgba(0,0,0,0.45); color: rgba(242,243,245,0.85); font-size: 22px; font-weight: 600">Stereo</button>
+        <div style="height: 52px; padding: 0 16px; border-radius: 13px; background: rgba(0,0,0,0.3); display: flex; align-items: center; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; color: #e0a97a">−42.6°</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; font-size: 20px; line-height: 1.45; color: rgba(242,243,245,0.7)">
+    <div><span style="color: #f2f3f5; font-weight: 700">Stereo in the interface.</span> Each panel is already a real object at a real distance. Inside a panel, controls get elevation: idle 0, hover 2 mm, dragging 4 mm, pressed 0. That is a few pixels of per-eye offset in the render — enough to feel tactile, too little to blur text.</div>
+    <div><span style="color: #f2f3f5; font-weight: 700">Material.</span> Graphite panels, one warm copper accent, white readouts. No ornament inside the panels: the surreal flavour goes into the framing and the idle state (a soft glow pulse while Resolve re-renders), not into the controls you have to read.</div>
+    <div><span style="color: #f2f3f5; font-weight: 700">What stays as it is.</span> Look-down to open, grab-bar to move, pinch and trigger both work, Copy/Paste/Undo, keyframe diamonds. Every macro still auto-maps: unknown controls fall back to a bar.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

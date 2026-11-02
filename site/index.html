@@ -1,0 +1,710 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta charset="utf-8">
+<title>Kalyx</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@700;800&family=Saira:ital,wght@0,400;0,500;0,600;0,700;1,300&display=swap">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+/* One dark room. Show the picture once, then show the product plainly: what it connects to, what you can do, what's in each tier, what's coming. */
+:root {
+  --ground: #15181d;
+  --step: #1d222a;
+  --step-2: #252b34;
+  --ink: #f2f3f5;
+  --ink-2: #b4b8bf;
+  --copper: #e0a97a;
+  --ice: #8fc1d9;
+  --on-copper: #15181d;
+  --display: "Saira Extra Condensed", "Saira", "Arial Narrow", system-ui, sans-serif;
+  --text: "Saira", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --margin: clamp(16px, 3.2vw, 48px);
+  --gutter: clamp(16px, 2.4vw, 36px);
+  --section: clamp(96px, 11vw, 176px);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--text); font-size: 18px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ground); }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+.wrap { padding-left: max(var(--margin), env(safe-area-inset-left, 0px)); padding-right: max(var(--margin), env(safe-area-inset-right, 0px)); }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.display { font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: 0.9; letter-spacing: -0.01em; text-wrap: balance; margin: 0; }
+.head { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(44px, 6vw, 92px); line-height: 0.92; letter-spacing: -0.005em; text-wrap: balance; margin: 0; }
+.sub { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(30px, 2.8vw, 42px); line-height: 0.95; margin: 0; text-wrap: balance; }
+.lead { font-size: clamp(18px, 1.5vw, 22px); line-height: 1.5; max-width: 34em; margin: 0; }
+.muted { color: var(--ink-2); }
+.button { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 28px; background: var(--copper); color: var(--on-copper); font: 600 18px/1 var(--text); text-decoration: none; border: 0; border-radius: 999px; cursor: pointer; transition: transform 140ms var(--ease-out), background-color 180ms ease; }
+.button:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .button:hover { background: #f0bc8c; } }
+.textlink { text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--ink) 35%, transparent); text-underline-offset: 0.22em; text-decoration-thickness: 0.07em; transition: text-decoration-color 180ms ease; }
+@media (hover: hover) and (pointer: fine) { .textlink:hover { text-decoration-color: currentColor; } }
+section { position: relative; }
+.sechead { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--gutter); align-items: end; margin-bottom: clamp(40px, 5vw, 72px); }
+@media (max-width: 860px) { .sechead { grid-template-columns: 1fr; } }
+.status { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; background: var(--step-2); color: var(--ink-2); }
+.status--now { background: var(--copper); color: var(--on-copper); }
+.status--build { background: color-mix(in oklab, var(--ice) 22%, var(--step)); color: var(--ice); }
+
+/* ---------- Bar ---------- */
+.bar { position: absolute; top: 0; left: 0; right: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: calc(18px + env(safe-area-inset-top, 0px)) 18px; }
+.wordmark { font-family: var(--display); font-weight: 800; font-size: 30px; letter-spacing: 0.06em; text-decoration: none; }
+.bar nav { display: flex; align-items: center; gap: clamp(16px, 2.2vw, 32px); font-size: 17px; }
+.bar nav a:not(.button) { text-decoration: none; }
+.bar .button { min-height: 44px; padding: 0 20px; font-size: 16px; }
+@media (max-width: 900px) { .bar nav a.navlink { display: none; } }
+
+/* ---------- Hero ---------- */
+.hero { min-height: min(100svh, 980px); display: grid; align-items: end; overflow: clip; background: #1f2735; }
+.hero__picture { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+.hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(12,14,18,0.9) 0%, rgba(12,14,18,0.55) 36%, rgba(12,14,18,0) 64%); pointer-events: none; }
+.hero__copy { position: relative; z-index: 1; padding-block: 140px clamp(40px, 6vw, 72px); display: grid; gap: 26px; }
+.hero h1 { font-size: clamp(48px, 7.6vw, 140px); max-width: 100%; }
+.hero h1 .line { display: block; overflow: clip; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+.hero h1 .line > span { display: block; white-space: nowrap; }
+.hero__act { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px var(--gutter); margin: 8px 0 0; }
+.facts div { display: grid; gap: 2px; }
+.facts dt { font-size: 14px; font-weight: 600; color: var(--copper); }
+.facts dd { margin: 0; font-size: 16px; line-height: 1.4; }
+@media (max-width: 900px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) {
+  .hero h1 .line > span { white-space: normal; }
+  .hero { min-height: 0; align-items: stretch; grid-template-rows: 56svh auto; background: var(--ground); }
+  .hero__picture { position: relative; height: 56svh; object-position: 50% 40%; }
+  .hero::after { display: none; }
+  .hero__copy { padding-block: 28px 56px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .js .hero h1 .line > span { transform: translateY(105%); animation: rise 900ms var(--ease-expo) forwards; animation-delay: calc(120ms + var(--i) * 100ms); }
+  .js .hero [data-load] { opacity: 0; transform: translateY(12px); animation: settle 600ms var(--ease-out) forwards; animation-delay: var(--d); }
+  .js .hero__picture { transform: scale(1.06); animation: unzoom 1400ms var(--ease-expo) forwards; }
+}
+@keyframes rise { to { transform: none; } }
+@keyframes settle { to { opacity: 1; transform: none; } }
+@keyframes unzoom { to { transform: none; } }
+
+/* ---------- Problem: one block, said once ---------- */
+.problem { padding-block: var(--section) 0; }
+.loop { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gutter); }
+.loop li { background: var(--step); border-radius: 18px; padding: 26px 24px 28px; display: grid; gap: 8px; align-content: start; }
+.loop h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(36px, 3.4vw, 52px); line-height: 0.9; margin: 0; }
+.loop p { margin: 0; font-size: 17px; color: var(--ink-2); }
+@media (max-width: 900px) { .loop { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .loop { grid-template-columns: 1fr; } }
+
+/* ---------- How it works ---------- */
+.how { padding-block: var(--section); }
+.chain { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 0 clamp(12px, 1.6vw, 24px); align-items: stretch; }
+.chain__step { background: var(--step); border-radius: 22px; padding: clamp(24px, 2.6vw, 36px); display: grid; gap: 14px; align-content: start; }
+.chain__where { font-size: 15px; font-weight: 600; color: var(--copper); margin: 0; }
+.chain__step p { margin: 0; }
+.chain__step ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 16px; }
+.chain__step li { display: flex; gap: 10px; }
+.chain__step li::before { content: ""; flex: none; width: 6px; height: 6px; margin-top: 0.62em; border-radius: 50%; background: var(--copper); }
+.chain__arrow { align-self: center; width: clamp(28px, 3vw, 44px); color: var(--copper); }
+@media (max-width: 960px) {
+  .chain { grid-template-columns: 1fr; gap: 12px; }
+  .chain__arrow { transform: rotate(90deg); justify-self: center; width: 32px; }
+}
+
+/* ---------- Depth: a stop-motion move you scrub with the scroll ---------- */
+.depth__stage { position: relative; height: 100svh; overflow: clip; background: #0e1014; }
+.depth__poster, .depth__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.depth__poster { object-fit: cover; object-position: 45% 50%; }
+.depth__scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(12,14,18,0.82), rgba(12,14,18,0) 46%); pointer-events: none; }
+.depth__caps { position: absolute; left: 0; right: 0; bottom: clamp(32px, 7svh, 80px); display: grid; }
+.depth__cap { grid-area: 1 / 1; display: grid; gap: 10px; align-content: end; }
+.depth__lead { margin: 0; font-style: italic; font-weight: 300; font-size: clamp(22px, 2vw, 30px); color: #d3d6db; }
+.depth__cap .head { text-shadow: 0 2px 24px rgba(0,0,0,0.45); }
+.depth__cap .lead { max-width: 30em; text-shadow: 0 1px 14px rgba(0,0,0,0.7); }
+.depth__cap[data-cap="a"] { display: none; }
+.js.can-scrub .depth__cap[data-cap="a"] { display: grid; }
+.js.can-scrub .depth__cap[data-cap="b"] { opacity: 0; }
+
+/* ---------- Features: the real panel, and the list ---------- */
+.features { padding-block: var(--section); }
+.features__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(32px, 4vw, 64px); align-items: start; }
+.panel { margin: 0; position: sticky; top: 10svh; display: grid; gap: 12px; }
+.panel svg { width: 100%; height: auto; display: block; }
+.panel figcaption { font-size: 15px; color: var(--ink-2); }
+.flist { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(28px, 3vw, 44px) var(--gutter); }
+.flist li { display: grid; gap: 8px; align-content: start; }
+.flist h3 { font-size: 21px; line-height: 1.25; font-weight: 700; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.flist p { margin: 0; color: var(--ink-2); font-size: 17px; }
+@media (max-width: 960px) { .features__grid { grid-template-columns: 1fr; } .panel { position: static; max-width: 560px; } }
+@media (max-width: 560px) { .flist { grid-template-columns: 1fr; } }
+
+/* ---------- Try it: level the horizon ---------- */
+.level { background: var(--step); padding-block: clamp(80px, 9vw, 144px); }
+.level__grid { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--gutter); align-items: center; }
+.level__copy { display: grid; gap: 22px; }
+.level__view { position: relative; aspect-ratio: 16 / 9; overflow: clip; background: #0e1014; border-radius: 18px; }
+.level__view img { position: absolute; inset: -12%; width: 124%; height: 124%; max-width: none; object-fit: cover; object-position: 80% 70%; transform: rotate(var(--roll, 6deg)); }
+.level__line { position: absolute; left: 6%; right: 6%; top: 50%; height: 2px; background: var(--copper); opacity: 0.85; transform: translateY(-1px); }
+.level__control { display: grid; gap: 10px; }
+.level__control label { font-weight: 600; font-size: 17px; display: flex; justify-content: space-between; gap: 16px; }
+.level__control output { font-variant-numeric: tabular-nums; color: var(--ink-2); font-weight: 500; }
+.level__status { min-height: 1.6em; font-weight: 600; color: var(--copper); margin: 0; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: #343c47; border-radius: 999px; }
+input[type="range"]::-moz-range-track { height: 6px; background: #343c47; border-radius: 999px; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -11px; border-radius: 50%; background: var(--copper); border: 0; }
+input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: var(--copper); border: 0; }
+@media (max-width: 860px) { .level__grid { grid-template-columns: 1fr; } }
+
+.free { padding-block: var(--section) 0; }
+.free__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gutter); }
+.freebie { background: var(--step); border-radius: 24px; padding: clamp(26px, 2.6vw, 40px); display: grid; gap: 14px; align-content: start; }
+.freebie h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 3.8vw, 58px); line-height: 0.9; margin: 0; }
+.freebie > p:not(.tier__name) { margin: 0; color: var(--ink-2); }
+.freebie ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 16px; }
+.freebie li { display: flex; gap: 10px; }
+.freebie li::before { content: ""; flex: none; width: 6px; height: 6px; margin-top: 0.62em; border-radius: 50%; background: var(--copper); }
+.freebie__act { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+@media (max-width: 860px) { .free__grid { grid-template-columns: 1fr; } }
+
+/* ---------- Tiers ---------- */
+.tiers { padding-block: var(--section) 0; }
+.tiers__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gutter); }
+.tier { background: var(--step); border-radius: 24px; padding: clamp(26px, 2.6vw, 40px); display: grid; gap: 16px; align-content: start; }
+.tier--mid { background: var(--step-2); box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--copper) 55%, transparent); }
+.tier__name { margin: 0; font-size: 16px; font-weight: 600; color: var(--copper); }
+.tier h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(44px, 4.2vw, 64px); line-height: 0.9; margin: 0; }
+.tier > p { margin: 0; color: var(--ink-2); }
+.tier ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 9px; font-size: 16px; line-height: 1.4; }
+.tier li { display: flex; gap: 10px; }
+.tier li::before { content: ""; flex: none; width: 12px; height: 7px; margin-top: 0.45em; border-left: 2px solid var(--copper); border-bottom: 2px solid var(--copper); transform: rotate(-45deg); }
+.tier li.plus { color: var(--ink-2); }
+.tier li.plus::before { border-color: var(--ink-2); }
+.tier li em { font-style: normal; color: var(--ice); white-space: nowrap; }
+.tier__when { margin-top: 6px; font-size: 15px; color: var(--ink-2); }
+.tiers__note { margin-top: clamp(24px, 3vw, 40px); display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; }
+.tiers__note p { margin: 0; max-width: 46em; }
+@media (max-width: 960px) { .tiers__grid { grid-template-columns: 1fr; } }
+
+/* ---------- Roadmap ---------- */
+.roadmap { padding-block: var(--section); }
+.apps { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 16px; margin-bottom: clamp(48px, 6vw, 88px); }
+.apps th, .apps td { padding: 13px 16px; text-align: center; vertical-align: middle; }
+.apps thead th { font-size: 15px; font-weight: 600; color: var(--ink-2); padding-bottom: 8px; }
+.apps tbody td { background: var(--step); }
+.apps tbody td:first-child { text-align: left; border-radius: 10px 0 0 10px; }
+.apps tbody td:last-child { border-radius: 0 10px 10px 0; }
+.apps th:first-child { text-align: left; }
+.yes { color: var(--copper); font-weight: 700; }
+.soon { color: var(--ice); font-weight: 600; font-size: 15px; }
+.later { color: var(--ink-2); font-weight: 600; font-size: 15px; }
+.tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tablewrap table { min-width: 640px; }
+.when { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gutter); align-items: start; }
+.when__col { background: var(--step); border-radius: 24px; padding: clamp(24px, 2.4vw, 36px); display: grid; gap: 6px; }
+.when__col > p { margin: 0; font-size: 15px; font-weight: 600; color: var(--copper); }
+.when__col h3 { margin: 0 0 10px; }
+.when__col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.when__col li { display: grid; gap: 4px; }
+.when__col li b { font-weight: 600; font-size: 17px; line-height: 1.35; }
+.when__col li span:not(.status) { font-size: 15px; line-height: 1.45; color: var(--ink-2); }
+.when__col .status { justify-self: start; margin-bottom: 2px; }
+.when__col li.is-new b::after { content: " New"; color: var(--copper); font-size: 13px; font-weight: 600; }
+.roadmap__foot { margin-top: clamp(28px, 3vw, 44px); color: var(--ink-2); max-width: 52em; }
+@media (max-width: 960px) { .when { grid-template-columns: 1fr; } }
+
+/* ---------- Join the alpha ---------- */
+.alpha { background: var(--step); padding-block: var(--section); }
+.alpha__grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(32px, 4vw, 72px); align-items: start; }
+.alpha__copy { display: grid; gap: 24px; }
+form { display: grid; gap: 18px; max-width: 560px; }
+.field { display: grid; gap: 6px; }
+.field label { font-weight: 600; font-size: 16px; }
+.field input, .field select { font: 400 18px/1.3 var(--text); color: var(--ink); background: var(--ground); border: 1px solid #3a424e; border-radius: 10px; min-height: 52px; padding: 0 14px; width: 100%; }
+.field input:focus-visible, .field select:focus-visible { outline: 2px solid var(--copper); outline-offset: 1px; border-color: transparent; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form__note { color: var(--ink-2); font-size: 16px; margin: 0; }
+.thanks { display: grid; gap: 12px; max-width: 520px; }
+.thanks h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(44px, 5vw, 72px); line-height: 0.9; margin: 0; }
+.thanks p { margin: 0; }
+@media (max-width: 860px) { .alpha__grid { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+
+/* ---------- Close ---------- */
+.close { padding-block: clamp(80px, 9vw, 140px) calc(32px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 36px; overflow: clip; }
+.close__name { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(96px, 27vw, 420px); line-height: 0.78; letter-spacing: 0.02em; margin: 0; }
+.close__row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px 32px; color: var(--ink-2); font-size: 16px; }
+.close__row nav { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] { opacity: 0; transform: translateY(20px); }
+}
+</style>
+
+<header class="bar wrap">
+  <a class="wordmark" href="#top" aria-label="Kalyx, back to top">KALYX</a>
+  <nav aria-label="Main">
+    <a class="navlink" href="#how">How it works</a>
+    <a class="navlink" href="#features">Features</a>
+    <a class="navlink" href="#tiers">Tiers</a>
+    <a class="navlink" href="#free">Free tools</a>
+    <a class="navlink" href="#roadmap">Roadmap</a>
+    <a class="button" href="#alpha">Join the alpha</a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="hero-title">
+    <img class="hero__picture" src="img/dome.jpg" alt="An editor in a headset stands inside a vast paper dome, pulling a 3D title into place with a copper beam from her controller" width="2200" height="1228" fetchpriority="high">
+    <div class="hero__copy wrap">
+      <h1 id="hero-title" class="display"><span class="line"><span style="--i:0">Edit your immersive film</span></span><span class="line"><span style="--i:1">from inside it.</span></span></h1>
+      <p class="lead" data-load style="--d:420ms">Kalyx streams your live timeline from Resolve, Premiere Pro or After Effects to a Meta Quest. Scrub on your Mac and see the shot in the headset, in stereo, at full size. In Resolve, you can also move titles, set their depth and level the horizon without taking it off.</p>
+      <div class="hero__act" data-load style="--d:500ms">
+        <a class="button" href="#alpha">Join the alpha</a>
+        <a class="textlink" href="#how">See how it works</a>
+      </div>
+      <dl class="facts" data-load style="--d:580ms">
+        <div><dt>Works with</dt><dd>DaVinci Resolve Studio, Premiere Pro, After Effects</dd></div>
+        <div><dt>Formats</dt><dd>360, VR180, fisheye 180, dome, flat</dd></div>
+        <div><dt>Runs on</dt><dd>A Mac with Apple silicon and a Quest 2, 3 or Pro</dd></div>
+        <div><dt>Connects</dt><dd>Over Wi-Fi or a USB-C cable</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="problem wrap" id="problem" aria-labelledby="problem-title">
+    <div class="sechead">
+      <h2 id="problem-title" class="head" data-reveal>You can't judge a sphere on a flat monitor.</h2>
+      <p class="lead muted" data-reveal>A flat screen can't show depth, so you can't tell how far away a title sits or whether it will float in the viewer's face. So checking one change goes like this:</p>
+    </div>
+    <ol class="loop" data-reveal>
+      <li><h3>Export.</h3><p>Render the sequence to check one title.</p></li>
+      <li><h3>Sideload.</h3><p>Copy it to the headset and find the file.</p></li>
+      <li><h3>Squint.</h3><p>The horizon leans and the title sits too close.</p></li>
+      <li><h3>Again.</h3><p>Headset off, nudge a value, guess, repeat.</p></li>
+    </ol>
+  </section>
+
+  <section class="how wrap" id="how" aria-labelledby="how-title">
+    <div class="sechead">
+      <h2 id="how-title" class="head" data-reveal>Install. Headset on. Press play.</h2>
+      <p class="lead muted" data-reveal>Kalyx sits between the editor you already use and the headset you already own. Nothing changes in how you cut.</p>
+    </div>
+    <div class="chain" data-reveal>
+      <div class="chain__step">
+        <p class="chain__where">On your Mac</p>
+        <h3 class="sub">Install Kalyx</h3>
+        <p>Your editor sees Kalyx as one more monitor.</p>
+        <ul>
+          <li>Resolve Studio: pick Kalyx as the video output</li>
+          <li>Premiere Pro and After Effects: send through Mercury Transmit with the free NDI Tools</li>
+        </ul>
+      </div>
+      <svg class="chain__arrow" viewBox="0 0 44 20" aria-hidden="true"><path d="M2 10h36M30 3l8 7-8 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="chain__step">
+        <p class="chain__where">On your Quest</p>
+        <h3 class="sub">Put the headset on</h3>
+        <p>The Kalyx app finds your Mac on its own.</p>
+        <ul>
+          <li>Wi-Fi, or a USB-C cable when the network is busy</li>
+          <li>Two headsets per Mac</li>
+        </ul>
+      </div>
+      <svg class="chain__arrow" viewBox="0 0 44 20" aria-hidden="true"><path d="M2 10h36M30 3l8 7-8 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="chain__step">
+        <p class="chain__where">In your timeline</p>
+        <h3 class="sub">Press play</h3>
+        <p>The shot under your playhead is the shot you're standing in.</p>
+        <ul>
+          <li>Full-size frame, live as you scrub</li>
+          <li>Stereo depth you can actually see</li>
+          <li>Nothing to export to check</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="depth" id="depth" aria-labelledby="depth-title">
+    <h2 id="depth-title" class="vh">Grab your title and push it back in depth</h2>
+    <div class="depth__stage">
+      <img class="depth__poster" src="img/depth/61.jpg" alt="From behind, the editor in her headset holds a controller toward the 3D title STRANGE WORLDS, now level and set far back against the canyon walls" width="1280" height="716">
+      <canvas class="depth__canvas" aria-hidden="true"></canvas>
+      <div class="depth__scrim"></div>
+      <div class="depth__caps wrap">
+        <div class="depth__cap" data-cap="a"><p class="depth__lead">grab your title.</p><p class="head">Put it where it belongs.</p></div>
+        <div class="depth__cap" data-cap="b"><p class="depth__lead">push it back.</p><p class="head">See exactly how deep it sits.</p><p class="lead">On a flat screen you're guessing at depth. In the headset you can see it, and every move lands in your project.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features wrap" id="features" aria-labelledby="features-title">
+    <div class="sechead">
+      <h2 id="features-title" class="head" data-reveal>Fix it while you're in there.</h2>
+      <p class="lead muted" data-reveal>Point your controller at a title, a footage window or the whole picture, and change it from inside the shot. Every move is a real change in your project, with undo.</p>
+    </div>
+    <div class="features__grid">
+      <figure class="panel" data-reveal>
+        <svg viewBox="0 0 900 840" role="img" aria-label="The Kalyx Placement panel: a pan ring at 24 degrees, a tilt arc at 8 degrees, distance and scale throttles, and roll dials, each with a keyframe diamond">
+          <rect x="2" y="2" width="896" height="836" rx="16" fill="#2a292e" stroke="#ffffff1f"/>
+          <rect x="390" y="12" width="120" height="6" rx="3" fill="#aaaaab" opacity=".9"/>
+          <text x="32" y="42" fill="#b9b9bb" font-family="Saira" font-weight="700" font-size="18" letter-spacing="5">PLACEMENT</text>
+          <text x="868" y="42" text-anchor="end" fill="#e0a97a" font-family="Saira" font-weight="700" font-size="18" letter-spacing="3">TITLE · V3</text>
+          <text x="40" y="86" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">POSITION ON SPHERE</text>
+          <circle cx="250" cy="270" r="168" fill="#1f2228" stroke="#00000066" stroke-width="2"/>
+          <circle cx="250" cy="270" r="150" fill="none" stroke="#6e5140" stroke-width="22"/>
+          <path d="M 250 120 A 150 150 0 0 1 311 133" fill="none" stroke="#e0a97a" stroke-width="22" stroke-linecap="round"/>
+          <circle cx="250" cy="270" r="128" fill="#171b21" stroke="#ffffff10"/>
+          <line x1="250" y1="128" x2="250" y2="144" stroke="#a59a93" stroke-width="2"/><line x1="250" y1="396" x2="250" y2="412" stroke="#a59a93" stroke-width="2"/><line x1="112" y1="270" x2="130" y2="270" stroke="#a59a93" stroke-width="2"/><line x1="370" y1="270" x2="388" y2="270" stroke="#a59a93" stroke-width="2"/>
+          <text x="250" y="182" text-anchor="middle" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">FRONT</text>
+          <text x="250" y="376" text-anchor="middle" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">BEHIND</text>
+          <line x1="250" y1="270" x2="311" y2="133" stroke="#dfe0e2" stroke-width="2" stroke-dasharray="2 6" opacity=".8"/>
+          <text x="250" y="282" text-anchor="middle" fill="#dfe0e2" font-family="Saira" font-weight="700" font-size="34">24.0°</text>
+          <text x="250" y="312" text-anchor="middle" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">PAN</text>
+          <circle cx="311" cy="133" r="20" fill="#fbfbfc" stroke="#d1d4d9" stroke-width="2"/>
+          <rect x="399" y="101" width="22" height="22" rx="3" transform="rotate(45 410 112)" fill="#e0a97a"/>
+          <path d="M 565 120 A 150 150 0 0 1 565 420" fill="none" stroke="#6e5140" stroke-width="22" stroke-linecap="round"/>
+          <path d="M 715 270 A 150 150 0 0 0 713.5 249.1" fill="none" stroke="#e0a97a" stroke-width="22" stroke-linecap="round"/>
+          <text x="565" y="100" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">UP</text>
+          <text x="636" y="278" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="2">0°</text>
+          <circle cx="713.5" cy="249.1" r="20" fill="#fbfbfc" stroke="#d1d4d9" stroke-width="2"/>
+          <text x="640" y="470" text-anchor="middle" fill="#dfe0e2" font-family="Saira" font-weight="700" font-size="30">8.0°</text>
+          <text x="640" y="498" text-anchor="middle" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">TILT</text>
+          <rect x="709" y="101" width="22" height="22" rx="3" transform="rotate(45 720 112)" fill="#4a4f57"/>
+          <text x="40" y="486" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">SCALE · DISTANCE</text>
+          <rect x="62" y="510" width="66" height="198" rx="14" fill="#1b1a1e" stroke="#ffffff12"/>
+          <rect x="62" y="589" width="66" height="119" rx="14" fill="#bd8e67"/>
+          <rect x="62" y="576" width="66" height="26" rx="10" fill="#d9dbe0" stroke="#fbfbfc"/>
+          <text x="95" y="744" text-anchor="middle" fill="#dfe0e2" font-family="Saira" font-weight="700" font-size="26">12 m</text>
+          <text x="95" y="770" text-anchor="middle" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">DISTANCE</text>
+          <rect x="133" y="490" width="22" height="22" rx="3" transform="rotate(45 144 501)" fill="#e0a97a"/>
+          <rect x="192" y="510" width="66" height="198" rx="14" fill="#1b1a1e" stroke="#ffffff12"/>
+          <rect x="192" y="629" width="66" height="79" rx="14" fill="#bd8e67"/>
+          <rect x="192" y="616" width="66" height="26" rx="10" fill="#d9dbe0" stroke="#fbfbfc"/>
+          <text x="225" y="744" text-anchor="middle" fill="#dfe0e2" font-family="Saira" font-weight="700" font-size="26">1.00</text>
+          <text x="225" y="770" text-anchor="middle" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">SCALE</text>
+          <rect x="263" y="490" width="22" height="22" rx="3" transform="rotate(45 274 501)" fill="#4a4f57"/>
+          <text x="330" y="486" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">CARD ROTATION</text>
+          <g id="dial-a"><circle cx="478" cy="563" r="48" fill="#252b34" stroke="#00000080" stroke-width="2"/><circle cx="478" cy="563" r="40" fill="#232932" stroke="#ffffff14"/>
+            <g transform="rotate(-6 478 563)"><line x1="478" y1="563" x2="478" y2="536" stroke="#e0a97a" stroke-width="7" stroke-linecap="round"/><circle cx="478" cy="536" r="4" fill="#f2f3f5"/></g><circle cx="478" cy="563" r="5" fill="#f2f3f5"/></g>
+          <text x="478" y="648" text-anchor="middle" fill="#dfe0e2" font-family="Saira" font-weight="700" font-size="26">−6.0°</text>
+          <text x="478" y="674" text-anchor="middle" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">ROLL</text>
+          <rect x="519" y="501" width="22" height="22" rx="3" transform="rotate(45 530 512)" fill="#4a4f57"/>
+          <g id="dial-b"><circle cx="733" cy="563" r="48" fill="#252b34" stroke="#00000080" stroke-width="2"/><circle cx="733" cy="563" r="40" fill="#232932" stroke="#ffffff14"/>
+            <line x1="733" y1="563" x2="733" y2="536" stroke="#e0a97a" stroke-width="7" stroke-linecap="round"/><circle cx="733" cy="536" r="4" fill="#f2f3f5"/><circle cx="733" cy="563" r="5" fill="#f2f3f5"/></g>
+          <text x="733" y="648" text-anchor="middle" fill="#dfe0e2" font-family="Saira" font-weight="700" font-size="26">0.0°</text>
+          <text x="733" y="674" text-anchor="middle" fill="#a9a6a3" font-family="Saira" font-weight="700" font-size="18" letter-spacing="4">CARD ROLL</text>
+          <rect x="774" y="501" width="22" height="22" rx="3" transform="rotate(45 785 512)" fill="#4a4f57"/>
+          <text x="40" y="816" fill="#dfe0e2" font-family="Saira" font-weight="600" font-size="18" opacity=".9">Point and pull a dot · tap a dial to zero it</text>
+        </svg>
+        <figcaption>The Placement panel, drawn as it appears in the headset. A diamond sets a keyframe on that control.</figcaption>
+      </figure>
+      <ul class="flist">
+        <li data-reveal><h3>Place titles and footage</h3><p>Point at an overlay in the scene to select it, then drag it where it belongs. Pan, tilt, roll, distance and scale each have their own control.</p></li>
+        <li data-reveal><h3>Set stereo depth by eye</h3><p>Push a title back or pull it forward and watch it settle against the scene, so nothing ends up floating in the viewer's face.</p></li>
+        <li data-reveal><h3>Level and re-orient 360</h3><p>Turn on the level grid for a true horizon, then re-level the shot or turn the sphere so the action starts in front.</p></li>
+        <li data-reveal><h3>Keyframes and undo</h3><p>A keyframe on any control, marks on the timeline deck, and undo that goes straight to your Resolve project.</p></li>
+        <li data-reveal><h3>Always know what you're moving</h3><p>Overlays, patches and the whole picture are separate layers, each named, with a lock so the plate stays put.</p></li>
+        <li data-reveal><h3>Panels you arrange</h3><p>Placement, Look and Timeline panels sit where you leave them. Turn off the ones you don't need.</p></li>
+        <li data-reveal><h3>Scopes in the headset <span class="status status--build">Building</span></h3><p>Waveform, RGB parade, vectorscope and histogram, measured from the uncompressed frame your editor sends.</p></li>
+        <li data-reveal><h3>Colour trim pass <span class="status">Planned</span></h3><p>Exposure, lift, gamma, gain, saturation and contrast on a trim layer above your grade. A trim on the device your audience will use, not a final grade.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="level" id="level" aria-labelledby="level-title">
+    <div class="level__grid wrap">
+      <div class="level__copy">
+        <h2 id="level-title" class="head">Try it: level this horizon.</h2>
+        <p class="lead">In the headset you'd point at the floor ring and turn the world. Here, drag the roll until the canyon sits on the line.</p>
+        <div class="level__control">
+          <label for="roll">Roll <output id="roll-out" for="roll">6.5°</output></label>
+          <input id="roll" type="range" min="-12" max="12" step="0.1" value="6.5" aria-describedby="roll-status">
+          <p id="roll-status" class="level__status" aria-live="polite"></p>
+        </div>
+      </div>
+      <div class="level__view" id="level-view">
+        <img src="img/dome.jpg" alt="The paper canyon inside the dome, tilted off level" loading="lazy">
+        <div class="level__line" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tiers wrap" id="tiers" aria-labelledby="tiers-title">
+    <div class="sechead">
+      <h2 id="tiers-title" class="head" data-reveal>Three tiers. Pick the one that fits the job.</h2>
+      <p class="lead muted" data-reveal>Each tier includes everything in the one before it.</p>
+    </div>
+    <div class="tiers__grid">
+      <article class="tier" data-reveal>
+        <p class="tier__name">Kalyx View</p>
+        <h3>See it.</h3>
+        <p>Your live timeline in the headset, in every format you cut.</p>
+        <ul>
+          <li>Live monitor from Resolve Studio, Premiere Pro and After Effects</li>
+          <li>360 over/under and mono, VR180, fisheye 180, flat</li>
+          <li>Level grid and overlay outline</li>
+          <li>Scopes in the headset <em>Building</em></li>
+          <li>Wi-Fi or USB-C, two headsets per Mac</li>
+        </ul>
+      </article>
+      <article class="tier tier--mid" data-reveal>
+        <p class="tier__name">Kalyx Canvas</p>
+        <h3>Shape it.</h3>
+        <p>Change your project from inside the shot.</p>
+        <ul>
+          <li class="plus">Everything in View</li>
+          <li>Select and move overlays in the scene</li>
+          <li>Pan, tilt, roll, distance, scale and stereo depth</li>
+          <li>Re-level and re-orient 360 footage</li>
+          <li>Keyframes and undo as real project changes</li>
+          <li>Placement templates for footage, titles and 3D in Resolve</li>
+          <li>Colour trim pass <em>Planned</em></li>
+        </ul>
+        <p class="tier__when">Resolve today. After Effects is planned for the beta. Premiere Pro is monitor only.</p>
+      </article>
+      <article class="tier" data-reveal>
+        <p class="tier__name">Kalyx Theatre</p>
+        <h3>Sit in the room it's for.</h3>
+        <p>For dome, giant screen and museum work.</p>
+        <ul>
+          <li class="plus">Everything in Canvas</li>
+          <li>Dome, giant screen and cinema wall at real geometry</li>
+          <li>Pick a seat and watch from it</li>
+          <li>Review together from a second headset</li>
+          <li>Venue setup and priority support</li>
+        </ul>
+        <p class="tier__when">Coming in 2027.</p>
+      </article>
+    </div>
+    <div class="tiers__note">
+      <p class="muted">Pricing is set at launch, and everyone on the alpha list keeps launch pricing.</p>
+      <a class="button" href="#alpha">Join the alpha</a>
+    </div>
+  </section>
+
+  <section class="free wrap" id="free" aria-labelledby="free-title">
+    <div class="sechead">
+      <h2 id="free-title" class="head" data-reveal>Two tools, free. Before and after the edit.</h2>
+      <p class="lead muted" data-reveal>We built these to finish our own 360 films. They're yours to download, no tier and no account needed.</p>
+    </div>
+    <div class="free__grid">
+      <article class="freebie" data-reveal>
+        <p class="tier__name">Before the edit</p>
+        <h3>Kalyx Stitch</h3>
+        <p>Batch-stitch a whole card of Insta360 footage in one pass, ready to cut.</p>
+        <ul>
+          <li>Point it at a folder, let it run overnight</li>
+          <li>Stitched 360 files ready for your editor</li>
+        </ul>
+        <div class="freebie__act"><a class="button" href="#free">Download for Mac</a><span class="muted">Free</span></div>
+      </article>
+      <article class="freebie" data-reveal>
+        <p class="tier__name">After the edit</p>
+        <h3>Kalyx Publish</h3>
+        <p>Encode your finished film and tag it so YouTube plays it as 360 or VR180.</p>
+        <ul>
+          <li>Delivery presets for 360 and VR180</li>
+          <li>The metadata YouTube needs, written for you</li>
+        </ul>
+        <div class="freebie__act"><a class="button" href="#free">Download for Mac</a><span class="muted">Free</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="roadmap wrap" id="roadmap" aria-labelledby="roadmap-title">
+    <div class="sechead">
+      <h2 id="roadmap-title" class="head" data-reveal>What works today. What's next.</h2>
+      <p class="lead muted" data-reveal>The list of what works today is exact. Dates further out are plans, and alpha users help set the order.</p>
+    </div>
+    <div class="tablewrap" data-reveal>
+      <table class="apps">
+        <caption class="vh">Feature support by editing app</caption>
+        <thead><tr><th scope="col">By app</th><th scope="col">Resolve Studio</th><th scope="col">Premiere Pro</th><th scope="col">After Effects</th></tr></thead>
+        <tbody>
+          <tr><td>Live monitor, every format</td><td class="yes">Now</td><td class="yes">Now</td><td class="yes">Now</td></tr>
+          <tr><td>Level grid and overlay outline</td><td class="yes">Now</td><td class="yes">Now</td><td class="yes">Now</td></tr>
+          <tr><td>Scopes in the headset</td><td class="soon">Building</td><td class="soon">Building</td><td class="soon">Building</td></tr>
+          <tr><td>Move overlays from inside the shot</td><td class="yes">Now</td><td class="later">No date</td><td class="soon">Beta</td></tr>
+          <tr><td>Re-level and re-orient 360</td><td class="yes">Now</td><td class="later">No date</td><td class="soon">Beta</td></tr>
+          <tr><td>Keyframes and undo from the headset</td><td class="yes">Now</td><td class="later">No date</td><td class="soon">Beta</td></tr>
+          <tr><td>Colour trim pass</td><td class="soon">Beta</td><td class="later">No date</td><td class="later">Later</td></tr>
+          <tr><td>Dome, giant screen, seat picker</td><td class="later">2027</td><td class="later">2027</td><td class="later">2027</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="when">
+      <div class="when__col" data-reveal>
+        <p>Now · alpha, Oct to Nov 2026</p>
+        <h3 class="sub">In your hands</h3>
+        <ul>
+          <li><span class="status status--now">Shipped</span><b>Live monitor in every format</b><span>360 over/under and mono, VR180, Canon dual fisheye, flat. Quest 2, 3 and Pro.</span></li>
+          <li><span class="status status--now">Shipped</span><b>Premiere Pro and After Effects monitoring</b><span>Monitor only. After Effects controls are planned for the beta; Premiere controls have no date.</span></li>
+          <li><span class="status status--now">Shipped</span><b>Place overlays from inside the shot</b><span>Resolve. Select, drag, set depth, undo.</span></li>
+          <li><span class="status status--now">Shipped</span><b>Level grid, re-level, re-orient</b><span>A world-level horizon and the sphere controls on one panel.</span></li>
+          <li><span class="status status--now">Shipped</span><b>Keyframes from the headset</b><span>A diamond per control, marks on the timeline.</span></li>
+          <li><span class="status status--build">Building</span><b>Scopes in the headset</b><span>Waveform, parade, vectorscope, histogram.</span></li>
+          <li><span class="status status--build">Building</span><b>Sideload guide and install script</b><span>Until the signed installer lands.</span></li>
+        </ul>
+      </div>
+      <div class="when__col" data-reveal>
+        <p>Next · beta, Dec 2026 to early 2027</p>
+        <h3 class="sub">What the beta adds</h3>
+        <ul>
+          <li><span class="status status--build">Building</span><b>Signed installer, licence and free trial</b><span>One notarized Mac installer for View and Canvas.</span></li>
+          <li><span class="status status--build">Building</span><b>Fisheye lens presets</b><span>Canon RF 5.2 mm and RF-S 3.9 mm, 180, 200, 220 and custom.</span></li>
+          <li><span class="status">Planned</span><b>Colour trim pass in the headset</b><span>Exposure, lift, gamma, gain, saturation, contrast. Resolve first.</span></li>
+          <li><span class="status">Planned</span><b>After Effects controls</b><span>The same panels driving After Effects' own VR effects.</span></li>
+          <li><span class="status">Planned</span><b>Set the horizon by pointing at it</b><span>Mark two points on the real horizon and the shot levels itself.</span></li>
+          <li><span class="status">Planned</span><b>Faster round trip in Resolve</b><span>A fast-preview switch for heavy timelines.</span></li>
+          <li><span class="status">Planned</span><b>Review together</b><span>Several headsets on one Mac, watching the same timeline.</span></li>
+        </ul>
+      </div>
+      <div class="when__col" data-reveal>
+        <p>Later · 2027</p>
+        <h3 class="sub">On the list, in rough order</h3>
+        <ul>
+                    <li><span class="status">Planned</span><b>Kalyx Theatre</b><span>Dome, giant screen and cinema wall at real geometry, with a seat picker.</span></li>
+          <li><span class="status">Planned</span><b>VR180 and fulldome output</b><span>Titles placed for VR180 and dome masters, and dome presets in Kalyx Publish.</span></li>
+          <li><span class="status">Planned</span><b>Send the trim to the colour page</b><span>Hand your headset trim to the colourist as a node.</span></li>
+          <li><span class="status">Planned</span><b>Paint out the tripod from the headset</b><span>Small nadir and zenith patches; detailed paint stays in Fusion.</span></li>
+          <li><span class="status">Planned</span><b>Pico, then the Meta store</b><span>Sideloaded on Quest until then.</span></li>
+          <li><span class="status">Planned</span><b>Windows</b><span>Premiere and After Effects first, Resolve after.</span></li>
+        </ul>
+      </div>
+    </div>
+    <p class="roadmap__foot">Not promised: controls inside Premiere Pro. They need a plug-in panel inside Premiere that we haven't proven yet, so Premiere is a live monitor until we have. Not planned: an Apple Vision Pro app, since Resolve already monitors to it. Final Cut Pro comes after Adobe, if alpha users ask for it.</p>
+  </section>
+
+  <section class="alpha" id="alpha" aria-labelledby="alpha-title">
+    <div class="alpha__grid wrap">
+      <div class="alpha__copy">
+        <h2 id="alpha-title" class="head">Go first.</h2>
+        <p class="lead">The alpha is free and small: ten seats for editors with a real 360, 180 or dome project in the next two months, an Apple silicon Mac and a Quest.</p>
+        <p class="muted">You get every build and a say in what comes next. We get your honest notes. Launch pricing is locked for everyone on the list.</p>
+      </div>
+      <div>
+        <form id="alpha-form" novalidate>
+          <div class="row2">
+            <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required></div>
+            <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required aria-describedby="f-email-err"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label for="f-nle">You cut in</label>
+              <select id="f-nle" name="nle"><option>DaVinci Resolve Studio</option><option>Premiere Pro</option><option>After Effects</option><option>Something else</option></select></div>
+            <div class="field"><label for="f-make">You make</label>
+              <select id="f-make" name="make"><option>360 stereo</option><option>VR180</option><option>Fulldome or planetarium</option><option>Giant screen</option><option>Museum and exhibition</option></select></div>
+          </div>
+          <p id="f-email-err" class="form__note" aria-live="polite">One email when your seat opens. No newsletter.</p>
+          <div><button class="button" type="submit">Join the alpha</button></div>
+        </form>
+        <div class="thanks" id="thanks" hidden>
+          <h3>You're on the list.</h3>
+          <p>Thanks. We'll write when your seat opens; invitations go out in small groups so we can talk to each of you.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="close wrap">
+  <p class="close__name" aria-hidden="true">Kalyx</p>
+  <div class="close__row">
+    <span>Edit your immersive film from inside it.</span>
+    <nav aria-label="Footer"><a class="textlink" href="#how">How it works</a><a class="textlink" href="#tiers">Tiers</a><a class="textlink" href="#free">Free tools</a><a class="textlink" href="#roadmap">Roadmap</a><a class="textlink" href="#alpha">Join the alpha</a></nav>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Dial tick dots on the panel, as the headset draws them */
+  const NS = 'http://www.w3.org/2000/svg';
+  [['dial-a', 478], ['dial-b', 733]].forEach(([id, cx]) => {
+    const g = document.getElementById(id);
+    for (let k = 0; k < 12; k++) {
+      const a = k * Math.PI / 6, c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', (cx + 44 * Math.sin(a)).toFixed(1)); c.setAttribute('cy', (563 - 44 * Math.cos(a)).toFixed(1));
+      c.setAttribute('r', '1.8'); c.setAttribute('fill', '#9a9ea5'); c.setAttribute('opacity', '.8');
+      g.insertBefore(c, g.children[2]);
+    }
+  });
+
+  /* Level the horizon: the one live control */
+  const roll = document.getElementById('roll'), out = document.getElementById('roll-out'), status = document.getElementById('roll-status'), view = document.getElementById('level-view');
+  const setRoll = () => {
+    const v = parseFloat(roll.value);
+    view.style.setProperty('--roll', v + 'deg');
+    out.textContent = (v > 0 ? '+' : '') + v.toFixed(1) + '°';
+    status.textContent = Math.abs(v) < 0.4 ? 'Level. Back to cutting.' : '';
+  };
+  roll.addEventListener('input', setRoll); setRoll();
+
+  /* Alpha form (prototype: nothing is sent) */
+  const form = document.getElementById('alpha-form');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = form.elements.email;
+    if (!form.elements.name.value.trim() || !email.validity.valid || !email.value) {
+      document.getElementById('f-email-err').textContent = 'Add your name and a working email so we can reach you.';
+      (form.elements.name.value.trim() ? email : form.elements.name).focus();
+      return;
+    }
+    form.hidden = true; document.getElementById('thanks').hidden = false;
+  });
+
+  if (reduce || !window.gsap || !window.ScrollTrigger) {
+    document.querySelectorAll('[data-reveal]').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; });
+    return;
+  }
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* Depth: 61 stop-motion pictures, stepped through by the scroll. The one pinned section. */
+  (() => {
+    const stage = document.querySelector('.depth__stage');
+    const canvas = stage.querySelector('.depth__canvas'), ctx = canvas.getContext('2d');
+    const poster = stage.querySelector('.depth__poster');
+    const N = 61, frames = [], state = { f: 0 };
+    let shown = -1;
+    for (let i = 1; i <= N; i++) { const im = new Image(); im.decoding = 'async'; im.src = `img/depth/${String(i).padStart(2, '0')}.jpg`; frames.push(im); }
+    const size = () => {
+      const r = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = Math.round(stage.clientWidth * r); canvas.height = Math.round(stage.clientHeight * r);
+      shown = -1; draw();
+    };
+    const draw = () => {
+      const i = Math.round(state.f), im = frames[i];
+      if (!im || !im.complete || !im.naturalWidth || i === shown) return;
+      const cw = canvas.width, ch = canvas.height, s = Math.max(cw / im.naturalWidth, ch / im.naturalHeight);
+      const w = im.naturalWidth * s, h = im.naturalHeight * s;
+      ctx.drawImage(im, (cw - w) * 0.45, (ch - h) / 2, w, h);
+      shown = i; poster.style.visibility = 'hidden';
+    };
+    frames[0].addEventListener('load', size, { once: true });
+    addEventListener('resize', size);
+    document.documentElement.classList.add('can-scrub');
+    const tl = gsap.timeline({ scrollTrigger: { trigger: '.depth', start: 'top top', end: '+=220%', pin: stage, scrub: true } });
+    tl.to(state, { f: N - 1, ease: 'none', duration: 0.86, onUpdate: draw })
+      .to('[data-cap="a"]', { opacity: 0, y: -16, ease: 'none', duration: 0.06 }, 0.4)
+      .fromTo('[data-cap="b"]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, ease: 'none', duration: 0.06 }, 0.46)
+      .to({}, { duration: 0.14 });
+  })();
+
+  /* Entrances: quick, once */
+  ScrollTrigger.batch('[data-reveal]', {
+    start: 'top 90%', once: true,
+    onEnter: (els) => gsap.to(els, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', stagger: 0.05, overwrite: true })
+  });
+
+  addEventListener('load', () => ScrollTrigger.refresh());
+})();
+</script>
+
+</body></html>

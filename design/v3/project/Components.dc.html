@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kalyx View components v3</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Text:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Red Hat Text',system-ui,sans-serif;font-feature-settings:'tnum';color:#f2f3f5}
+a{color:#e0a97a}a:hover{color:#f0c094}
+button{font:inherit;cursor:pointer}
+.card{border-radius:28px;background:linear-gradient(180deg,#232933,#1b2028);box-shadow:inset 0 1px 0 #ffffff29,inset 0 -1px 0 #00000099,0 30px 70px #00000099;padding:28px 32px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.h{font-size:18px;line-height:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9a9ea5}
+.note{font-size:18px;line-height:26px;font-weight:500;color:#9a9ea5}
+.note b{color:#f2f3f5;font-weight:600}
+.chip{height:60px;min-width:60px;padding:0 20px;border-radius:14px;border:0;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:22px;font-weight:600;color:#f2f3f5;background:linear-gradient(180deg,#363d49,#262c35);box-shadow:inset 0 1px 0 #ffffff24,inset 0 -2px 0 #00000059,0 6px 14px #00000073;white-space:nowrap}
+.chip.icon{padding:0;width:60px}
+.chip.hover{background:linear-gradient(180deg,#434b59,#2c323c);box-shadow:inset 0 1px 0 #ffffff52,inset 0 -2px 0 #00000059,0 10px 20px #00000080}
+.chip.on{background:linear-gradient(180deg,#f4cfa8 0%,#e3a676 42%,#cd8a5b 62%,#e2a878 100%);color:#15181d;box-shadow:inset 0 1px 0 #ffffff99,inset 0 -1px 0 #7a442280,0 6px 14px #00000073}
+.chip.pressed{background:#20252d;box-shadow:inset 0 3px 8px #000000a6;color:#f2f3f5d9}
+.chip.off{background:#1f242c;box-shadow:none;color:#f2f3f566}
+.chip svg,.ico svg{stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.chip svg{width:28px;height:28px}
+.cap{font-size:16px;line-height:20px;font-weight:600;color:#9a9ea5;text-align:center}
+.well{background:#00000073;box-shadow:inset 0 3px 10px #000000bf,inset 0 -1px 0 #ffffff12}
+.ro{font-size:30px;line-height:34px;font-weight:700;letter-spacing:.5px;font-variant-numeric:tabular-nums}
+.sw{height:84px;border-radius:14px;box-shadow:inset 0 1px 0 #ffffff29}
+</style>
+</helmet>
+<div style="width: 1920px; min-height: 1760px; box-sizing: border-box; background: #15181d; padding: 64px; display: flex; flex-direction: column; gap: 40px">
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 44px; line-height: 48px; font-weight: 700">Components, v3</div>
+      <div style="font-size: 22px; line-height: 30px; color: #9a9ea5; max-width: 1100px">Drawn 1:1. A 1280 px panel 1.15 m away spans about 47° of view, which a Quest 3 shows with roughly 1,150 pixels, so one pixel here is about one pixel in the headset. If it is hard to read on this sheet at 100%, it is hard to read in the headset.</div>
+    </div>
+    <div style="font-size: 18px; color: #9a9ea5; text-align: right; line-height: 26px">Tokens: Kalyx design system<br>Mood reference: 30 Oct round, frames 1–4</div>
+  </div>
+
+  <!-- Row 1 -->
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px">
+
+    <div class="card">
+      <div class="h">Colour has one job each</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 8px"><div class="sw" style="background: linear-gradient(180deg, #fbe3c8 0%, #eab389 20%, #cf8d5e 44%, #b97448 56%, #d99c6c 76%, #f3c79d 100%)"></div><div style="font-size: 20px; font-weight: 700">Copper</div><div class="note">Your hand is on it: active tab, selected chip, the control being dragged, the focused panel.</div></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><div class="sw" style="background: #8fc1d9"></div><div style="font-size: 20px; font-weight: 700">Ice</div><div class="note">Resolve is telling you something: link, render, scopes graticule. Never a control.</div></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><div class="sw" style="background: #ff5a4d"></div><div style="font-size: 20px; font-weight: 700">Signal</div><div class="note">Playhead and errors. Nowhere else.</div></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><div class="sw" style="background: #f2f3f5"></div><div style="font-size: 20px; font-weight: 700">Chalk</div><div class="note">Every value and label.</div></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><div class="sw" style="background: #9a9ea5"></div><div style="font-size: 20px; font-weight: 700">Chalk dim</div><div class="note">Secondary labels. Floor: 4.9:1.</div></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><div class="sw" style="background: #262c35; box-shadow: inset 0 1px 0 #ffffff24, inset 0 0 0 1px #ffffff14"></div><div style="font-size: 20px; font-weight: 700">Graphite</div><div class="note">Glass, chips at rest, wells.</div></div>
+      </div>
+      <div class="note"><b>Changed:</b> layers no longer get their own colour (copper overlays clashed with copper = active). A layer is named by its icon and word. <b>Removed:</b> copper glow halos. <b>Copper is metal now:</b> Satin behind text (chips, tabs), Polished everywhere else (switches, bar fills).</div>
+    </div>
+
+    <div class="card">
+      <div class="h">Panel chrome</div>
+      <div style="position: relative; border-radius: 24px; background: linear-gradient(180deg, #262c35eb, #1d222aeb); box-shadow: inset 0 1px 0 #ffffff29, inset 0 -1px 0 #00000099, 0 24px 50px #00000099; overflow: hidden">
+        <div style="position: absolute; left: 24px; right: 24px; top: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #e0a97a00, #f0bc8c, #e0a97a00)"></div>
+        <div style="height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 12px 0 22px; border-bottom: 1px solid #ffffff14">
+          <div style="width: 56px; height: 8px; border-radius: 999px; background: #ffffff4d"></div>
+          <div style="font-size: 18px; font-weight: 700; letter-spacing: 3px; color: #f2f3f5">PLACEMENT</div>
+          <div style="flex: 1 1 auto"></div>
+          <button class="chip icon" aria-label="Roll up panel" style="height: 48px; width: 48px; min-width: 48px; background: none; box-shadow: none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+        </div>
+        <div style="height: 84px; display: flex; align-items: center; padding: 0 22px" class="note">Focused: the panel your hand is in. A copper hairline on the top edge.</div>
+      </div>
+      <div style="position: relative; border-radius: 24px; background: linear-gradient(180deg, #262c35d9, #1d222ad9); box-shadow: inset 0 1px 0 #ffffff1f, inset 0 -1px 0 #00000099, 0 24px 50px #00000080; overflow: hidden">
+        <div style="height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 12px 0 22px; border-bottom: 1px solid #ffffff14">
+          <div style="width: 56px; height: 8px; border-radius: 999px; background: #ffffff33"></div>
+          <div style="font-size: 18px; font-weight: 700; letter-spacing: 3px; color: #9a9ea5">LOOK</div>
+          <div style="flex: 1 1 auto"></div>
+          <button class="chip icon" aria-label="Roll up panel" style="height: 48px; width: 48px; min-width: 48px; background: none; box-shadow: none; color: #9a9ea5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+        </div>
+        <div style="height: 84px; display: flex; align-items: center; padding: 0 22px" class="note">Idle: white rim, title at chalk dim. No halo.</div>
+      </div>
+      <div class="note">From frame 3: the lit top edge. In the cockpit, panels are curved to the arc you sit in (frame 1); that is a headset render detail, flat here.</div>
+    </div>
+
+    <div class="card">
+      <div class="h">Chips: five states</div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center"><button class="chip">Glow</button><div class="cap">Rest</div></div>
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center"><button class="chip hover">Glow</button><div class="cap">Pointed at<br>+2 mm</div></div>
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center"><button class="chip on">Glow</button><div class="cap">On</div></div>
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center"><button class="chip pressed">Glow</button><div class="cap">Pressed<br>0 mm</div></div>
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center"><button class="chip off" disabled>Glow</button><div class="cap">Unavailable</div></div>
+      </div>
+      <div style="height: 1px; background: #ffffff14"></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+        <button class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5L3 10l5 5"></path><path d="M3 10h11a6 6 0 0 1 0 12H9"></path></svg>Undo</button>
+        <button class="chip icon" aria-label="Copy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8z"></path><path d="M4 16V4h12"></path></svg></button>
+        <button class="chip icon" aria-label="Paste"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10v16H7z"></path><path d="M9.5 3h5v4h-5z"></path></svg></button>
+        <button class="chip on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6z"></path><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"></path></svg>Locked</button>
+      </div>
+      <div class="note">Icon plus word for anything you press rarely; icon alone only for the four you press all day (copy, paste, undo, refresh), with the word shown on hover. Targets stay 60 px.</div>
+    </div>
+  </div>
+
+  <!-- Row 2: value controls -->
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px">
+
+    <div class="card">
+      <div class="h">Ring · pan</div>
+      <svg width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Pan ring at minus 45 degrees" style="align-self: center">
+        <circle cx="120" cy="120" r="92" fill="none" stroke="#00000073" stroke-width="22"></circle>
+        <sc-for list="{{ringTicks}}" as="t" hint-placeholder-count="24"><line x1="{{t.x1}}" y1="{{t.y1}}" x2="{{t.x2}}" y2="{{t.y2}}" stroke="{{t.c}}" stroke-width="{{t.w}}" stroke-linecap="round"></line></sc-for>
+        <path d="{{ringArc}}" fill="none" stroke="#e0a97a" stroke-width="6" stroke-linecap="round"></path>
+        <path d="M120 8 l7 10 h-14 z" fill="#f2f3f5"></path>
+        <circle cx="{{ringDot.x}}" cy="{{ringDot.y}}" r="17" fill="#f2f3f5" stroke="#e0a97a" stroke-width="4"></circle>
+        <text x="120" y="122" text-anchor="middle" font-size="34" font-weight="700" fill="#f2f3f5" font-family="Red Hat Text, sans-serif">−45.0°</text>
+        <text x="120" y="150" text-anchor="middle" font-size="16" font-weight="700" letter-spacing="3" fill="#9a9ea5" font-family="Red Hat Text, sans-serif">PAN</text>
+      </svg>
+      <div class="note">Ticks every 15°, long ones at front, sides and back. The copper arc is the offset from front, so you see how far you've turned, not only where you are. White notch at the top is front.</div>
+    </div>
+
+    <div class="card">
+      <div class="h">Arc · tilt</div>
+      <svg width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Tilt arc at plus 15 degrees" style="align-self: center">
+        <path d="M60 28 A 92 92 0 0 1 60 212" fill="none" stroke="#00000073" stroke-width="22" stroke-linecap="round"></path>
+        <sc-for list="{{arcTicks}}" as="t" hint-placeholder-count="13"><line x1="{{t.x1}}" y1="{{t.y1}}" x2="{{t.x2}}" y2="{{t.y2}}" stroke="{{t.c}}" stroke-width="{{t.w}}" stroke-linecap="round"></line></sc-for>
+        <path d="{{arcArc}}" fill="none" stroke="#e0a97a" stroke-width="6" stroke-linecap="round"></path>
+        <line x1="60" y1="120" x2="88" y2="120" stroke="#f2f3f5" stroke-width="3" stroke-linecap="round"></line>
+        <circle cx="{{arcDot.x}}" cy="{{arcDot.y}}" r="17" fill="#f2f3f5" stroke="#15181d" stroke-width="3"></circle>
+        <text x="70" y="166" font-size="34" font-weight="700" fill="#f2f3f5" font-family="Red Hat Text, sans-serif">+15.0°</text>
+        <text x="70" y="192" font-size="16" font-weight="700" letter-spacing="3" fill="#9a9ea5" font-family="Red Hat Text, sans-serif">TILT</text>
+      </svg>
+      <div class="note">Half a ring, so it can't be mistaken for pan. Horizon is the white line; ticks every 15° up to the poles. Dot at rest is white with a dark ring; copper ring only while held.</div>
+    </div>
+
+    <div class="card">
+      <div class="h">Dial · roll, card angles</div>
+      <div style="display: flex; gap: 22px; justify-content: center; align-items: flex-start">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+          <svg width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Roll dial at minus 20 degrees">
+            <circle cx="64" cy="64" r="54" fill="#00000073" stroke="#ffffff1f" stroke-width="2"></circle>
+            <sc-for list="{{dialTicks}}" as="t" hint-placeholder-count="12"><line x1="{{t.x1}}" y1="{{t.y1}}" x2="{{t.x2}}" y2="{{t.y2}}" stroke="{{t.c}}" stroke-width="{{t.w}}" stroke-linecap="round"></line></sc-for>
+            <line x1="64" y1="64" x2="{{dialTip.x}}" y2="{{dialTip.y}}" stroke="#f2f3f5" stroke-width="6" stroke-linecap="round"></line>
+            <circle cx="64" cy="64" r="9" fill="#f2f3f5"></circle>
+          </svg>
+          <div class="ro" style="font-size: 26px">−20.0°</div>
+          <div class="cap">Roll · rest</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+          <svg width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Card yaw dial at plus 35 degrees, held">
+            <circle cx="64" cy="64" r="54" fill="#00000073" stroke="#e0a97a" stroke-width="4"></circle>
+            <sc-for list="{{dialTicks}}" as="t" hint-placeholder-count="12"><line x1="{{t.x1}}" y1="{{t.y1}}" x2="{{t.x2}}" y2="{{t.y2}}" stroke="{{t.c}}" stroke-width="{{t.w}}" stroke-linecap="round"></line></sc-for>
+            <line x1="64" y1="64" x2="{{dialTip2.x}}" y2="{{dialTip2.y}}" stroke="#e0a97a" stroke-width="6" stroke-linecap="round"></line>
+            <circle cx="64" cy="64" r="9" fill="#e0a97a"></circle>
+          </svg>
+          <div class="ro" style="font-size: 26px; color: #f0bc8c">+35.0°</div>
+          <div class="cap">Card yaw · held</div>
+        </div>
+      </div>
+      <div class="note">Flat face, ticks every 30°, value under the dial in chalk. No knurled 3D knob: at headset resolution it turns to mush and suggests a twist a pinch can't do. Drag up/down; tap the centre to zero.</div>
+    </div>
+
+    <div class="card">
+      <div class="h">Throttle · distance, scale</div>
+      <div style="display: flex; gap: 18px; justify-content: center; align-items: stretch; height: 250px">
+        <div class="well" style="width: 60px; border-radius: 14px; position: relative">
+          <div style="position: absolute; left: 6px; right: 6px; bottom: 6px; height: 54%; border-radius: 10px; background: linear-gradient(180deg, #8fc1d900, #8fc1d900), linear-gradient(180deg, #e0a97a59, #c9875a33); box-shadow: inset 0 2px 0 #f0bc8c"></div>
+          <div style="position: absolute; left: 3px; right: 3px; bottom: calc(54% - 8px); height: 28px; border-radius: 9px; background: linear-gradient(180deg, #ffffff, #cfd3d8); box-shadow: 0 6px 14px #00000099"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; justify-content: space-between; font-size: 18px; font-weight: 600; color: #9a9ea5; padding-block: 4px; font-variant-numeric: tabular-nums">
+          <div>0.5 m</div><div>1 m</div><div>2 m</div><div>5 m</div><div>20 m</div>
+        </div>
+        <div style="display: flex; flex-direction: column; justify-content: center; gap: 4px">
+          <div class="ro">3.2 m</div>
+          <div class="cap" style="text-align: left">DISTANCE</div>
+        </div>
+      </div>
+      <div class="note">Up is nearer. Log scale with the real units printed beside it, so 2 m means 2 m. Fill is a quiet copper tint; the knob is the thing you grab.</div>
+    </div>
+  </div>
+
+  <!-- Row 3 -->
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px">
+
+    <div class="card">
+      <div class="h">Tabs, bars, switches, keyframes</div>
+      <div style="display: flex; gap: 6px; padding: 6px; border-radius: 18px; width: max-content" class="well">
+        <button class="chip on" style="box-shadow: none">Border</button>
+        <button class="chip" style="background: none; box-shadow: none; color: #9a9ea5">Image</button>
+        <button class="chip" style="background: none; box-shadow: none; color: #9a9ea5">Glow</button>
+        <button class="chip" style="background: none; box-shadow: none; color: #9a9ea5">Stereo</button>
+        <button class="chip" style="background: none; box-shadow: none; color: #9a9ea5">Output</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 200px minmax(0, 1fr) 60px; gap: 16px; align-items: center">
+        <div style="font-size: 22px; font-weight: 600">Thickness</div>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <button class="chip icon" aria-label="Decrease thickness" style="font-size: 30px">−</button>
+          <div class="well" style="flex: 1 1 auto; height: 14px; border-radius: 999px; position: relative">
+            <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 38%; border-radius: 999px; background: linear-gradient(180deg, #f6d2ae 0%, #d4925f 50%, #b97448 70%, #e9b386 100%)"></div>
+            <div style="position: absolute; left: 38%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: linear-gradient(180deg, #ffffff, #cfd3d8); box-shadow: 0 6px 14px #00000099"></div>
+          </div>
+          <button class="chip icon" aria-label="Increase thickness" style="font-size: 30px">+</button>
+          <div class="ro" style="min-width: 96px; text-align: right">0.38</div>
+        </div>
+        <button class="chip icon" aria-label="Keyframe thickness" style="background: none; box-shadow: none; color: #9a9ea5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 9-7 9-7-9z"></path></svg></button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 200px minmax(0, 1fr) 60px; gap: 16px; align-items: center">
+        <div style="font-size: 22px; font-weight: 600">Frame on</div>
+        <div style="display: flex; gap: 18px; align-items: center">
+          <div role="switch" aria-checked="true" aria-label="Frame on" style="width: 96px; height: 52px; border-radius: 999px; background: linear-gradient(180deg, #fbe3c8 0%, #eab389 20%, #cf8d5e 44%, #b97448 56%, #d99c6c 76%, #f3c79d 100%); position: relative; box-shadow: inset 0 1px 0 #ffffff80"><div style="position: absolute; right: 6px; top: 6px; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(180deg, #ffffff, #cfd3d8); box-shadow: 0 4px 10px #00000099"></div></div>
+          <div role="switch" aria-checked="false" aria-label="Glow on" class="well" style="width: 96px; height: 52px; border-radius: 999px; position: relative"><div style="position: absolute; left: 6px; top: 6px; width: 40px; height: 40px; border-radius: 50%; background: #9a9ea5; box-shadow: 0 4px 10px #00000099"></div></div>
+          <div class="note">On is copper with the knob right; off is an empty well.</div>
+        </div>
+        <button class="chip icon" aria-label="Keyframe frame on" style="background: none; box-shadow: none; color: #f2f3f5"><svg viewBox="0 0 24 24" aria-hidden="true" style="fill: #f2f3f5"><path d="M12 3l7 9-7 9-7-9z"></path></svg></button>
+      </div>
+
+      <div style="height: 1px; background: #ffffff14"></div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+        <div style="display: flex; gap: 14px; align-items: center"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" style="stroke: #9a9ea5; fill: none; stroke-width: 2.2; stroke-linejoin: round"><path d="M12 3l7 9-7 9-7-9z"></path></svg><div class="note">Not animated</div></div>
+        <div style="display: flex; gap: 14px; align-items: center"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" style="stroke: #f2f3f5; fill: #f2f3f5; stroke-width: 2.2; stroke-linejoin: round"><path d="M12 3l7 9-7 9-7-9z"></path></svg><div class="note">Animated, between keys</div></div>
+        <div style="display: flex; gap: 14px; align-items: center"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" style="stroke: #f0bc8c; fill: #e0a97a; stroke-width: 2.2; stroke-linejoin: round"><path d="M12 3l7 9-7 9-7-9z"></path></svg><div class="note">Key on this frame</div></div>
+      </div>
+
+      <div style="height: 1px; background: #ffffff14"></div>
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 600; color: #8fc1d9">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" style="stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round"><path d="M9 3h6v5H9z"></path><path d="M7 8h10v5a5 5 0 0 1-10 0z"></path><path d="M12 18v3"></path></svg>
+          <span>USB · Resolve · 88 Mb/s</span>
+          <span style="color: #ffffff33">|</span>
+          <span>Resolve updated in 0.4 s</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 600; color: #8fc1d9">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" style="stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round"><path d="M7 3h10"></path><path d="M7 21h10"></path><path d="M8 3c0 5 8 5 8 9s-8 4-8 9"></path><path d="M16 3c0 5-8 5-8 9s8 4 8 9"></path></svg>
+          <span>Rendering… 1.2 s</span>
+        </div>
+        <div class="note">Status is a line of ice text with an icon, never a chip. It answers "is it working, and how fast?" without competing with the controls.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="h">Icon set · 24 grid, 2.2 stroke</div>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px">
+        <sc-for list="{{icons}}" as="i" hint-placeholder-count="24">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 4px; border-radius: 14px; background: #ffffff08">
+            <span class="ico" style="display: flex; color: #f2f3f5"><svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true"><path d="{{i.d}}"></path></svg></span>
+            <div class="cap">{{i.n}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div class="note"><b>Why 2.2 and not the 1.5 px in the system README:</b> at 1.15 m a 1.5 px stroke is about one headset pixel and shimmers as your head moves. 2.2 on a 24 grid drawn at 28–36 px lands at 2.5–3 px. Line icons only, rounded joins, chalk by default, copper when the chip is on.</div>
+      <div class="note">Layer icons (first three) carry the job the colours used to: Overlays is a card, Patches is a region, Picture is the whole sphere.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const rad = (d) => d * Math.PI / 180;
+    const pol = (cx, cy, r, a) => ({ x: +(cx + r * Math.sin(rad(a))).toFixed(2), y: +(cy - r * Math.cos(rad(a))).toFixed(2) });
+    const ringTicks = [];
+    for (let a = 0; a < 360; a += 15) {
+      const major = a % 90 === 0;
+      const p1 = pol(120, 120, major ? 70 : 76, a), p2 = pol(120, 120, 82, a);
+      ringTicks.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, w: major ? 3 : 2, c: major ? '#f2f3f5b3' : '#f2f3f54d' });
+    }
+    const r0 = pol(120, 120, 92, 0), r1 = pol(120, 120, 92, -45);
+    const ringArc = 'M ' + r0.x + ' ' + r0.y + ' A 92 92 0 0 0 ' + r1.x + ' ' + r1.y;
+    const ringDot = r1;
+    // arc: centre (60,120), angle t from horizon, up positive
+    const ap = (r, t) => ({ x: +(60 + r * Math.cos(rad(t))).toFixed(2), y: +(120 - r * Math.sin(rad(t))).toFixed(2) });
+    const arcTicks = [];
+    for (let t = -90; t <= 90; t += 15) {
+      const major = t % 45 === 0;
+      const p1 = ap(major ? 70 : 76, t), p2 = ap(82, t);
+      arcTicks.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, w: major ? 3 : 2, c: major ? '#f2f3f5b3' : '#f2f3f54d' });
+    }
+    const a0 = ap(92, 0), a1 = ap(92, 15);
+    const arcArc = 'M ' + a0.x + ' ' + a0.y + ' A 92 92 0 0 0 ' + a1.x + ' ' + a1.y;
+    const arcDot = a1;
+    const dialTicks = [];
+    for (let a = 0; a < 360; a += 30) {
+      const major = a % 90 === 0;
+      const p1 = pol(64, 64, major ? 40 : 44, a), p2 = pol(64, 64, 50, a);
+      dialTicks.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, w: major ? 3 : 2, c: major ? '#f2f3f5b3' : '#f2f3f54d' });
+    }
+    const dialTip = pol(64, 64, 34, -20), dialTip2 = pol(64, 64, 34, 35);
+    const icons = [
+      { n: 'Overlays', d: 'M5 9h11v11H5z M9 5h10v10' },
+      { n: 'Patches', d: 'M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5 M10 10h4v4h-4z' },
+      { n: 'Picture', d: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M3 12h18 M12 3c3.5 3 3.5 15 0 18 M12 3c-3.5 3-3.5 15 0 18' },
+      { n: 'Lock', d: 'M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 7 0v3' },
+      { n: 'Unlock', d: 'M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 6.8-1.2' },
+      { n: 'Keyframe', d: 'M12 3l7 9-7 9-7-9z' },
+      { n: 'Undo', d: 'M8 5L3 10l5 5 M3 10h11a6 6 0 0 1 0 12H9' },
+      { n: 'Copy', d: 'M8 8h12v12H8z M4 16V4h12' },
+      { n: 'Paste', d: 'M7 5h10v16H7z M9.5 3h5v4h-5z' },
+      { n: 'Refresh', d: 'M20 12a8 8 0 1 1-2.3-5.6 M20 4v5h-5' },
+      { n: 'Outline', d: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z' },
+      { n: 'Level grid', d: 'M3 12h18 M6 9v6 M12 7v10 M18 9v6' },
+      { n: 'Placement', d: 'M12 3v5 M12 16v5 M3 12h5 M16 12h5 M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z' },
+      { n: 'Look', d: 'M4 20l4-1 11-11-3-3L5 16z M14 7l3 3' },
+      { n: 'Timeline', d: 'M3 6h8 M14 6h7 M3 12h12 M18 12h3 M3 18h5 M11 18h10 M13 3v18' },
+      { n: 'Scopes', d: 'M3 5h18v14H3z M6 15l3-5 3 3 3-6 3 5' },
+      { n: 'Rendering', d: 'M7 3h10 M7 21h10 M8 3c0 5 8 5 8 9s-8 4-8 9 M16 3c0 5-8 5-8 9s8 4 8 9' },
+      { n: 'USB', d: 'M9 3h6v5H9z M7 8h10v5a5 5 0 0 1-10 0z M12 18v3' },
+      { n: 'Wi-Fi', d: 'M2 9a15 15 0 0 1 20 0 M5 13a10 10 0 0 1 14 0 M8.5 16.5a5 5 0 0 1 7 0 M12 20v.01' },
+      { n: 'Recentre', d: 'M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5 M12 10v4 M10 12h4' },
+      { n: 'Previous', d: 'M15 5l-7 7 7 7' },
+      { n: 'Next', d: 'M9 5l7 7-7 7' },
+      { n: 'Roll up', d: 'M6 15l6-6 6 6' },
+      { n: 'Close', d: 'M6 6l12 12 M18 6L6 18' }
+    ];
+    return { ringTicks, ringArc, ringDot, arcTicks, arcArc, arcDot, dialTicks, dialTip, dialTip2, icons };
+  }
+}
+</script>
+</body>
+</html>

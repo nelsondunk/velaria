@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Instance strip v3</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Text:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Red Hat Text',system-ui,sans-serif;font-feature-settings:'tnum';color:#f2f3f5}
+a{color:#e0a97a}a:hover{color:#f0c094}
+button{font:inherit;cursor:pointer}
+.strip{position:relative;width:1280px;border-radius:28px;background:linear-gradient(180deg,#262c35eb,#1d222aeb);box-shadow:inset 0 1px 0 #ffffff29,inset 0 -1px 0 #00000099,0 30px 70px #000000b3;overflow:hidden}
+.edge{position:absolute;left:28px;right:28px;top:0;height:2px;border-radius:2px;background:linear-gradient(90deg,#e0a97a00,#f0bc8c,#e0a97a00)}
+.bar{height:76px;display:flex;align-items:center;gap:14px;padding:0 14px 0 24px;border-bottom:1px solid #ffffff14}
+.body{display:flex;flex-direction:column;gap:8px;padding:14px 24px}
+.row{display:flex;align-items:center;gap:10px;min-width:0}
+.grab{width:56px;height:8px;border-radius:999px;background:#ffffff4d;flex:0 0 auto}
+.seg{display:flex;gap:4px;padding:4px;border-radius:18px;background:#00000073;box-shadow:inset 0 3px 10px #000000bf,inset 0 -1px 0 #ffffff12}
+.chip{height:60px;min-width:60px;padding:0 18px;border-radius:14px;border:0;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:22px;font-weight:600;color:#f2f3f5;background:linear-gradient(180deg,#363d49,#262c35);box-shadow:inset 0 1px 0 #ffffff24,inset 0 -2px 0 #00000059,0 6px 14px #00000073;white-space:nowrap;flex:0 0 auto}
+.chip.sm{height:52px;min-width:52px}
+.chip.icon{padding:0;width:60px}
+.chip.sm.icon{width:52px}
+.chip.flat{background:none;box-shadow:none;color:#9a9ea5}
+.chip.on{background:linear-gradient(180deg,#f4cfa8 0%,#e3a676 42%,#cd8a5b 62%,#e2a878 100%);color:#15181d;box-shadow:inset 0 1px 0 #ffffff99,inset 0 -1px 0 #7a442280,0 6px 14px #00000073}
+.chip.dim{background:#1f242c;box-shadow:none;color:#f2f3f566}
+.chip svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.n{font-weight:700;opacity:.7}
+.v{font-size:18px;font-weight:700;letter-spacing:1px;opacity:.65}
+.meta{font-size:20px;line-height:24px;font-weight:600;color:#9a9ea5;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc{color:#f2f3f5;font-weight:700}
+.ice{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600;color:#8fc1d9;white-space:nowrap}
+.ice svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sp{flex:1 1 auto;min-width:0}
+.lbl{font-size:18px;line-height:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9a9ea5}
+.note{font-size:19px;line-height:28px;font-weight:500;color:#9a9ea5;max-width:1280px}
+.note b{color:#f2f3f5;font-weight:600}
+</style>
+</helmet>
+<div style="width: 1440px; min-height: 1500px; box-sizing: border-box; background: #15181d; padding: 64px 80px; display: flex; flex-direction: column; gap: 28px">
+
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <div style="font-size: 44px; line-height: 48px; font-weight: 700">Instance strip, v3</div>
+    <div style="font-size: 22px; line-height: 30px; color: #9a9ea5; max-width: 1180px">Actual size: 1280 × 272. It is the one panel always on screen, and its job is to answer two questions at a glance: which layer am I on, and which thing will my hand move?</div>
+  </div>
+
+  <!-- State 1 -->
+  <div class="lbl" style="margin-top: 12px">1 · Overlays, a card selected</div>
+  <div class="strip">
+    <div class="edge"></div>
+    <div class="bar">
+      <div class="grab"></div>
+      <div class="seg" role="tablist" aria-label="Layer">
+        <button class="chip sm on" role="tab" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v11H5z M9 5h10v10"></path></svg>Overlays <span class="n">3</span></button>
+        <button class="chip sm flat" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5 M10 10h4v4h-4z"></path></svg>Patches <span class="n">6</span></button>
+        <button class="chip sm flat" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M3 12h18 M12 3c3.5 3 3.5 15 0 18 M12 3c-3.5 3-3.5 15 0 18"></path></svg>Picture <span class="n">1</span></button>
+      </div>
+      <div class="sp"></div>
+      <button class="chip sm icon" aria-label="Placement panel, shown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v5 M12 16v5 M3 12h5 M16 12h5 M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z"></path></svg></button>
+      <button class="chip sm icon" aria-label="Look panel, shown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z M14 7l3 3"></path></svg></button>
+      <button class="chip sm icon" aria-label="Timeline panel, shown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h8 M14 6h7 M3 12h12 M18 12h3 M3 18h5 M11 18h10 M13 3v18"></path></svg></button>
+      <button class="chip sm icon flat" aria-label="Scopes panel, hidden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3z M6 15l3-5 3 3 3-6 3 5"></path></svg></button>
+      <div style="width: 1px; height: 36px; background: #ffffff1f"></div>
+      <button class="chip sm icon flat" aria-label="Roll up strip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+    </div>
+    <div class="body">
+      <div class="row">
+        <button class="chip icon flat" aria-label="Previous overlay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+        <button class="chip on">Fact Card · Hay Bale <span class="v">V3</span></button>
+        <button class="chip">Footage window <span class="v">V4</span></button>
+        <button class="chip">Lower third <span class="v">V5</span></button>
+        <button class="chip icon flat" aria-label="Next overlay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
+        <div class="sp"></div>
+        <button class="chip icon" aria-label="Copy settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8z M4 16V4h12"></path></svg></button>
+        <button class="chip icon" aria-label="Paste settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10v16H7z M9.5 3h5v4h-5z"></path></svg></button>
+        <button class="chip icon" aria-label="Undo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5L3 10l5 5 M3 10h11a6 6 0 0 1 0 12H9"></path></svg></button>
+      </div>
+      <div class="row" style="height: 36px; padding-left: 70px">
+        <div class="meta"><span class="tc">01:01:24:11</span>  ·  V3  ·  Hay Bale V3  ·  Comp: Kalyx 3D Card · Hay Bale</div>
+      </div>
+      <div class="row" style="height: 60px; padding-left: 70px">
+        <div class="ice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v5H9z M7 8h10v5a5 5 0 0 1-10 0z M12 18v3"></path></svg>USB · Resolve<span style="color: #ffffff33; padding: 0 4px">|</span>Resolve updated in 0.4 s</div>
+        <div class="sp"></div>
+        <div class="meta">Pinch the card in the picture to pick it, or tap a name.</div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>What changed from v37.</b> The layer is a segmented control with an icon, a word and a count, so "Overlays 3" says what is here before you look for it. The copper chip is always the thing your hand will move; there is only ever one. Panel toggles are icons on the right (raised = shown, flat = hidden) instead of a second row of words. Copy, Paste and Undo move up beside the names they act on. Status is ice text, bottom left, never a chip.</div>
+
+  <!-- State 2 -->
+  <div class="lbl" style="margin-top: 20px">2 · Patches, a locked patch selected</div>
+  <div class="strip">
+    <div class="edge"></div>
+    <div class="bar">
+      <div class="grab"></div>
+      <div class="seg" role="tablist" aria-label="Layer">
+        <button class="chip sm flat" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v11H5z M9 5h10v10"></path></svg>Overlays <span class="n">3</span></button>
+        <button class="chip sm on" role="tab" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5 M10 10h4v4h-4z"></path></svg>Patches <span class="n">6</span></button>
+        <button class="chip sm flat" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M3 12h18 M12 3c3.5 3 3.5 15 0 18 M12 3c-3.5 3-3.5 15 0 18"></path></svg>Picture <span class="n">1</span></button>
+      </div>
+      <div class="sp"></div>
+      <button class="chip sm icon" aria-label="Placement panel, shown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v5 M12 16v5 M3 12h5 M16 12h5 M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z"></path></svg></button>
+      <button class="chip sm icon" aria-label="Look panel, shown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z M14 7l3 3"></path></svg></button>
+      <button class="chip sm icon" aria-label="Timeline panel, shown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h8 M14 6h7 M3 12h12 M18 12h3 M3 18h5 M11 18h10 M13 3v18"></path></svg></button>
+      <button class="chip sm icon flat" aria-label="Scopes panel, hidden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3z M6 15l3-5 3 3 3-6 3 5"></path></svg></button>
+      <div style="width: 1px; height: 36px; background: #ffffff1f"></div>
+      <button class="chip sm icon flat" aria-label="Roll up strip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+    </div>
+    <div class="body">
+      <div class="row">
+        <button class="chip icon flat" aria-label="Previous patch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+        <button class="chip on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 7 0v3"></path></svg>Nadir · left eye <span class="v">V2</span></button>
+        <button class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 7 0v3"></path></svg>Nadir · right eye <span class="v">V2</span></button>
+        <button class="chip">Tripod leg <span class="v">V2</span></button>
+        <button class="chip flat">2 more</button>
+        <button class="chip icon flat" aria-label="Next patch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
+        <div class="sp"></div>
+        <button class="chip on" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 7 0v3"></path></svg>Locked</button>
+      </div>
+      <div class="row" style="height: 36px; padding-left: 70px">
+        <div class="meta"><span class="tc">01:01:24:11</span>  ·  V2  ·  C037_03122139  ·  LatLong Patcher · Nadir L</div>
+      </div>
+      <div class="row" style="height: 60px; padding-left: 70px">
+        <div class="ice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v5H9z M7 8h10v5a5 5 0 0 1-10 0z M12 18v3"></path></svg>USB · Resolve</div>
+        <div class="sp"></div>
+        <div class="meta" style="color: #f2f3f5">Locked. Tap Locked to edit this patch.</div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>Lock reads at a glance.</b> A small lock sits on every locked name, so you can see which patches are safe before you pick one. The big Locked chip is the switch for the one you picked. Cards in the picture are not pickable on this layer, and the panels below show the patch's controls greyed out until you unlock it.</div>
+
+  <!-- State 3 -->
+  <div class="lbl" style="margin-top: 20px">3 · Nothing on this layer at this frame</div>
+  <div class="strip">
+    <div class="bar">
+      <div class="grab" style="background: #ffffff33"></div>
+      <div class="seg" role="tablist" aria-label="Layer">
+        <button class="chip sm on" role="tab" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v11H5z M9 5h10v10"></path></svg>Overlays <span class="n">0</span></button>
+        <button class="chip sm flat" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5 M10 10h4v4h-4z"></path></svg>Patches <span class="n">0</span></button>
+        <button class="chip sm flat" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M3 12h18 M12 3c3.5 3 3.5 15 0 18 M12 3c-3.5 3-3.5 15 0 18"></path></svg>Picture <span class="n">0</span></button>
+      </div>
+      <div class="sp"></div>
+      <button class="chip sm icon" aria-label="Placement panel, shown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v5 M12 16v5 M3 12h5 M16 12h5 M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z"></path></svg></button>
+      <button class="chip sm icon" aria-label="Look panel, shown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z M14 7l3 3"></path></svg></button>
+      <button class="chip sm icon" aria-label="Timeline panel, shown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h8 M14 6h7 M3 12h12 M18 12h3 M3 18h5 M11 18h10 M13 3v18"></path></svg></button>
+      <button class="chip sm icon flat" aria-label="Scopes panel, hidden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3z M6 15l3-5 3 3 3-6 3 5"></path></svg></button>
+      <div style="width: 1px; height: 36px; background: #ffffff1f"></div>
+      <button class="chip sm icon flat" aria-label="Roll up strip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+    </div>
+    <div class="body">
+      <div class="row" style="height: 60px; gap: 16px">
+        <div style="font-size: 24px; font-weight: 600">Nothing to place at 01:01:47:22.</div>
+        <div class="sp"></div>
+        <button class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Previous overlay · 01:01:31:04</button>
+        <button class="chip">Next · 01:02:10:16<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
+      </div>
+      <div class="row" style="height: 36px">
+        <div class="meta"><span class="tc">01:01:47:22</span>  ·  V1  ·  C041_03122201  ·  plate only</div>
+      </div>
+      <div class="row" style="height: 60px">
+        <div class="ice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v5H9z M7 8h10v5a5 5 0 0 1-10 0z M12 18v3"></path></svg>USB · Resolve</div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>An empty layer points somewhere.</b> This is the 10:41 case from this morning: the playhead sat on a plain plate, so "no cards" was right but looked broken. The strip now says why, and offers the nearest overlay on either side with its timecode, one pinch away. No copper top edge: nothing here is under your hand.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
