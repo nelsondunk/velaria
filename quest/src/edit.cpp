@@ -273,7 +273,7 @@ bool onPlacementPanel(const EditParam& p) { return p.section == "Placement" || p
 std::vector<std::string> EditModel::lookTabs() const {
     std::vector<std::string> tabs{"View"};
     const EditGroup* g = current();
-    if (!g) return tabs;
+    if (!g || g->kind == "trim") return tabs;   // a trim's bars live on the Placement panel (TRIM view, +50)
     for (auto& p : g->params) {
         if (onPlacementPanel(p)) continue;
         if (std::find(tabs.begin(), tabs.end(), p.section) == tabs.end()) tabs.push_back(p.section);
@@ -305,9 +305,10 @@ std::string editParamsKey(const EditModel* m, bool placement) {
                     (m->bridgeOk ? "1" : "0") + (m->haveTimeline ? "1" : "0") + "|";
     const EditGroup* g = m->current();
     if (!g) return k;
-    k += g->tool + (m->isLocked(*g) ? "#L" : "") + "#" + std::to_string(m->layer) + ":";
+    k += g->tool + "@" + g->clipName + (m->isLocked(*g) ? "#L" : "") + "#" + std::to_string(m->layer) + ":";
     for (auto& p : g->params) {
-        if (onPlacementPanel(p) != placement) continue;
+        // a trim's bars are drawn on the Placement panel, so its key carries them there (+50)
+        if (onPlacementPanel(p) != placement && !(placement && g->kind == "trim")) continue;
         char b[64];
         snprintf(b, sizeof b, "%.5g,%.4g,%.4g,%.3g,%.3g,%.3g,%d,%.4g,%.4g;", p.value, p.px, p.py, p.cr, p.cg, p.cb,
                  (int)p.animated, p.min, p.max);

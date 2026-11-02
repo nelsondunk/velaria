@@ -592,12 +592,13 @@ void drawLift(Canvas& c, float boxW, float boxH, float r, float texPerPx) {
 }
 
 void drawOutline(Canvas& c) {
-    // Same 160 px box inside a 256 px texture as the halo, so the quad sizing in the scene is shared, but just
-    // a 2 px line at half opacity with a hairline dark edge for contrast on bright footage. No glow.
-    c.reset(kLiftW, kLiftH);
-    const float m = 48, r = 10;
-    c.strokeRoundRect(m - 1, m - 1, kLiftW - 2 * m + 2, kLiftH - 2 * m + 2, r + 1, 4, Colour{0, 0, 0, 0.18f});
-    c.strokeRoundRect(m, m, kLiftW - 2 * m, kLiftH - 2 * m, r, 2, Colour{kAccentBright.r, kAccentBright.g, kAccentBright.b, 0.55f});
+    // A 16:9 box in its own 1024 x 576 texture, so a card a metre and a half across gets ~1.5 mm per texel and
+    // the corners stay round (the old 160 px box stretched over a card was visibly stepped, +50). A 3 px line
+    // at half opacity with a hairline dark edge for contrast on bright footage. No glow.
+    c.reset(kOutlineW, kOutlineH);
+    const float m = kOutlineM, r = 14;
+    c.strokeRoundRect(m - 1.5f, m - 1.5f, kOutlineW - 2 * m + 3, kOutlineH - 2 * m + 3, r + 1.5f, 6, Colour{0, 0, 0, 0.18f});
+    c.strokeRoundRect(m, m, kOutlineW - 2 * m, kOutlineH - 2 * m, r, 3, Colour{kAccentBright.r, kAccentBright.g, kAccentBright.b, 0.55f});
 }
 
 void drawGrid(Canvas& c) {

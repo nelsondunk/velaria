@@ -543,7 +543,7 @@ static bool initXr() {
         renderInto(g.lift, [&](GLuint tex) { g.gfx.upload(tex, px.data(), kLiftW, kLiftH); });
     }
     createSwapchain(g.grid, kGridW, kGridH);
-    createSwapchain(g.outline, kLiftW, kLiftH);
+    createSwapchain(g.outline, kOutlineW, kOutlineH);
     {
         Canvas c;
         drawGrid(c);
@@ -552,7 +552,7 @@ static bool initXr() {
         renderInto(g.grid, [&](GLuint tex) { g.gfx.upload(tex, px.data(), kGridW, kGridH); });
         drawOutline(c);
         c.encode(px);
-        renderInto(g.outline, [&](GLuint tex) { g.gfx.upload(tex, px.data(), kLiftW, kLiftH); });
+        renderInto(g.outline, [&](GLuint tex) { g.gfx.upload(tex, px.data(), kOutlineW, kOutlineH); });
     }
 
     if (g.extHands) {
@@ -2266,6 +2266,42 @@ static void renderFrame() {
         gridLayer.lowerVerticalAngle = -(float)M_PI / 2;
         layers.push_back((XrCompositionLayerBaseHeader*)&gridLayer);
     }
+    // Card outlines in the scene: the selected card always, a pointed-at card while hovering. Submitted before
+    // the strip and the panels so they composite under them: the outline belongs to the footage, the panels
+    // float in front of everything (+50; it used to be drawn last and cut across the panels).
+    XrCompositionLayerQuad cardQuad[2];
+    int ncq = 0;
+    if (fs.shouldRender && g.video.hasContent && g.headValid && g.settings.outline && g.outline.hasContent) {
+        int show[2] = {g.edit.group, -1};
+        for (auto& p : g.pointers)
+            if (p.valid && p.sceneHover >= 0 && p.sceneHover != g.edit.group) show[1] = p.sceneHover;
+        for (int k = 0; k < 2; k++) {
+            int gi = show[k];
+            if (gi < 0 || gi >= (int)g.edit.groups.size()) continue;
+            CardGeom c = cardGeom(g.edit.groups[gi]);
+            if (!c.valid) continue;
+            bool anyPanel = false;
+            for (auto& pn : g.panels) anyPanel = anyPanel || pn.visible;
+            if (k == 0 && !anyPanel) continue;   // outline only while the panels are up
+            XrVector3f d = cardDir(c.pan, c.tilt);
+            float dist = std::max(0.9f, std::min(3.5f, c.dist));
+            XrCompositionLayerQuad& q = cardQuad[ncq++];
+            q = {XR_TYPE_COMPOSITION_LAYER_QUAD};
+            q.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+            q.space = g.localSpace;
+            q.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+            q.subImage.swapchain = g.outline.handle;
+            q.subImage.imageRect = {{0, 0}, {kOutlineW, kOutlineH}};
+            // face the viewer: orientation from the direction
+            float yaw = std::atan2(-d.x, -d.z), pitch = std::asin(std::max(-1.0f, std::min(1.0f, d.y)));
+            q.pose.orientation = qMul(qYaw(yaw), qPitch(pitch));
+            q.pose.position = vAdd(g.head.position, vScale(d, dist));
+            float w = c.scale * dist / c.dist, h = w * 0.5625f;   // apparent size at the outline's distance (16:9 guess)
+            // the texture's box is inset kOutlineM texels on each side; scale so the box lands 3% outside the card
+            q.size = {w * (float)kOutlineW / (kOutlineW - 2 * kOutlineM) * 1.03f, h * (float)kOutlineH / (kOutlineH - 2 * kOutlineM) * 1.03f};
+            layers.push_back((XrCompositionLayerBaseHeader*)&q);
+        }
+    }
     bool showStrip = (g.settings.strip || !g.video.hasContent) && g.strip.hasContent && g.headValid;
     if (fs.shouldRender && showStrip) {
         stripQuad.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
@@ -2356,39 +2392,6 @@ static void renderFrame() {
             cq.pose.position = vAdd(qpose.position, qRotate(qpose.orientation, local));
             cq.size = {0.028f, 0.028f};
             layers.push_back((XrCompositionLayerBaseHeader*)&cq);
-        }
-    }
-    // card outlines in the scene: the selected card always, a pointed-at card while hovering
-    XrCompositionLayerQuad cardQuad[2];
-    int ncq = 0;
-    if (fs.shouldRender && g.video.hasContent && g.headValid && g.settings.outline && g.outline.hasContent) {
-        int show[2] = {g.edit.group, -1};
-        for (auto& p : g.pointers)
-            if (p.valid && p.sceneHover >= 0 && p.sceneHover != g.edit.group) show[1] = p.sceneHover;
-        for (int k = 0; k < 2; k++) {
-            int gi = show[k];
-            if (gi < 0 || gi >= (int)g.edit.groups.size()) continue;
-            CardGeom c = cardGeom(g.edit.groups[gi]);
-            if (!c.valid) continue;
-            bool anyPanel = false;
-            for (auto& pn : g.panels) anyPanel = anyPanel || pn.visible;
-            if (k == 0 && !anyPanel) continue;   // outline only while the panels are up
-            XrVector3f d = cardDir(c.pan, c.tilt);
-            float dist = std::max(0.9f, std::min(3.5f, c.dist));
-            XrCompositionLayerQuad& q = cardQuad[ncq++];
-            q = {XR_TYPE_COMPOSITION_LAYER_QUAD};
-            q.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
-            q.space = g.localSpace;
-            q.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
-            q.subImage.swapchain = g.outline.handle;
-            q.subImage.imageRect = {{0, 0}, {kLiftW, kLiftH}};
-            // face the viewer: orientation from the direction
-            float yaw = std::atan2(-d.x, -d.z), pitch = std::asin(std::max(-1.0f, std::min(1.0f, d.y)));
-            q.pose.orientation = qMul(qYaw(yaw), qPitch(pitch));
-            q.pose.position = vAdd(g.head.position, vScale(d, dist));
-            float w = c.scale * dist / c.dist, h = w * 0.5625f;   // apparent size at the outline's distance (16:9 guess)
-            q.size = {w * kLiftW / 160.0f * 1.03f, h * kLiftH / 160.0f * 1.03f};
-            layers.push_back((XrCompositionLayerBaseHeader*)&q);
         }
     }
     XrFrameEndInfo fei{XR_TYPE_FRAME_END_INFO};

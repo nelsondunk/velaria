@@ -43,6 +43,7 @@ ICONS = [
     ("Pause", "M7 4h3v16H7z M14 4h3v16h-3z"),
     ("Stop", "M6 6h12v12H6z"),
     ("Warning", "M12 3L2 21h20z M12 10v5 M12 18v.01"),
+    ("RollDown", "M6 9l6 6 6-6"),
 ]
 SIZES = [20, 24, 28, 32, 36]
 STROKE = 2.2

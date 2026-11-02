@@ -171,6 +171,7 @@ const PanelSpec& panelSpec(PanelId id);
 constexpr int kStripW = 1600, kStripH = 96;
 constexpr int kCursorW = 128, kCursorH = 64;   // two 64x64 states: idle | pinching
 constexpr int kLiftW = 256, kLiftH = 256;      // halo: a 160x160 rounded box with a 48 px glow margin
+constexpr int kOutlineW = 1024, kOutlineH = 576, kOutlineM = 16;   // card outline: 16:9, drawn to the card's size (+50)
 constexpr int kGridW = 2048, kGridH = 1024;    // level grid, equirectangular (one texel = 0.176 deg)
 
 struct HudInfo {

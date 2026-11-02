@@ -528,7 +528,7 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         std::string hint;
         if (!m->notice.empty()) hint = m->notice;
         else if (locked) hint = "Locked. Tap Locked to edit this patch.";
-        else if (g && g->kind == "trim") hint = "Trim pass on the whole picture: its controls are on the Look panel.";
+        else if (g && g->kind == "trim") hint = "Trim pass on the whole picture: its bars are on the Placement panel.";
         else if (patches) hint = "Patches aren't pickable in the picture. Tap a name, then use Placement.";
         else hint = "Pinch the card in the picture to pick it, or tap a name.";
         float avail = sp.w - padR - x - 24;
@@ -537,6 +537,8 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
     }
     return rects;
 }
+
+void sectionRows(Chrome& ch, const EditModel& m, const EditGroup& g, const std::string& section, float y, float pad);
 
 std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
     std::vector<ButtonRect> rects;
@@ -548,14 +550,14 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
     // a PanoMap / LatLong Patcher turns the whole sphere rather than placing a card on it
     bool sphere = g && !g->isCard();
     bool locked = g && m->isLocked(*g);
-    // the bar names what is being placed and the clip it lives on (Nelson, 2 Nov: the file name near Placement)
-    if (g) ch.subtitle = prettyTool(g->tool) + "  \xC2\xB7  V" + std::to_string(g->track) + " " + g->clipName;
+    // the bar names the clip being controlled (Nelson, 2 Nov: "just give me the name of the clip")
+    if (g) ch.subtitle = g->clipName;
     float y = ch.begin(g && g->kind == "patch" ? "PATCH WINDOW" : g && g->kind == "trim" ? "TRIM" : sphere ? "PICTURE \xC2\xB7 WHOLE SPHERE" : "PLACEMENT");
     if (y < 0) return rects;
     if (g && g->kind == "trim") {
-        // a trim has nothing to place: its controls are bars on the Look panel's Trim tab
-        c.text(40, y + 60, "Trim pass on the whole picture.", M30, kDim);
-        c.text(40, y + 104, "Exposure, lift, gamma, gain, contrast, saturation, temperature and tint are on the Look panel.", M30, Colour{1, 1, 1, 0.38f});
+        // a trim has nothing to place: its bars take the panel (+50; they were a Look tab in +48/49)
+        c.text(40, y + 14, "TRIM PASS \xC2\xB7 WHOLE PICTURE", S16, kDim, 3);
+        sectionRows(ch, *m, *g, "Trim", y + 44, 40);
         return rects;
     }
     if (!g) {
@@ -770,7 +772,7 @@ std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
     const PanelSpec& sp = kSpecs[(int)PanelId::Look];
     c.reset(sp.w, sp.h);
     if (const EditModel* mm = s.edit.get()) {
-        if (const EditGroup* gg = mm->current()) ch.subtitle = prettyTool(gg->tool) + "  \xC2\xB7  V" + std::to_string(gg->track) + " " + gg->clipName;
+        if (const EditGroup* gg = mm->current()) ch.subtitle = gg->clipName;
     }
     float y = ch.begin("LOOK");
     if (y < 0) return rects;
@@ -799,13 +801,25 @@ std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
         drawViewTab(ch, y);
         return rects;
     }
-    const EditGroup& g = *m->current();
-    const std::string& section = tabs[tab];
+    sectionRows(ch, *m, *m->current(), tabs[tab], y, pad);
+    return rects;
+}
+
+// One section's controls as a scrolling list of rows (bars, switches, colour wheels). Shared by the Look tabs
+// and the Placement panel's TRIM view (+50), so a Slider/Toggle rect for a given row exists on one panel only.
+void sectionRows(Chrome& ch, const EditModel& m, const EditGroup& g, const std::string& section, float y, float pad) {
+    Canvas& c = ch.c;
+    const UiState& s = ch.s;
+    const PanelSpec& sp = kSpecs[(int)ch.panel];
     std::vector<int> rows;
     for (int i = 0; i < (int)g.params.size(); i++)
         if (!onPlacementPanel(g.params[i]) && g.params[i].section == section) rows.push_back(i);
-    const float listBottom = sp.h - 48, rowH = 118, colourH = 270, w = sp.w - 2 * pad;
-    int first = std::max(0, std::min(m->firstRow, (int)rows.size() - 1));
+    const float rowH = 118, colourH = 270, w = sp.w - 2 * pad;
+    float listBottom = sp.h - 48;
+    float total = 0;
+    for (int r : rows) total += widgetFor(g.params[r]) == Widget::Colour ? colourH : rowH;
+    if (total > listBottom - y) listBottom -= 66;   // paged: the page chips get their own strip under the last row
+    int first = std::max(0, std::min(m.firstRow, (int)rows.size() - 1));
     float ry = y;
     bool more = false;
     for (int r = first; r < (int)rows.size(); r++) {
@@ -817,10 +831,10 @@ std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
             break;
         }
         int pi = rows[r];
-        bool hov = s.hoverPanel == (int)PanelId::Look && s.hoverArg == pi &&
+        bool hov = s.hoverPanel == (int)ch.panel && s.hoverArg == pi &&
                    (s.hover == HudButton::Slider || s.hover == HudButton::Toggle || s.hover == HudButton::Wheel ||
                     s.hover == HudButton::Bright);
-        bool drag = m->dragRow == pi;
+        bool drag = m.dragRow == pi;
         if (hov || drag) c.fillRoundRect(pad - 12, ry, w + 24, h - 6, 14, Colour{1, 1, 1, drag ? 0.08f : 0.05f});
         // name without the section word ("Glow Size" -> "Size")
         EditParam q = p;
@@ -841,11 +855,11 @@ std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
         ry += h;
     }
     if (first > 0 || more) {
-        float sx = sp.w - pad - 52;
-        if (first > 0) ch.chip3(HudButton::PageUp, 0, sx, listBottom - 120, 52, 52, ChipState::Rest, "", (int)Icon::RollUp);
-        if (more) ch.chip3(HudButton::PageDown, 0, sx, listBottom - 60, 52, 52, ChipState::Rest, "", (int)Icon::Close);
+        float sx = sp.w - pad - 52, sy = listBottom + 8;
+        if (first > 0) ch.chip3(HudButton::PageUp, 0, sx - 60, sy, 52, 52, ChipState::Rest, "", (int)Icon::RollUp);
+        if (more) ch.chip3(HudButton::PageDown, 0, sx, sy, 52, 52, ChipState::Rest, "", (int)Icon::RollDown);
+
     }
-    return rects;
 }
 
 std::vector<ButtonRect> drawDeck(Canvas& c, const UiState& s) {
