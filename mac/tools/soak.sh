@@ -4,10 +4,10 @@
 N=${1:-10}
 cd ~/kalyx-test || exit 1
 RQ=~/kalyx-test/rq
-A="$HOME/Library/Application Support/VRLink"
+A="$HOME/Library/Application Support/Velaria"
 FW=/Library/Frameworks/DeckLinkAPI.framework
 RLOG="$HOME/Library/Application Support/Blackmagic Design/DaVinci Resolve/logs/davinci_resolve.log"
-BOUT="$HOME/Library/Logs/VRLink/bridge.out"
+BOUT="$HOME/Library/Logs/Velaria/bridge.out"
 LOG=~/kalyx-test/soak.log
 TSV=~/kalyx-test/soak.tsv
 UID_=$(id -u)
@@ -45,8 +45,8 @@ for i in $(seq 1 "$N"); do
   [ -e "$A/vrlink_bridge.py" ] && left="${left}bridge "
   [ -e "$A/platform-tools" ] && left="${left}platform-tools "
   [ -e "$A/VERSION" ] && left="${left}VERSION "
-  launchctl print "gui/$UID_/ca.skylightproductions.vrlink.bridge" >/dev/null 2>&1 && left="${left}bridge-agent "
-  launchctl print "gui/$UID_/ca.skylightproductions.vrlink.usb" >/dev/null 2>&1 && left="${left}usb-agent "
+  launchctl print "gui/$UID_/ca.skylightproductions.velaria.bridge" >/dev/null 2>&1 && left="${left}bridge-agent "
+  launchctl print "gui/$UID_/ca.skylightproductions.velaria.usb" >/dev/null 2>&1 && left="${left}usb-agent "
   ls "$HOME/Library/LaunchAgents" 2>/dev/null | grep -q vrlink && left="${left}launchagent-plist "
   [ -z "$left" ] && left="none"
   say "uninstall rc=$un_rc leftovers=$left"
@@ -55,7 +55,7 @@ for i in $(seq 1 "$N"); do
   sudo ./install.sh > "in.$i.log" 2>&1; in_rc=$?
   in_s=$(( $(date +%s) - t0 ))
   quar=$(xattr -lr "$A" "$FW" 2>/dev/null | grep -c com.apple.quarantine)
-  ndi=$(launchctl print "gui/$UID_/ca.skylightproductions.vrlink.ndi" >/dev/null 2>&1 && echo loaded || echo no)
+  ndi=$(launchctl print "gui/$UID_/ca.skylightproductions.velaria.ndi" >/dev/null 2>&1 && echo loaded || echo no)
   adbv=$("$A/platform-tools/adb" version 2>/dev/null | sed -n 's/^Version //p'); [ -z "$adbv" ] && adbv="missing"
   fonts=$(ls "$HOME/Library/Fonts" 2>/dev/null | grep -c Montserrat)
   say "install rc=$in_rc ${in_s}s quarantined=$quar ndi=$ndi adb=$adbv fonts=$fonts"
@@ -64,7 +64,7 @@ for i in $(seq 1 "$N"); do
   bpos=$(stat -f %z "$BOUT" 2>/dev/null || echo 0)
   t1=$(date +%s)
   open -a "DaVinci Resolve"
-  dl=$(wait_for 150 bash -c "p=$rpos; [ \$(stat -f %z \"$RLOG\") -lt \$p ] && p=0; tail -c +\$((p+1)) \"$RLOG\" | grep -q \"Decklink model name: 'Kalyx (Quest)'\"")
+  dl=$(wait_for 150 bash -c "p=$rpos; [ \$(stat -f %z \"$RLOG\") -lt \$p ] && p=0; tail -c +\$((p+1)) \"$RLOG\" | grep -q \"Decklink model name: 'Velaria (Quest)'\"")
   say "decklink line after ${dl}s"
   sleep 20
   (cd "$RQ" && python3 rq.py s_reopen.py >> "$LOG" 2>&1)

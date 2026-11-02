@@ -138,8 +138,8 @@ HRESULT DeviceAttributes::GetString(BMDDeckLinkAttributeID id, CFStringRef* v) {
     const char* s = nullptr;
     switch (id) {
         case BMDDeckLinkVendorName: s = "Blackmagic Design"; break;
-        case BMDDeckLinkDisplayName: s = "Kalyx (Quest)"; break;
-        case BMDDeckLinkModelName: s = "Kalyx Virtual Output"; break;
+        case BMDDeckLinkDisplayName: s = "Velaria (Quest)"; break;
+        case BMDDeckLinkModelName: s = "Velaria Virtual Output"; break;
         case BMDDeckLinkDeviceHandle: s = "VRLink:00000001"; break;
         case BMDDeckLinkSerialPortDeviceName: break;
         case BMDDeckLinkEthernetMACAddress: break;
@@ -354,14 +354,14 @@ HRESULT VirtualDevice::QueryInterface(REFIID iid, LPVOID* ppv) {
 
 HRESULT VirtualDevice::GetModelName(CFStringRef* modelName) {
     if (!modelName) return E_POINTER;
-    *modelName = makeCFString("Kalyx Virtual Output");
+    *modelName = makeCFString("Velaria Virtual Output");
     VLOGD("GetModelName");
     return S_OK;
 }
 
 HRESULT VirtualDevice::GetDisplayName(CFStringRef* displayName) {
     if (!displayName) return E_POINTER;
-    *displayName = makeCFString("Kalyx (Quest)");
+    *displayName = makeCFString("Velaria (Quest)");
     VLOGD("GetDisplayName");
     return S_OK;
 }

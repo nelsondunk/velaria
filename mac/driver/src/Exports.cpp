@@ -194,4 +194,4 @@ VRL_EXPORT IDeckLinkCocoaScreenPreviewCallback* CreateCocoaScreenPreview_0001(vo
     return nullptr;
 }
 
-__attribute__((constructor)) static void vrlinkLoaded() { VLOGI("VR Link DeckLinkAPI loaded into pid %d", getpid()); }
+__attribute__((constructor)) static void vrlinkLoaded() { VLOGI("Velaria DeckLinkAPI loaded into pid %d", getpid()); }

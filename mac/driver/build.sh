@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds DeckLinkAPI.framework (VR Link virtual output) into ./build
+# Builds DeckLinkAPI.framework (Velaria virtual output) into ./build
 set -euo pipefail
 cd "$(dirname "$0")"
 DEV=$(xcode-select -p)

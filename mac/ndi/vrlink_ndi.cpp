@@ -426,7 +426,7 @@ std::string shortSourceName(const char* full) {
 int main(int argc, char** argv) {
     // own log file next to the driver's
     if (!getenv("VRLINK_LOGFILE")) {
-        std::string dir = std::string(getenv("HOME") ? getenv("HOME") : "/tmp") + "/Library/Logs/VRLink";
+        std::string dir = std::string(getenv("HOME") ? getenv("HOME") : "/tmp") + "/Library/Logs/Velaria";
         mkdir(dir.c_str(), 0755);
         setenv("VRLINK_LOGFILE", (dir + "/ndi.log").c_str(), 1);
     }

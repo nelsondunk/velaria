@@ -26,7 +26,7 @@ std::string homeDir() {
 void initLocked() {
     if (g_logInit) return;
     g_logInit = true;
-    std::string dir = homeDir() + "/Library/Logs/VRLink";
+    std::string dir = homeDir() + "/Library/Logs/Velaria";
     mkdir((homeDir() + "/Library/Logs").c_str(), 0755);
     mkdir(dir.c_str(), 0755);
     std::string path = dir + "/driver.log";
@@ -34,7 +34,7 @@ void initLocked() {
     if (stat(path.c_str(), &st) == 0 && st.st_size > 20 * 1024 * 1024) {
         rename(path.c_str(), (dir + "/driver.old.log").c_str());
     }
-    std::string traceFlag = homeDir() + "/Library/Application Support/VRLink/trace";
+    std::string traceFlag = homeDir() + "/Library/Application Support/Velaria/trace";
     g_trace = access(traceFlag.c_str(), F_OK) == 0 || getenv("VRLINK_DEBUGLOG") != nullptr;
     if (const char* lf = getenv("VRLINK_LOGFILE")) {
         g_logFile = fopen(lf, "a");

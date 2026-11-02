@@ -28,7 +28,7 @@ bool cfToInt(CFTypeRef v, int& out) {
 Config load() {
     Config c;
     const char* home = getenv("HOME");
-    std::string path = std::string(home ? home : "/tmp") + "/Library/Application Support/VRLink/config.plist";
+    std::string path = std::string(home ? home : "/tmp") + "/Library/Application Support/Velaria/config.plist";
     CFURLRef url = CFURLCreateFromFileSystemRepresentation(nullptr, (const UInt8*)path.c_str(), (CFIndex)path.size(), false);
     CFReadStreamRef rs = url ? CFReadStreamCreateWithFile(nullptr, url) : nullptr;
     if (rs && CFReadStreamOpen(rs)) {

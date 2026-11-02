@@ -3,7 +3,7 @@
 
 namespace vrl {
 
-// Settings live in ~/Library/Application Support/VRLink/config.plist (all keys optional).
+// Settings live in ~/Library/Application Support/Velaria/config.plist (all keys optional).
 struct Config {
     std::string layout = "auto";       // auto | sbs | tb | mono
     std::string projection = "auto";   // auto | 180 | 360 | flat

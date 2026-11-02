@@ -4,9 +4,9 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key><string>English</string>
 	<key>CFBundleExecutable</key><string>DeckLinkAPI</string>
-	<key>CFBundleIdentifier</key><string>ca.skylightproductions.vrlink.DeckLinkAPI</string>
+	<key>CFBundleIdentifier</key><string>ca.skylightproductions.velaria.DeckLinkAPI</string>
 	<key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-	<key>CFBundleName</key><string>DeckLinkAPI (Kalyx virtual output)</string>
+	<key>CFBundleName</key><string>DeckLinkAPI (Velaria virtual output)</string>
 	<key>CFBundlePackageType</key><string>FMWK</string>
 	<key>CFBundleShortVersionString</key><string>12.8</string>
 	<key>CFBundleVersion</key><string>12.8.0</string>
