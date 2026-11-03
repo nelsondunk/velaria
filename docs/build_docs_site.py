@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "site"
 PAGES = [
     ("setup", "Setup", "alpha-setup-guide.md"),
-    ("effects", "Effects in Resolve", "howto-kalyx-effects.md"),
+    ("effects", "Effects in Resolve", "howto-velaria-effects.md"),
     ("headset", "Headset reference", "headset-reference.md"),
     ("regression", "Macro regression", "macro-regression.md"),
 ]
@@ -139,8 +139,8 @@ def main():
         toc_items = "".join(f'<li><a href="#{pid}--{hid}">{re.sub(r"<[^>]+>", "", ht)}</a></li>' for hid, ht in heads)
         tocs.append(f'<ul class="toc" data-page="{pid}" hidden>{toc_items}</ul>')
         body = body.replace("<table>", '<div class="table-wrap"><table>').replace("</table>", "</table></div>")
-        sections.append(f'<article class="page" data-page="{pid}" hidden><p class="eyebrow">Kalyx alpha · {html.escape(label)}</p><h1>{html.escape(title)}</h1>{body}</article>')
-    page = f"""<title>Kalyx Docs</title>
+        sections.append(f'<article class="page" data-page="{pid}" hidden><p class="eyebrow">Velaria · {html.escape(label)}</p><h1>{html.escape(title)}</h1>{body}</article>')
+    page = f"""<title>Velaria Docs</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -148,7 +148,7 @@ def main():
 <style>{CSS}</style>
 <div class="frame">
   <nav class="rail" aria-label="Pages">
-    <p class="brand">Kalyx<small>Alpha docs · 1.0.8</small></p>
+    <p class="brand">Velaria<small>Docs · 1.0.9</small></p>
     <ul class="pages">{"".join(nav)}</ul>
     {"".join(tocs)}
     <p class="rail-foot">Mac + DaVinci Resolve Studio + Meta Quest. Pictures of the headset UI are rendered by the app itself, so they match the build they ship with.</p>

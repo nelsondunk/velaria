@@ -1,6 +1,6 @@
-# Kalyx Stitch and Publish — state and packaging plan (1 Nov 2026)
+# Velaria Stitch and Publish — state and packaging plan (1 Nov 2026)
 
-What the site calls *Kalyx Stitch* and *Kalyx Publish* are two existing Nelson tools, found on Bruce (read-only look, nothing changed). Both are real and both work for Nelson; neither is a download a stranger can run today.
+What the site calls *Velaria Stitch* and *Velaria Publish* are two existing Nelson tools, found on Bruce (read-only look, nothing changed). Both are real and both work for Nelson; neither is a download a stranger can run today.
 
 ## Stitch — codename Thimble (`~/Documents/Claude/Projects/Insta360 Stitching/`)
 
@@ -8,7 +8,7 @@ What the site calls *Kalyx Stitch* and *Kalyx Publish* are two existing Nelson t
 - **Build state:** PyInstaller app **`dist/Thimble.app` + `Thimble.dmg` (39 MB, 19 Aug 2026)**, plus a Windows build script. Unsigned, un-notarised.
 - **Dependencies on the user's machine:** Insta360 Stitcher (for the ProStitcher binary; free from insta360.com), FFmpeg (`brew install ffmpeg`), and the v4 engine on Windows for the AI/Fast modes. Titan only — the Pro 2 / X-series path is not in it.
 - **Honest label for the site:** "Insta360 Titan batch stitcher (Mac + Windows), needs Insta360 Stitcher and FFmpeg". Not "Insta360 batch stitching" in general.
-- **Packaging plan:** (1) ship the DMG as a separate download, not inside the Kalyx zip (39 MB, different audience, different dependencies); (2) `README_GUI.md` becomes its page, with the dependency list at the top; (3) notarisation rides on the same Developer ID as the Kalyx installer; (4) rename in the app window and DMG only when the code rename happens (today it still says Titan Stitcher / Thimble inside).
+- **Packaging plan:** (1) ship the DMG as a separate download, not inside the Velaria zip (39 MB, different audience, different dependencies); (2) `README_GUI.md` becomes its page, with the dependency list at the top; (3) notarisation rides on the same Developer ID as the Velaria installer; (4) rename in the app window and DMG only when the code rename happens (today it still says Titan Stitcher / Thimble inside).
 
 ## Publish — codename Orbit 360 (`~/Desktop/Orbit360/`)
 
@@ -20,4 +20,4 @@ What the site calls *Kalyx Stitch* and *Kalyx Publish* are two existing Nelson t
 
 ## What the site should say until then
 
-Both appear as free downloads on the Kalyx website comp. Neither should go live as a link. Suggested wording for the launch page: Stitch "coming with the alpha (Titan now; other Insta360 cameras later)", Publish "coming with the alpha". Site changes are not applied by this note; the edit list is in the roadmap doc.
+Both appear as free downloads on the Velaria website comp. Neither should go live as a link. Suggested wording for the launch page: Stitch "coming with the alpha (Titan now; other Insta360 cameras later)", Publish "coming with the alpha". Site changes are not applied by this note; the edit list is in the roadmap doc.

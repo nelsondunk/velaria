@@ -1,6 +1,14 @@
-# Kalyx — what changed
+# Velaria — what changed
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
+
+## 1.0.9 — 2 November 2026 (the rename)
+
+Headset app 1.0.9+51. **Kalyx is now Velaria** everywhere: the headset app (*Velaria View*, a new package — install it fresh with `sudo ./install.sh --headset`; your panel layout starts over), the Resolve device (*Velaria (Quest)* in Video and Audio I/O — pick it again after the update), the Fusion library (Effects ▸ **Velaria**: Canvas Control, Orient 360, Trim) and the Mac helpers.
+
+**Upgrading from 1.0.8:** run `sudo ./install.sh` from the new folder. It removes the old helpers and launch agents, keeps your settings file, and moves the Kalyx macros into the Fusion archive. Timelines keep working as they are (each comp carries its own copy of a macro); to switch a comp's instances to the Velaria macros, open it on the Fusion page and run **Workspace ▸ Scripts ▸ Comp ▸ Skylight_UpgradeMacros** — one undo step. The headset reads both old and new instances.
+
+Also in this build: Trim's bars moved to the Placement panel (TRIM), the Placement and Look bars show the clip name, card outlines sit under the panels with proper round corners, scopes are drawn smooth, and the 3D Titles / 3D Cards are no longer in the package (Skylight-internal; chooseable 3D card templates come later).
 
 ## 1.0.8 — 2 November 2026
 

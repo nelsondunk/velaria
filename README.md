@@ -6,7 +6,7 @@ own viewer. No capture hardware, no OBS, no screen grabbing.
 ## How it works
 
 Resolve already knows how to play out to a Blackmagic DeckLink card, frame by frame and with timecode.
-VR Link is a **software DeckLink card**: Resolve sees "Kalyx (Quest)" under Video I/O and plays out to it
+VR Link is a **software DeckLink card**: Resolve sees "Velaria (Quest)" under Video I/O and plays out to it
 exactly as it would to real hardware.
 
 1. **Virtual card** (`DeckLinkAPI.framework`, loaded by Resolve): runs the card's playback clock, finds
@@ -40,7 +40,7 @@ The installer:
 ## Use
 
 1. In **Resolve**:
-   - Go to Preferences → Video and Audio I/O → *For capture and playback use* → **Kalyx (Quest)**.
+   - Go to Preferences → Video and Audio I/O → *For capture and playback use* → **Velaria (Quest)**.
      Restart Resolve if it asks.
    - In Project Settings → Master Settings → **Video Monitoring**, set the resolution to:
      - **7680 × 4320 Ultra HD** for 5.6K (5760×2880) timelines: frames go out 1:1 with no scaling;

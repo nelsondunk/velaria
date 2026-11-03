@@ -1,8 +1,5 @@
 # Velaria effects in Resolve — how-to
 
-> Name: renamed from Kalyx to Velaria on 31 Oct 2026. Code, macro, driver, folder and Notion/Design names that still say Kalyx are left as they are until the rename lands in the build.
-
-
 The three things you place with Velaria, as they appear in Resolve's Inspector and in the headset. Resolve Studio 19+, Fusion library installed by the Velaria installer (Edit page ▸ Effects ▸ **Velaria**; Fusion page ▸ Effects Library ▸ Macros).
 
 ## 1. Footage window or flat title — Velaria Canvas Control

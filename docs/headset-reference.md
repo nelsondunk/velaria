@@ -1,4 +1,4 @@
-# Kalyx View — headset reference
+# Velaria View — headset reference
 
 Every panel as the headset draws it (these pictures come from the app's own renderer, so they are the current UI, pixel for pixel). Hand tracking: pinch to press, pinch-and-hold to drag. Controllers: trigger to press. **Look down** to open the panels, look back up past the horizon to close them; grab a panel's top bar to move it, and it stays where you put it.
 
@@ -8,7 +8,7 @@ Always on screen when the panels are open. Its job is to answer two questions at
 
 ![Strip, Overlays layer, a card picked](ref/strip-overlays.png)
 
-- **Overlays · Patches · Picture** — the layer control, with a count of what is at this frame. Overlays are titles and footage windows (pickable in the picture). Patches are LatLong Patcher windows. Picture is the whole sphere (PanoMap, Kalyx Orient 360) and the **Kalyx Trim** pass (its bars take over the Placement panel).
+- **Overlays · Patches · Picture** — the layer control, with a count of what is at this frame. Overlays are titles and footage windows (pickable in the picture). Patches are LatLong Patcher windows. Picture is the whole sphere (PanoMap, Velaria Orient 360) and the **Velaria Trim** pass (its bars take over the Placement panel).
 - The four icons on the right show and hide the **Placement**, **Look**, **Timeline** and **Scopes** panels (raised = shown). The chevron rolls the strip up to its bar.
 - Row two: one chip per thing on this layer; the copper one is what your hand moves. Only ever one. Arrows page through them; a lock on a name means it is locked.
 - **Copy · Paste · Undo** act on the picked chip. Undo is Resolve's undo.
@@ -55,7 +55,7 @@ Tabs are the macro's own pages (Frame, Glow, Stereo…). Bars have nudge chips f
 
 ![Placement panel as TRIM](ref/placement-trim.png)
 
-A **Kalyx Trim** on an adjustment clip (Picture layer) turns the Placement panel into **TRIM**: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars (the last rows page with the chevron). The Look panel keeps its View tab.
+A **Velaria Trim** on an adjustment clip (Picture layer) turns the Placement panel into **TRIM**: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars (the last rows page with the chevron). The Look panel keeps its View tab.
 
 The **View** tab is the app's own settings: stream and playback status; **Source** (Auto / Resolve / Premiere · After Effects); **Picture** (layout, projection, swap eyes, delay); **Overlays** (status bar, level grid, card outline); **Panels** (recentre, placed / follow, scopes on/off). Diagnostics at the bottom, and the versions line: headset build · Mac package · bridge (when it differs) · Resolve. Read that line out, or screenshot it, when you report anything.
 
@@ -84,7 +84,7 @@ Turn it on from the View tab (Overlays ▸ Level grid): a world-level copper hor
 The app reads a text file once every half second and acts on it, so a scripted session can press, point and quit exactly where a tester did. From a Mac with the headset on USB:
 
 ```
-adb shell "echo 'press Copy' > /sdcard/Android/data/ca.skylightproductions.vrlink/files/cmd.txt"
+adb shell "echo 'press Copy' > /sdcard/Android/data/ca.skylightproductions.velaria/files/cmd.txt"
 ```
 
 Commands, one per line: `press <Button> [arg]` (button names as in the source: Copy, Paste, Undo, Tab, Layer, Lock, Jump, FovPreset…), `point <panel> <u> <v> [press]` (aim a fake hand from your head at panel texels u, v: 0 = strip, 1 = placement, 2 = look, 3 = timeline, 4 = scopes; `point off` clears it), `slider <row> <0..1>`, `throttle <row> <0..1>`, `ring <row> <degrees>`, `scrub <0..1>`, `tab <n>`, `open` / `close` (the panels), `roll <panel>`, `status` (one line to the log), `quit` (the Quest-menu quit path). The headset has to be on a head: the Quest shows a Guardian dialog on a desk and blocks launches behind it.

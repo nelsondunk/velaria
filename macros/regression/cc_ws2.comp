@@ -1,0 +1,833 @@
+Composition {
+	CurrentTime = 0,
+	RenderRange = { 0, 59 },
+	GlobalRange = { 0, 59 },
+	HiQ = true,
+	PlaybackUpdateMode = 0,
+	Version = "DaVinci Resolve Studio 21.1.0.0017",
+	SavedOutputs = 1,
+	Resumable = true,
+	Tools = ordered() {
+		MediaIn1 = MediaIn {
+			Inputs = {
+				Layer = Input { Value = "0", },
+				GlobalIn = Input { Value = 0, },
+				GlobalOut = Input { Value = 59, },
+			},
+			ViewInfo = OperatorInfo {
+				Pos = { -500, 0 },
+			},
+		},
+		Velaria_CanvasControl = MacroOperator {
+			Inputs = {
+				MainInput3 = InstanceInput { SourceOp = "Graphic_Input", Source = "Input", Name = "Graphic (title / stock, alpha kept, no frame)", },
+				FrameColourG = InstanceInput {
+					SourceOp = "Frame_Colour",
+					Page = "Frame",
+					Default = 1,
+					ControlGroup = 14,
+					Source = "TopLeftGreen",
+				},
+				WindowAspect = InstanceInput {
+					SourceOp = "Window_Aspect_Value",
+					MinScale = 1,
+					MaxScale = 2.4,
+					Page = "Frame",
+					Default = 1.778,
+					Source = "TopLeftRed",
+					Name = "Window Aspect (width / height, 1.778 = 16:9)",
+				},
+				MainInput1 = InstanceInput { SourceOp = "Left_Footage_Input", Source = "Input", Name = "Left / Mono Footage", },
+				WindowDepth = InstanceInput {
+					SourceOp = "Depth_Convergence",
+					MinScale = 0,
+					MaxScale = 0.02,
+					Page = "Stereo / Output",
+					Default = 0,
+					Source = "TopLeftRed",
+					Name = "Window Depth in Z (+ = toward viewer)",
+				},
+				SceneInput = InstanceInput { SourceOp = "Scene_Offset", Source = "SceneInput", Name = "3D Scene (Velaria 3D Titles, FBX / OBJ, built before this node)", },
+				Pitch = InstanceInput {
+					SourceOp = "Left_Place_On_Sphere",
+					MinScale = -90,
+					MaxScale = 90,
+					Page = "Placement",
+					Default = 0,
+					Source = "Transform3DOp.Rotate.X",
+					Name = "Pitch (Tilt)",
+				},
+				Roll = InstanceInput {
+					SourceOp = "Left_Place_On_Sphere",
+					MinScale = -180,
+					MaxScale = 180,
+					Page = "Placement",
+					Default = 0,
+					Source = "Transform3DOp.Rotate.Z",
+					Name = "Roll",
+				},
+				FrameThickness = InstanceInput {
+					SourceOp = "FrameThickness_Value",
+					MinScale = 0,
+					MaxScale = 0.08,
+					Page = "Frame",
+					Default = 0.012,
+					Source = "TopLeftRed",
+					Name = "Frame Thickness (0 = none)",
+				},
+				MainInput2 = InstanceInput { SourceOp = "Right_Footage_Input", Source = "Input", Name = "Right Footage (stereo only)", },
+				FrameColour = InstanceInput {
+					SourceOp = "Frame_Colour",
+					Page = "Frame",
+					Default = 1,
+					ControlGroup = 14,
+					Source = "TopLeftRed",
+					Name = "Frame Colour",
+				},
+				Source = InstanceInput {
+					SourceOp = "Velaria_Controls",
+					MinScale = 0,
+					MaxScale = 2,
+					Page = "Frame",
+					Default = 2,
+					Source = "WindowShows",
+					Name = "Window shows",
+				},
+				OutputWidth = InstanceInput {
+					SourceOp = "Render_LeftEye",
+					MinScale = 512,
+					MaxScale = 8192,
+					Page = "Stereo / Output",
+					Default = 2880,
+					Source = "Width",
+					Name = "Equirect Width (per eye)",
+				},
+				Yaw = InstanceInput {
+					SourceOp = "Left_Place_On_Sphere",
+					MinScale = -180,
+					MaxScale = 180,
+					Page = "Placement",
+					Default = 0,
+					Source = "Transform3DOp.Rotate.Y",
+					Name = "Yaw (Pan)",
+				},
+				ObjectSpin = InstanceInput {
+					SourceOp = "Left_Window_Plane",
+					MinScale = -180,
+					MaxScale = 180,
+					Page = "Placement",
+					Default = 0,
+					Source = "Transform3DOp.Rotate.Z",
+					Name = "Object Spin (in its plane)",
+				},
+				GlowAmount = InstanceInput {
+					SourceOp = "Left_Glow_Layer",
+					MinScale = 0,
+					MaxScale = 1,
+					Page = "Glow",
+					Default = 0.7,
+					Source = "Blend",
+					Name = "Glow Amount (0 = off)",
+				},
+				CornerRadius = InstanceInput {
+					SourceOp = "RoundCorner_Mask",
+					MinScale = 0,
+					MaxScale = 0.5,
+					Page = "Frame",
+					Default = 0.06,
+					Source = "CornerRadius",
+					Name = "Corner Radius",
+				},
+				Mode = InstanceInput {
+					SourceOp = "Mode_Mono0_Stereo1",
+					MinScale = 0,
+					MaxScale = 1,
+					Page = "Stereo / Output",
+					Default = 0,
+					Source = "TopLeftRed",
+					Name = "Mono (0) / Stereo (1)",
+				},
+				WindowSize = InstanceInput {
+					SourceOp = "Window_Size_Value",
+					MinScale = 0.3,
+					MaxScale = 1,
+					Page = "Frame",
+					Default = 0.8,
+					Source = "TopLeftRed",
+					Name = "Window Size (smaller = more glow room)",
+				},
+				ObjectTurn = InstanceInput {
+					SourceOp = "Left_Window_Plane",
+					MinScale = -90,
+					MaxScale = 90,
+					Page = "Placement",
+					Default = 0,
+					Source = "Transform3DOp.Rotate.Y",
+					Name = "Object Turn (angle left / right)",
+				},
+				GlowBrightness = InstanceInput {
+					SourceOp = "Left_Glow_Brightness",
+					MinScale = 0,
+					MaxScale = 5,
+					Page = "Glow",
+					Default = 1.6,
+					Source = "GainRed",
+					Name = "Glow Brightness",
+				},
+				FrameColourB = InstanceInput {
+					SourceOp = "Frame_Colour",
+					Page = "Frame",
+					Default = 1,
+					ControlGroup = 14,
+					Source = "TopLeftBlue",
+				},
+				Distance = InstanceInput {
+					SourceOp = "Left_Window_Plane",
+					MinScale = -20,
+					MaxScale = -0.5,
+					Page = "Placement",
+					Default = -3,
+					Source = "Transform3DOp.Translate.Z",
+					Name = "Distance (-Z = forward)",
+				},
+				ObjectTilt = InstanceInput {
+					SourceOp = "Left_Window_Plane",
+					MinScale = -90,
+					MaxScale = 90,
+					Page = "Placement",
+					Default = 0,
+					Source = "Transform3DOp.Rotate.X",
+					Name = "Object Tilt (lean back / forward)",
+				},
+				GlowSize = InstanceInput {
+					SourceOp = "Left_Glow_Blur",
+					MinScale = 0,
+					MaxScale = 200,
+					Page = "Glow",
+					Default = 20,
+					Source = "XBlurSize",
+					Name = "Glow Size (2k canvas)",
+				},
+				CropTopBottom = InstanceInput {
+					SourceOp = "Crop_TopBottom_Value",
+					MinScale = 0,
+					MaxScale = 0.45,
+					Page = "Frame",
+					Default = 0,
+					Source = "TopLeftRed",
+					Name = "Crop Top & Bottom (letterbox bars)",
+				},
+				CropSides = InstanceInput {
+					SourceOp = "Crop_Sides_Value",
+					MinScale = 0,
+					MaxScale = 0.45,
+					Page = "Frame",
+					Default = 0,
+					Source = "TopLeftRed",
+					Name = "Crop Sides (pillarbox bars)",
+				},
+			},
+			Outputs = {
+				MainOutput2 = InstanceOutput { SourceOp = "Left_Depth_Shift", Source = "Output", Name = "Equirect (Mono / Left)", },
+				MainOutput1 = InstanceOutput { SourceOp = "Stack_Eyes_OverUnder", Source = "Output", Name = "Equirect (Over/Under Stereo)", },
+			},
+			ViewInfo = GroupInfo {
+				Pos = { 0, 0 },
+			},
+			Tools = {
+				Transparent_BG = Background {
+					Inputs = {
+						Height = Input { Expression = "math.floor(Transparent_BG.Width/Window_Aspect_Value.TopLeftRed/2+0.5)*2", },
+						Width = Input { Value = 2048, },
+						TopLeftAlpha = Input { Value = 0, },
+						UseFrameFormatSettings = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -614.998 },
+					},
+				},
+				Scene_Offset = Transform3D {
+					Inputs = {
+						["Transform3DOp.Rotate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Z", },
+						["Transform3DOp.Translate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Translate.Z", },
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Y", },
+						["Transform3DOp.Scale.X"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Scale.X", },
+						["Transform3DOp.Rotate.X"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.X", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1467.54, -174.998 },
+					},
+				},
+				Right_Depth_Shift = Transform {
+					Inputs = {
+						Center = Input { Expression = "Point(0.5 - Depth_Convergence.TopLeftRed, 0.5)", },
+						Input = Input { SourceOp = "Render_RightEye", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -917.542, 45.0019 },
+					},
+				},
+				Left_Place_On_Sphere = Transform3D {
+					Inputs = {
+						SceneInput = Input { SourceOp = "Left_Card_And_Scene", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1247.54, -394.998 },
+					},
+				},
+				Render_RightEye = Renderer3D {
+					Inputs = {
+						["RendererOpenGL.LightingEnabled"] = Input { Value = 1, },
+						OutputType = Input { Disabled = true, },
+						["RendererSoftware.LightingEnabled"] = Input { Value = 1, },
+						Width = Input { Expression = "Render_LeftEye.Width", },
+						SceneInput = Input { SourceOp = "Right_Scene", Source = "Output", },
+						Height = Input { Expression = "Render_LeftEye.Width/2", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1027.54, 45.0019 },
+					},
+				},
+				Graphic_Placed = Merge {
+					Inputs = {
+						Background = Input { SourceOp = "Transparent_BG", Source = "Output", },
+						Foreground = Input { SourceOp = "Graphic_Input", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1907.54, -174.998 },
+					},
+				},
+				Window_Size_Value = Background {
+					Inputs = {
+						Height = Input { Value = 4, },
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 0.8, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2237.54, -724.998 },
+					},
+				},
+				Stack_Eyes_OverUnder = Combiner {
+					Inputs = {
+						Image2 = Input { SourceOp = "Left_Depth_Shift", Source = "Output", },
+						Image1 = Input { SourceOp = "Right_Depth_Shift", Source = "Output", },
+						Combine = Input {
+							Value = FuID { "Vert", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -807.542, -174.998 },
+					},
+				},
+				Window_Aspect_Value = Background {
+					Inputs = {
+						Height = Input { Value = 4, },
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 1.778, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2237.54, -559.998 },
+					},
+				},
+				Right_Camera = SphericalCamera3D {
+					Inputs = {
+						["Stereo.Mode"] = Input {
+							Value = FuID { "ToeIn", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1247.54, 125.002 },
+					},
+				},
+				Left_Framed_Window = Merge {
+					Inputs = {
+						Background = Input { SourceOp = "Frame_Colour", Source = "Output", },
+						Foreground = Input { SourceOp = "Left_Rounded_Footage", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, -444.998 },
+					},
+				},
+				Right_Framed_Window = Merge {
+					Inputs = {
+						Background = Input { SourceOp = "Frame_Colour", Source = "Output", },
+						Foreground = Input { SourceOp = "Right_Rounded_Footage", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, 95.0019 },
+					},
+				},
+				Right_Place_On_Sphere = Transform3D {
+					Inputs = {
+						SceneInput = Input { SourceOp = "Right_Card_And_Scene", Source = "Output", },
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "Left_Place_On_Sphere.Transform3DOp.Rotate.Y", },
+						["Transform3DOp.Rotate.Z"] = Input { Expression = "Left_Place_On_Sphere.Transform3DOp.Rotate.Z", },
+						["Transform3DOp.Rotate.X"] = Input { Expression = "Left_Place_On_Sphere.Transform3DOp.Rotate.X", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1247.54, 45.0019 },
+					},
+				},
+				Right_Eye_Source = Dissolve {
+					Inputs = {
+						Background = Input { SourceOp = "Left_Footage_Input", Source = "Output", },
+						Mix = Input { Expression = "Mode_Mono0_Stereo1.TopLeftRed", },
+						Foreground = Input { SourceOp = "Right_Footage_Input", Source = "Output", },
+					},
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -2017.54, 45.0019 },
+					},
+				},
+				Right_Rounded_Footage = Merge {
+					Inputs = {
+						EffectMask = Input { SourceOp = "RoundCorner_Mask", Source = "Mask", },
+						Foreground = Input { SourceOp = "Right_Eye_Source", Source = "Output", },
+						Background = Input { SourceOp = "Transparent_BG", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1907.54, 45.0019 },
+					},
+				},
+				Graphic_Input = Transform {
+					Inputs = {
+						Size = Input { Expression = "Window_Size_Value.TopLeftRed*Transparent_BG.Width/(comp:GetPrefs('Comp.FrameFormat.Width') or 1920)", },
+						Input = Input { SourceOp = "MediaIn1", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -174.998 },
+					},
+				},
+				Mode_Mono0_Stereo1 = Background {
+					Inputs = {
+						Height = Input { Value = 4, },
+						Width = Input { Value = 4, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -834.998 },
+					},
+					CtrlWZoom = false,
+				},
+				Left_Glow_Brightness = ColorGain {
+					Inputs = {
+						GainBlue = Input { Expression = "Left_Glow_Brightness.GainRed", },
+						Input = Input { SourceOp = "Left_Glow_Blur", Source = "Output", },
+						GainRed = Input { Value = 1.6, },
+						GainGreen = Input { Expression = "Left_Glow_Brightness.GainRed", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, -334.998 },
+					},
+				},
+				Right_Glow_Blur = Blur {
+					Inputs = {
+						Filter = Input {
+							Value = FuID { "Gaussian", },
+						},
+						Input = Input { SourceOp = "Right_Glow_Source", Source = "Output", },
+						XBlurSize = Input { Expression = "Left_Glow_Blur.XBlurSize", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, 205.002 },
+					},
+				},
+				Right_Window_Plane = ImagePlane3D {
+					Inputs = {
+						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Velaria_Controls.WindowShows > 1.5, 0, 1)", },
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input { Value = 2, },
+						["MtlStdInputs.MaterialID"] = Input { Value = 2, },
+						["Transform3DOp.Rotate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Z", },
+						["Transform3DOp.Translate.Z"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Translate.Z", },
+						MaterialInput = Input { SourceOp = "Right_Window_Plus_Glow", Source = "Output", },
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.Y", },
+						["Transform3DOp.Scale.X"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Scale.X", },
+						["Transform3DOp.Rotate.X"] = Input { Expression = "Left_Window_Plane.Transform3DOp.Rotate.X", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1357.54, 45.0019 },
+					},
+				},
+				Crop_Sides_Value = Background {
+					Inputs = {
+						Height = Input { Value = 4, },
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2237.54, -669.998 },
+					},
+				},
+				Left_Card_And_Scene = Merge3D {
+					Inputs = {
+						SceneInput2 = Input { SourceOp = "Scene_Offset", Source = "Output", },
+						SceneInput1 = Input { SourceOp = "Left_Window_Plane", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1302.54, -394.998 },
+					},
+				},
+				Left_Depth_Shift = Transform {
+					Inputs = {
+						Center = Input { Expression = "Point(0.5 + Depth_Convergence.TopLeftRed, 0.5)", },
+						Input = Input { SourceOp = "Render_LeftEye", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -917.542, -394.998 },
+					},
+				},
+				Frame_Inner_Cutout = RectangleMask {
+					Inputs = {
+						EffectMask = Input { SourceOp = "Frame_Mask", Source = "Mask", },
+						MaskWidth = Input { Value = 320, },
+						CornerRadius = Input { Expression = "RoundCorner_Mask.CornerRadius", },
+						MaskHeight = Input { Value = 240, },
+						Height = Input { Expression = "RoundCorner_Mask.Height", },
+						Width = Input { Expression = "RoundCorner_Mask.Width", },
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						PaintMode = Input {
+							Value = FuID { "Subtract", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1852.54, -790 },
+					},
+				},
+				Left_Window_Plus_Glow = Merge {
+					Inputs = {
+						Background = Input { SourceOp = "Left_Glow_Layer", Source = "Output", },
+						Foreground = Input { SourceOp = "Left_Window_Image", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1467.54, -394.998 },
+					},
+				},
+				Right_Card_And_Scene = Merge3D {
+					Inputs = {
+						SceneInput2 = Input { SourceOp = "Scene_Offset", Source = "Output", },
+						SceneInput1 = Input { SourceOp = "Right_Window_Plane", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1302.54, 45.0019 },
+					},
+				},
+				Crop_TopBottom_Value = Background {
+					Inputs = {
+						Height = Input { Value = 4, },
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2237.54, -614.998 },
+					},
+				},
+				Right_Scene = Merge3D {
+					Inputs = {
+						SceneInput2 = Input { SourceOp = "Right_Camera", Source = "Output", },
+						SceneInput1 = Input { SourceOp = "Right_Place_On_Sphere", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1137.54, 45.0019 },
+					},
+				},
+				Right_Glow_Source = Dissolve {
+					Inputs = {
+						Background = Input { SourceOp = "Right_Rounded_Footage", Source = "Output", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
+						Foreground = Input { SourceOp = "Graphic_Placed", Source = "Output", },
+					},
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -1852.54, 205.002 },
+					},
+				},
+				Left_Glow_Source = Dissolve {
+					Inputs = {
+						Background = Input { SourceOp = "Left_Rounded_Footage", Source = "Output", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
+						Foreground = Input { SourceOp = "Graphic_Placed", Source = "Output", },
+					},
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -1852.54, -334.998 },
+					},
+				},
+				Right_Window_Image = Dissolve {
+					Inputs = {
+						Background = Input { SourceOp = "Right_Framed_Window", Source = "Output", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
+						Foreground = Input { SourceOp = "Graphic_Placed", Source = "Output", },
+					},
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, 95.0019 },
+					},
+				},
+				Left_Window_Image = Dissolve {
+					Inputs = {
+						Background = Input { SourceOp = "Left_Framed_Window", Source = "Output", },
+						Mix = Input { Expression = "math.min(1, Velaria_Controls.WindowShows)", },
+						Foreground = Input { SourceOp = "Graphic_Placed", Source = "Output", },
+					},
+					Transitions = { "DFTDissolve" },
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, -444.998 },
+					},
+				},
+				Right_Glow_Layer = Merge {
+					Inputs = {
+						EffectMask = Input { SourceOp = "Glow_FadeMask", Source = "Mask", },
+						Background = Input { SourceOp = "Transparent_BG", Source = "Output", },
+						Foreground = Input { SourceOp = "Right_Glow_Brightness", Source = "Output", },
+						Blend = Input { Expression = "Left_Glow_Layer.Blend", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1577.54, 205.002 },
+					},
+				},
+				Left_Scene = Merge3D {
+					Inputs = {
+						SceneInput2 = Input { SourceOp = "Left_Camera", Source = "Output", },
+						SceneInput1 = Input { SourceOp = "Left_Place_On_Sphere", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1137.54, -394.998 },
+					},
+				},
+				Frame_Mask = RectangleMask {
+					Inputs = {
+						MaskWidth = Input { Value = 320, },
+						CornerRadius = Input { Expression = "RoundCorner_Mask.CornerRadius", },
+						Height = Input { Expression = "RoundCorner_Mask.Height + 2*FrameThickness_Value.TopLeftRed*Window_Aspect_Value.TopLeftRed", },
+						Width = Input { Expression = "RoundCorner_Mask.Width + 2*FrameThickness_Value.TopLeftRed", },
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						MaskHeight = Input { Value = 240, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1907.54, -724.998 },
+					},
+				},
+				Right_Window_Plus_Glow = Merge {
+					Inputs = {
+						Background = Input { SourceOp = "Right_Glow_Layer", Source = "Output", },
+						Foreground = Input { SourceOp = "Right_Window_Image", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1467.54, 45.0019 },
+					},
+				},
+				Left_Rounded_Footage = Merge {
+					Inputs = {
+						EffectMask = Input { SourceOp = "RoundCorner_Mask", Source = "Mask", },
+						Foreground = Input { SourceOp = "Left_Footage_Input", Source = "Output", },
+						Background = Input { SourceOp = "Transparent_BG", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1907.54, -394.998 },
+					},
+				},
+				Left_Window_Plane = ImagePlane3D {
+					Inputs = {
+						["SurfacePlaneInputs.Lighting.IsAffectedByLights"] = Input { Value = 0, },
+						["Transform3DOp.Translate.Z"] = Input { Value = -3, },
+						["SurfacePlaneInputs.Visibility.IsVisible"] = Input { Expression = "iif(Velaria_Controls.WindowShows > 1.5, 0, 1)", },
+						["SurfacePlaneInputs.ObjectID.ObjectID"] = Input { Value = 1, },
+						["MtlStdInputs.MaterialID"] = Input { Value = 1, },
+						MaterialInput = Input { SourceOp = "Left_Window_Plus_Glow", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1357.54, -394.998 },
+					},
+				},
+				Left_Camera = SphericalCamera3D {
+					Inputs = {
+						["Stereo.Mode"] = Input {
+							Value = FuID { "ToeIn", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1247.54, -314.998 },
+					},
+				},
+				Depth_Convergence = Background {
+					Inputs = {
+						Height = Input { Value = 4, },
+						Width = Input { Value = 4, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -917.542, -504.998 },
+					},
+				},
+				Glow_FadeMask = RectangleMask {
+					Inputs = {
+						SoftEdge = Input { Value = 0.12, },
+						MaskWidth = Input { Value = 320, },
+						CornerRadius = Input { Value = 0.15, },
+						Height = Input { Value = 0.94, },
+						Width = Input { Value = 0.94, },
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						MaskHeight = Input { Value = 240, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, -724.998 },
+					},
+				},
+				Velaria_Controls = PipeRouter {
+					Inputs = {
+						WindowShows = Input { Value = 2, },
+					},
+					UserControls = {
+						WindowShows = {
+							INPID_InputControl = "ComboControl",
+							INP_Default = 0,
+							INP_Integer = true,
+							ICS_ControlPage = "Frame",
+							LINKS_Name = "Window shows",
+							INP_MinScale = 0,
+							INP_MaxScale = 2,
+							CCS_AddString = { "Footage  (the Footage inputs, masked and framed)", "Graphic  (the Graphic input, alpha kept, no frame)", "Nothing  (3D Scene input only)" },
+							LINKID_DataType = "Number",
+						},
+					},
+					ViewInfo = PipeRouterInfo {
+						Pos = { -2237.54, -504.998 },
+					},
+					CtrlWZoom = false,
+				},
+				Left_Footage_Input = Transform {
+					Inputs = {
+						Size = Input { Expression = "Window_Size_Value.TopLeftRed*Transparent_BG.Width/(comp:GetPrefs('Comp.FrameFormat.Width') or 1920)", },
+						Input = Input { SourceOp = "MediaIn1", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -394.998 },
+					},
+				},
+				FrameThickness_Value = Background {
+					Inputs = {
+						Height = Input { Value = 4, },
+						Width = Input { Value = 4, },
+						TopLeftRed = Input { Value = 0.012, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, -724.998 },
+					},
+				},
+				Left_Glow_Blur = Blur {
+					Inputs = {
+						Filter = Input {
+							Value = FuID { "Gaussian", },
+						},
+						Input = Input { SourceOp = "Left_Glow_Source", Source = "Output", },
+						XBlurSize = Input { Value = 20, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, -334.998 },
+					},
+				},
+				Render_LeftEye = Renderer3D {
+					Inputs = {
+						["RendererOpenGL.LightingEnabled"] = Input { Value = 1, },
+						OutputType = Input { Disabled = true, },
+						["RendererSoftware.LightingEnabled"] = Input { Value = 1, },
+						Width = Input { Value = 2880, },
+						SceneInput = Input { SourceOp = "Left_Scene", Source = "Output", },
+						Height = Input { Expression = "Render_LeftEye.Width/2", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1027.54, -394.998 },
+					},
+				},
+				RoundCorner_Mask = RectangleMask {
+					Inputs = {
+						MaskWidth = Input { Value = 320, },
+						CornerRadius = Input { Value = 0.06, },
+						Height = Input { Expression = "Window_Size_Value.TopLeftRed*(1-2*Crop_TopBottom_Value.TopLeftRed)", },
+						Width = Input { Expression = "Window_Size_Value.TopLeftRed*(1-2*Crop_Sides_Value.TopLeftRed)", },
+						PixelAspect = Input {
+							Value = { 1, 1 },
+						},
+						MaskHeight = Input { Value = 240, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2017.54, -724.998 },
+					},
+				},
+				Frame_Colour = Background {
+					Inputs = {
+						EffectMask = Input { SourceOp = "Frame_Inner_Cutout", Source = "Mask", },
+						TopLeftRed = Input { Value = 1, },
+						TopLeftBlue = Input { Value = 1, },
+						Height = Input { Expression = "Transparent_BG.Height", },
+						Width = Input { Value = 2048, },
+						TopLeftGreen = Input { Value = 1, },
+						UseFrameFormatSettings = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1797.54, -724.998 },
+					},
+				},
+				Right_Footage_Input = Transform {
+					Inputs = {
+						Size = Input { Expression = "Window_Size_Value.TopLeftRed*Transparent_BG.Width/(comp:GetPrefs('Comp.FrameFormat.Width') or 1920)", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -2127.54, 45.0019 },
+					},
+				},
+				Right_Glow_Brightness = ColorGain {
+					Inputs = {
+						GainBlue = Input { Expression = "Left_Glow_Brightness.GainRed", },
+						Input = Input { SourceOp = "Right_Glow_Blur", Source = "Output", },
+						GainRed = Input { Expression = "Left_Glow_Brightness.GainRed", },
+						GainGreen = Input { Expression = "Left_Glow_Brightness.GainRed", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1687.54, 205.002 },
+					},
+				},
+				Left_Glow_Layer = Merge {
+					Inputs = {
+						EffectMask = Input { SourceOp = "Glow_FadeMask", Source = "Mask", },
+						Background = Input { SourceOp = "Transparent_BG", Source = "Output", },
+						Foreground = Input { SourceOp = "Left_Glow_Brightness", Source = "Output", },
+						Blend = Input { Value = 0.7, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -1577.54, -334.998 },
+					},
+				},
+			},
+		},
+		MediaOut1 = MediaOut {
+			Inputs = {
+				Index = Input { Value = "0", },
+				Input = Input { SourceOp = "Stack_Eyes_OverUnder", Source = "Output", },
+			},
+			ViewInfo = OperatorInfo {
+				Pos = { 600, 0 },
+			},
+		},
+	},
+	Frames = { },
+	Prefs = {
+		Comp = {
+			FrameFormat = {
+				Width = 5760,
+				Height = 2880,
+				Rate = 23.976023976024,
+				GuideRatio = 2.0,
+				DepthFull = 3,
+				DepthPreview = 3,
+				DepthInteractive = 3,
+			},
+			Unsorted = { GlobalEnd = 59, },
+		},
+	},
+}

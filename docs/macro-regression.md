@@ -1,6 +1,6 @@
-# Kalyx macro render regression
+# Velaria macro render regression
 
-Every Kalyx macro rendered through DaVinci Resolve's export path (the one that fails with "The Fusion composition at … could not be processed successfully" when something is wrong), on a Mac that is not the one the macros were built on. First run: 31 Oct 2026 on NYC (macOS 26.3.1, Resolve 21.1.0.17, clean Kalyx 1.0.7 install, project "KALYX TEST").
+Every Velaria macro rendered through DaVinci Resolve's export path (the one that fails with "The Fusion composition at … could not be processed successfully" when something is wrong), on a Mac that is not the one the macros were built on. First run: 31 Oct 2026 on NYC (macOS 26.3.1, Resolve 21.1.0.17, clean Velaria 1.0.7 install, project "KALYX TEST").
 
 ## How it runs
 
@@ -12,14 +12,14 @@ Every Kalyx macro rendered through DaVinci Resolve's export path (the one that f
 
 | id | what |
 |---|---|
-| cc_ws0 / ws1 / ws2 | Kalyx Canvas Control, Window shows = Footage / Graphic / Nothing, footage and graphic fed from the clip |
-| title_Vine / Salmon / HayBale | Kalyx 3D Title → Canvas Control's 3D Scene input, Window shows = Nothing (the only way a title becomes pixels) |
-| card_X_ws0 / ws1 / ws2 | Kalyx 3D Card (Vine, Salmon, Hay Bale), Window shows 0 / 1 / 2 |
+| cc_ws0 / ws1 / ws2 | Velaria Canvas Control, Window shows = Footage / Graphic / Nothing, footage and graphic fed from the clip |
+| title_Vine / Salmon / HayBale | Velaria 3D Title → Canvas Control's 3D Scene input, Window shows = Nothing (the only way a title becomes pixels) |
+| card_X_ws0 / ws1 / ws2 | Velaria 3D Card (Vine, Salmon, Hay Bale), Window shows 0 / 1 / 2 |
 | card_X_hold1 | fade out after 1 s (frame 40 is mid-fade) |
 | card_X_env0 | Environment not over/under |
 | card_X_out2 | output 2 (card only, transparent) |
 | card_Vine_missingkit | kit folder pointed at a path that does not exist |
-| orient360 | Kalyx Orient 360, pan 30 |
+| orient360 | Velaria Orient 360, pan 30 |
 | p_direct / p_inner / p_inner_ws0 | harness probes: pass-through, and Canvas Control via the inner output |
 
 ## Results
@@ -50,7 +50,7 @@ Still open from this pass: the kits themselves (Vine 22 MB, Salmon 131 MB, Hay B
 |---|---|---|---|
 | cc_ws0, cc_ws1, cc_ws2 | **PASS** | 3–7 | — |
 | orient360 | **PASS** | 2.4 | — (the FBX error lines in its log window belong to the missingkit run just before it) |
-| **trim_warm** | **PASS** | 1.8 | Kalyx Trim renders through the export path |
+| **trim_warm** | **PASS** | 1.8 | Velaria Trim renders through the export path |
 | title_Vine, title_HayBale | **PASS** | 6.6 / 9.8 | fonts fixed it. Hay Bale still logs `Could not locate pool item "/Volumes/The Baxter Building/2609…"` at INFO level and **completes** — a missing texture is non-fatal |
 | card_Vine_* (6) | **PASS** | 4.6–8.0 | — |
 | card_HayBale_* (6) | **PASS** | 7.5–13.2 | — |

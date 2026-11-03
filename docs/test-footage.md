@@ -1,4 +1,4 @@
-# Test footage for every format Kalyx claims (2 Nov 2026)
+# Test footage for every format Velaria claims (2 Nov 2026)
 
 Nelson, 2 Nov: "We should get some 180, Blackmagic, dome, Canon and whatever else footage so we can test everything on those formats." What exists in the wild, what it costs to get, and what each one tests. Nothing downloaded yet — the big ones are tens of gigabytes and want NYC's disk, not a headset session.
 
@@ -13,7 +13,7 @@ Nelson, 2 Nov: "We should get some 180, Blackmagic, dome, Canon and whatever els
 
 ## Order of attack
 
-1. **Blackmagic first** (free, public, the format the site names). Download the two small clips onto NYC overnight (`curl -L -o` from the gallery links; the links are behind a form on the page, so grab them in a browser and paste the URLs), open in KALYX TEST, drop on a 180 stereo timeline, monitor through Kalyx. Expect the preflight to say 90 fps vs timeline fps and the picture to need a 180 projection + fisheye lens preset.
+1. **Blackmagic first** (free, public, the format the site names). Download the two small clips onto NYC overnight (`curl -L -o` from the gallery links; the links are behind a form on the page, so grab them in a browser and paste the URLs), open in KALYX TEST, drop on a 180 stereo timeline, monitor through Velaria. Expect the preflight to say 90 fps vs timeline fps and the picture to need a 180 projection + fisheye lens preset.
 2. **Canon**: borrow or rent an R5 + RF 5.2 for a day, or ask a Canon rep for a native sample (they hand them out to dealers). Without a native file the two Canon presets are unverified claims.
 3. **VR180 consumer**: ten minutes, Kandao gallery.
 4. **Dome** is a feature, not a test: schedule it after the alpha unless a planetarium client appears.

@@ -1,0 +1,137 @@
+[
+ {
+  "id": "cc_ws0",
+  "desc": "Velaria Canvas Control, Window shows = 0, footage + graphic = clip",
+  "file": "cc_ws0.comp"
+ },
+ {
+  "id": "cc_ws1",
+  "desc": "Velaria Canvas Control, Window shows = 1, footage + graphic = clip",
+  "file": "cc_ws1.comp"
+ },
+ {
+  "id": "cc_ws2",
+  "desc": "Velaria Canvas Control, Window shows = 2, footage + graphic = clip",
+  "file": "cc_ws2.comp"
+ },
+ {
+  "id": "title_Vine",
+  "desc": "Velaria 3D Title - Vine -> Canvas Control 3D Scene, Window shows = 2",
+  "file": "title_Vine.comp"
+ },
+ {
+  "id": "title_Salmon",
+  "desc": "Velaria 3D Title - Salmon -> Canvas Control 3D Scene, Window shows = 2",
+  "file": "title_Salmon.comp"
+ },
+ {
+  "id": "title_HayBale",
+  "desc": "Velaria 3D Title - Hay Bale -> Canvas Control 3D Scene, Window shows = 2",
+  "file": "title_HayBale.comp"
+ },
+ {
+  "id": "card_Vine_ws0",
+  "desc": "Velaria 3D Card - Vine, Window shows = 0",
+  "file": "card_Vine_ws0.comp"
+ },
+ {
+  "id": "card_Vine_ws1",
+  "desc": "Velaria 3D Card - Vine, Window shows = 1",
+  "file": "card_Vine_ws1.comp"
+ },
+ {
+  "id": "card_Vine_ws2",
+  "desc": "Velaria 3D Card - Vine, Window shows = 2",
+  "file": "card_Vine_ws2.comp"
+ },
+ {
+  "id": "card_Vine_hold1",
+  "desc": "Velaria 3D Card - Vine, fade out after 1 s (frame 40 is mid-fade)",
+  "file": "card_Vine_hold1.comp"
+ },
+ {
+  "id": "card_Vine_env0",
+  "desc": "Velaria 3D Card - Vine, environment not over/under",
+  "file": "card_Vine_env0.comp"
+ },
+ {
+  "id": "card_Vine_out2",
+  "desc": "Velaria 3D Card - Vine, output 2 (card only, transparent)",
+  "file": "card_Vine_out2.comp"
+ },
+ {
+  "id": "card_Salmon_ws0",
+  "desc": "Velaria 3D Card - Salmon, Window shows = 0",
+  "file": "card_Salmon_ws0.comp"
+ },
+ {
+  "id": "card_Salmon_ws1",
+  "desc": "Velaria 3D Card - Salmon, Window shows = 1",
+  "file": "card_Salmon_ws1.comp"
+ },
+ {
+  "id": "card_Salmon_ws2",
+  "desc": "Velaria 3D Card - Salmon, Window shows = 2",
+  "file": "card_Salmon_ws2.comp"
+ },
+ {
+  "id": "card_Salmon_hold1",
+  "desc": "Velaria 3D Card - Salmon, fade out after 1 s (frame 40 is mid-fade)",
+  "file": "card_Salmon_hold1.comp"
+ },
+ {
+  "id": "card_Salmon_env0",
+  "desc": "Velaria 3D Card - Salmon, environment not over/under",
+  "file": "card_Salmon_env0.comp"
+ },
+ {
+  "id": "card_Salmon_out2",
+  "desc": "Velaria 3D Card - Salmon, output 2 (card only, transparent)",
+  "file": "card_Salmon_out2.comp"
+ },
+ {
+  "id": "card_HayBale_ws0",
+  "desc": "Velaria 3D Card - Hay Bale, Window shows = 0",
+  "file": "card_HayBale_ws0.comp"
+ },
+ {
+  "id": "card_HayBale_ws1",
+  "desc": "Velaria 3D Card - Hay Bale, Window shows = 1",
+  "file": "card_HayBale_ws1.comp"
+ },
+ {
+  "id": "card_HayBale_ws2",
+  "desc": "Velaria 3D Card - Hay Bale, Window shows = 2",
+  "file": "card_HayBale_ws2.comp"
+ },
+ {
+  "id": "card_HayBale_hold1",
+  "desc": "Velaria 3D Card - Hay Bale, fade out after 1 s (frame 40 is mid-fade)",
+  "file": "card_HayBale_hold1.comp"
+ },
+ {
+  "id": "card_HayBale_env0",
+  "desc": "Velaria 3D Card - Hay Bale, environment not over/under",
+  "file": "card_HayBale_env0.comp"
+ },
+ {
+  "id": "card_HayBale_out2",
+  "desc": "Velaria 3D Card - Hay Bale, output 2 (card only, transparent)",
+  "file": "card_HayBale_out2.comp"
+ },
+ {
+  "id": "card_Vine_missingkit",
+  "desc": "Velaria 3D Card - Vine with the kit folder missing",
+  "file": "card_Vine_missingkit.comp"
+ },
+ {
+  "id": "orient360",
+  "desc": "Velaria Orient 360, pan 30",
+  "file": "orient360.comp"
+ },
+ {
+  "id": "trim_warm",
+  "desc": "Velaria Trim, temperature +0.6, lift +0.05, contrast 1.2",
+  "file": "trim_warm.comp"
+ }
+]
