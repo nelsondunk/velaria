@@ -61,6 +61,12 @@ Every "Error occured during exporting subtitle sidecar file" line is the harness
 
 **What this says.** On a second Mac, with the fonts the package now installs, everything that ships (Canvas Control ×3, Orient 360, Trim) and everything Skylight uses internally with a reachable kit (Vine, Hay Bale titles and cards, 12 variants) exports. The two failure modes left are both "a file the macro points at is not on this Mac": a texture only logs, a mesh fails the job. Rig lesson that cost a day: Resolve relaunched headless over ssh comes up behind a modal; the pass needed Nelson's own relaunch.
 
+### Pass 3 — 2 Nov 2026 19:02–19:06, after the rename (Velaria_* macros, regenerated comps)
+
+Same result as pass 2: **cc_ws0–2, orient360, trim_warm, title_Vine, title_HayBale, card_Vine ×6, card_HayBale ×6 pass (21)**; title_Salmon + card_Salmon ×6 fail on the project-folder textures (internal card, not shipped); card_Vine_missingkit fails by design. The rename changed nothing in what renders, which is the point of the pass.
+
+Rig note: right after the missing-kit job fails, the next `AddRenderJob` returned an empty id twice in a row (orient360 and trim_warm showed "FAIL None, 0 files" with no error); re-running those two variants on their own passed in 2.6 s each. The harness should retry `AddRenderJob` once after a failed job, or run the missing-kit case last.
+
 ### Pass 2 as first planned (31 Oct, for the record)
 
 Blocked by the test rig, not the library: after Resolve is quit and relaunched over ssh on the headless NYC, its UI ends up behind a modal (the scripting API answers queries but `GetCurrentPage()` is `None` and `AppendToTimeline` / `ImportFusionComp` / `AddRenderJob` return nothing). One relaunch out of four came up clean (page Edit, edits worked) and then a 26-clip `DeleteClips` raised a confirmation dialog that cannot be dismissed without a screen. Harness changes made for the re-run: no bulk deletes (clips are reused, comps replaced per item), `LoadFusionCompByName` after import, job status tolerant of `None`.
