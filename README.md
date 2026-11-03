@@ -1,18 +1,18 @@
-# VR Link — live stereo preview from DaVinci Resolve to Meta Quest
+# Velaria — live stereo preview from DaVinci Resolve to Meta Quest
 
-VR Link shows your Resolve timeline in a Quest headset in real time, frame-accurate and in step with Resolve's
+Velaria View shows your Resolve timeline in a Quest headset in real time, frame-accurate and in step with Resolve's
 own viewer. No capture hardware, no OBS, no screen grabbing.
 
 ## How it works
 
 Resolve already knows how to play out to a Blackmagic DeckLink card, frame by frame and with timecode.
-VR Link is a **software DeckLink card**: Resolve sees "Velaria (Quest)" under Video I/O and plays out to it
+Velaria is a **software DeckLink card**: Resolve sees "Velaria (Quest)" under Video I/O and plays out to it
 exactly as it would to real hardware.
 
 1. **Virtual card** (`DeckLinkAPI.framework`, loaded by Resolve): runs the card's playback clock, finds
    the picture inside the output raster, and crops it with no copy. It then encodes the frame as HEVC Main10
    with VideoToolbox (about 20 ms) and streams it, stamped with its exact display time.
-2. **Headset app** (`VRLink.apk`): decodes in hardware, maps each frame onto per-eye 180°/360° equirect
+2. **Headset app** (`Velaria.apk`): decodes in hardware, maps each frame onto per-eye 180°/360° equirect
    compositor layers, and shows it on the display refresh nearest that display time. The refresh rate is picked
    as a whole multiple of the timeline rate (for example 72 Hz for 23.976/24p), so every frame gets the same
    number of refreshes.
@@ -24,7 +24,7 @@ headset therefore matches Resolve's viewer instead of lagging behind it. Measure
 ## Install (once)
 
 ```
-cd "VR-Link-1.0.5"
+cd "Velaria-1.0.9"
 sudo ./install.sh
 ```
 
@@ -52,7 +52,7 @@ The installer:
      missing and shows up flat. In Timeline Settings (or Project Settings → Image Scaling) set **Output
      scaling** to **3840 × 3840** while monitoring. This is also the render resolution: set it back before
      delivering.
-2. On the **Quest**, open *VR Link* (App Library → Unknown Sources). It connects automatically:
+2. On the **Quest**, open *Velaria View* (App Library → Unknown Sources). It connects automatically:
    - **USB:** the Quest plugged into the Mac (developer mode on).
    - **Wi-Fi:** the Quest on the same network as the Mac. A Wi-Fi 6E access point is best.
 3. Press play in Resolve.
@@ -60,7 +60,7 @@ The installer:
 ### Premiere Pro, After Effects and anything that speaks NDI
 
 Adobe apps have no Blackmagic output of their own, but the free **NDI Tools** (ndi.video/tools) add an NDI
-output to Premiere's and After Effects' Mercury Transmit. VR Link's NDI helper (`vrlink_ndi`, started by the
+output to Premiere's and After Effects' Mercury Transmit. Velaria's NDI helper (`vrlink_ndi`, started by the
 installer) picks that stream up on the Mac and sends it to the headset through the same encoder and the same
 link as Resolve — the headset never touches NDI itself, which is why this works at 5.6K where NDI players on
 the headset don't.
@@ -71,7 +71,7 @@ the headset don't.
 2. In the headset, View tab → **Source**: *Auto* follows Resolve's card when it is running and NDI otherwise;
    *NDI* or *Resolve* pins one. The helper follows the first Premiere / After Effects source it sees;
    `vrlink_ndi --list` shows what is on the network and `--source <name>` picks one (log:
-   `~/Library/Logs/VRLink/ndi.log`).
+   `~/Library/Logs/Velaria/ndi.log`).
 
 The timeline deck and the Canvas controls are Resolve-only; with an NDI source the headset is a monitor.
 
@@ -116,7 +116,7 @@ Edits are meant for a parked playhead. On a frame with several stacked Fusion co
 more per change; the instance strip shows the wait.
 
 The headset talks to a small helper on the Mac, the **bridge** (`vrlink_bridge.py`, installed as a LaunchAgent
-by `install.sh`, log in `~/Library/Logs/VRLink/bridge.log`). It uses Resolve's scripting API, so Resolve Studio
+by `install.sh`, log in `~/Library/Logs/Velaria/bridge.log`). It uses Resolve's scripting API, so Resolve Studio
 is required and External Scripting must be allowed (Preferences → System → General → External scripting using:
 Local). Control names shown in the headset are the bridge's display names; the macros themselves are unchanged.
 
@@ -129,7 +129,7 @@ round-trip. **Frames** counts frames shown, dropped, and shown for an uneven num
 
 ## Settings (Mac)
 
-`~/Library/Application Support/VRLink/config.plist`. Restart Resolve after editing. The settings are:
+`~/Library/Application Support/Velaria/config.plist`. Restart Resolve after editing. The settings are:
 
 - `Layout`
 - `Projection`
@@ -139,7 +139,7 @@ round-trip. **Frames** counts frames shown, dropped, and shown for an uneven num
 - `KeyframeIntervalSec`
 - `Port`
 
-Logs are in `~/Library/Logs/VRLink/driver.log`. The headset reports its frame statistics there every 10 s.
+Logs are in `~/Library/Logs/Velaria/driver.log`. The headset reports its frame statistics there every 10 s.
 
 ## Limits (honest)
 
@@ -148,12 +148,12 @@ Logs are in `~/Library/Logs/VRLink/driver.log`. The headset reports its frame st
   exceeds both Resolve's raster and the Quest decoder.
 - **Audio:** listen on the Mac. Resolve's audio still plays locally; the headset is picture-only in v1.
 - **Other apps that scan for capture cards** (Zoom, OBS, Skype) load the driver too and will list a
-  "VR Link (Quest)" device they can't capture from. Harmless, and they never take the headset port: that is
+  "Velaria (Quest)" device they can't capture from. Harmless, and they never take the headset port: that is
   opened only by the app that actually outputs video.
-- **Blackmagic hardware:** while VR Link is installed it replaces Blackmagic's Desktop Video driver, so a
+- **Blackmagic hardware:** while Velaria is installed it replaces Blackmagic's Desktop Video driver, so a
   real DeckLink/UltraStudio won't appear. Run `--uninstall` to switch back.
 - **Resolve updates:** Resolve 21.1.1 talks to cards through the DeckLink 10.11-generation interfaces. A
-  future Resolve could need a driver update. The log shows any interface it asks for that VR Link doesn't
+  future Resolve could need a driver update. The log shows any interface it asks for that Velaria doesn't
   provide.
 - **Frame rate:** 5.6K60 encodes in about 15 ms per frame on an M4 Max, which leaves headroom. Older or
   base-model Macs may need `MaxEncodeWidth` lowered for 60p.
