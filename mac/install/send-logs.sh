@@ -3,8 +3,8 @@
 # USB helper, NDI), the installed versions, Resolve's own log tail, and the headset's log if a Quest is plugged in.
 #   ./send-logs.sh
 set -u
-OUT="$HOME/Desktop/kalyx-logs-$(date +%Y%m%d-%H%M).zip"
-T=$(mktemp -d /tmp/kalyx-logs.XXXX)
+OUT="$HOME/Desktop/velaria-logs-$(date +%Y%m%d-%H%M).zip"
+T=$(mktemp -d /tmp/velaria-logs.XXXX)
 mkdir -p "$T/mac" "$T/quest"
 cp "$HOME"/Library/Logs/Velaria/* "$T/mac/" 2>/dev/null
 cp "$HOME/Library/Application Support/Velaria/config.plist" "$T/mac/" 2>/dev/null

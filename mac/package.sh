@@ -23,6 +23,16 @@ if [ -x ~/VRLink/vendor/platform-tools/adb ]; then
   cp ~/VRLink/vendor/platform-tools/adb ~/VRLink/vendor/platform-tools/NOTICE.txt ~/VRLink/vendor/platform-tools/source.properties "$OUT/platform-tools/"
 fi
 cp ../CHANGELOG.md "$OUT/CHANGELOG.md" 2>/dev/null || true
+# Legal texts (UNTESTED on a Mac as of 12 Nov 2026): EULA, privacy statement, third-party notices and the licence
+# texts they refer to. These must ship: fail the build if any is missing rather than release without them.
+for f in EULA.md PRIVACY.md THIRD-PARTY-NOTICES.md; do
+  [ -f "../legal/$f" ] || { echo "package.sh: legal/$f is missing; not building a release without it" >&2; exit 1; }
+  cp "../legal/$f" "$OUT/$f"
+done
+mkdir -p "$OUT/licenses" && cp ../legal/licenses/* "$OUT/licenses/"
+if grep -l -E '\[(LEGAL ENTITY NAME|SUPPORT EMAIL|MAILING ADDRESS)\]|^\*\*DRAFT' "$OUT"/EULA.md "$OUT"/PRIVACY.md "$OUT"/THIRD-PARTY-NOTICES.md >/dev/null; then
+  echo "WARNING: the legal texts still contain DRAFT markers or unfilled [placeholders]. Do not sell this build." >&2
+fi
 # fonts the 3D Titles use (Montserrat, SIL OFL): installed to the user's font folder by install.sh
 mkdir -p "$OUT/fonts" && cp ../fonts/Montserrat-*.ttf ../fonts/OFL-Montserrat.txt "$OUT/fonts/" 2>/dev/null || true
 mkdir -p "$OUT/tools"
