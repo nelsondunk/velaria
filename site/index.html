@@ -1,13 +1,37 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en-CA">
+<head>
 <meta charset="utf-8">
-<title>Kalyx</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Velaria: live 360 and VR180 preview from DaVinci Resolve to Meta Quest</title>
+<meta name="description" content="Velaria shows your live DaVinci Resolve timeline in a Meta Quest, in stereo, as you scrub. Place titles, set depth and level the horizon from inside the shot. Mac, one-time purchase.">
+<!--
+  DRAFT for Nelson's approval (12 Nov 2026). Not published anywhere.
+  Before publishing, replace every placeholder below:
+    #BUY-URL         the Lemon Squeezy checkout link (set once, in VELARIA.buyUrl)
+    #DOCS-URL        the public setup guide
+    #EULA-URL  #PRIVACY-URL  #NOTICES-URL   the legal pages (texts are in /legal in the repo)
+    SUPPORT-EMAIL    the support address (set once, in VELARIA.supportEmail)
+  Images are not in the repo: img/dome.jpg and img/depth/01.jpg to 61.jpg.
+-->
+<script>
+/* ONE PLACE TO CHANGE PRICES, THE BUY LINK AND THE SUPPORT ADDRESS.
+   Working assumption, Nelson to confirm: Core 149 USD one-time. The Dome add-on (199) is not shown on the page yet. */
+window.VELARIA = {
+  priceCore: 149,
+  priceDome: 199,
+  currency: 'USD',
+  buyUrl: '#BUY-URL',
+  supportEmail: 'SUPPORT-EMAIL',
+  refundDays: 14
+};
+document.documentElement.classList.add('js');
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@700;800&family=Saira:ital,wght@0,400;0,500;0,600;0,700;1,300&display=swap">
-<script>document.documentElement.classList.add('js')</script>
 <style>
-/* One dark room. Show the picture once, then show the product plainly: what it connects to, what you can do, what's in each tier, what's coming. */
+/* One dark room. Show the picture once, then show the product plainly: what it does, what it needs, what it costs. */
 :root {
   --ground: #15181d;
   --step: #1d222a;
@@ -161,19 +185,8 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 28p
 input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: var(--copper); border: 0; }
 @media (max-width: 860px) { .level__grid { grid-template-columns: 1fr; } }
 
-.free { padding-block: var(--section) 0; }
-.free__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gutter); }
-.freebie { background: var(--step); border-radius: 24px; padding: clamp(26px, 2.6vw, 40px); display: grid; gap: 14px; align-content: start; }
-.freebie h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 3.8vw, 58px); line-height: 0.9; margin: 0; }
-.freebie > p:not(.tier__name) { margin: 0; color: var(--ink-2); }
-.freebie ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 16px; }
-.freebie li { display: flex; gap: 10px; }
-.freebie li::before { content: ""; flex: none; width: 6px; height: 6px; margin-top: 0.62em; border-radius: 50%; background: var(--copper); }
-.freebie__act { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
-@media (max-width: 860px) { .free__grid { grid-template-columns: 1fr; } }
-
 /* ---------- Tiers ---------- */
-.tiers { padding-block: var(--section) 0; }
+.tiers { padding-block: 0; }
 .tiers__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gutter); }
 .tier { background: var(--step); border-radius: 24px; padding: clamp(26px, 2.6vw, 40px); display: grid; gap: 16px; align-content: start; }
 .tier--mid { background: var(--step-2); box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--copper) 55%, transparent); }
@@ -191,50 +204,6 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
 .tiers__note p { margin: 0; max-width: 46em; }
 @media (max-width: 960px) { .tiers__grid { grid-template-columns: 1fr; } }
 
-/* ---------- Roadmap ---------- */
-.roadmap { padding-block: var(--section); }
-.apps { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 16px; margin-bottom: clamp(48px, 6vw, 88px); }
-.apps th, .apps td { padding: 13px 16px; text-align: center; vertical-align: middle; }
-.apps thead th { font-size: 15px; font-weight: 600; color: var(--ink-2); padding-bottom: 8px; }
-.apps tbody td { background: var(--step); }
-.apps tbody td:first-child { text-align: left; border-radius: 10px 0 0 10px; }
-.apps tbody td:last-child { border-radius: 0 10px 10px 0; }
-.apps th:first-child { text-align: left; }
-.yes { color: var(--copper); font-weight: 700; }
-.soon { color: var(--ice); font-weight: 600; font-size: 15px; }
-.later { color: var(--ink-2); font-weight: 600; font-size: 15px; }
-.tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.tablewrap table { min-width: 640px; }
-.when { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gutter); align-items: start; }
-.when__col { background: var(--step); border-radius: 24px; padding: clamp(24px, 2.4vw, 36px); display: grid; gap: 6px; }
-.when__col > p { margin: 0; font-size: 15px; font-weight: 600; color: var(--copper); }
-.when__col h3 { margin: 0 0 10px; }
-.when__col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-.when__col li { display: grid; gap: 4px; }
-.when__col li b { font-weight: 600; font-size: 17px; line-height: 1.35; }
-.when__col li span:not(.status) { font-size: 15px; line-height: 1.45; color: var(--ink-2); }
-.when__col .status { justify-self: start; margin-bottom: 2px; }
-.when__col li.is-new b::after { content: " New"; color: var(--copper); font-size: 13px; font-weight: 600; }
-.roadmap__foot { margin-top: clamp(28px, 3vw, 44px); color: var(--ink-2); max-width: 52em; }
-@media (max-width: 960px) { .when { grid-template-columns: 1fr; } }
-
-/* ---------- Join the alpha ---------- */
-.alpha { background: var(--step); padding-block: var(--section); }
-.alpha__grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(32px, 4vw, 72px); align-items: start; }
-.alpha__copy { display: grid; gap: 24px; }
-form { display: grid; gap: 18px; max-width: 560px; }
-.field { display: grid; gap: 6px; }
-.field label { font-weight: 600; font-size: 16px; }
-.field input, .field select { font: 400 18px/1.3 var(--text); color: var(--ink); background: var(--ground); border: 1px solid #3a424e; border-radius: 10px; min-height: 52px; padding: 0 14px; width: 100%; }
-.field input:focus-visible, .field select:focus-visible { outline: 2px solid var(--copper); outline-offset: 1px; border-color: transparent; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.form__note { color: var(--ink-2); font-size: 16px; margin: 0; }
-.thanks { display: grid; gap: 12px; max-width: 520px; }
-.thanks h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(44px, 5vw, 72px); line-height: 0.9; margin: 0; }
-.thanks p { margin: 0; }
-@media (max-width: 860px) { .alpha__grid { grid-template-columns: 1fr; } }
-@media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
-
 /* ---------- Close ---------- */
 .close { padding-block: clamp(80px, 9vw, 140px) calc(32px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 36px; overflow: clip; }
 .close__name { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(96px, 27vw, 420px); line-height: 0.78; letter-spacing: 0.02em; margin: 0; }
@@ -244,35 +213,215 @@ form { display: grid; gap: 18px; max-width: 560px; }
 @media (prefers-reduced-motion: no-preference) {
   .js [data-reveal] { opacity: 0; transform: translateY(20px); }
 }
+
+/* ---------- Is / isn't ---------- */
+.isnt { padding-block: var(--section) 0; }
+.isnt__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gutter); }
+.tier li.no::before { width: 12px; height: 2px; margin-top: 0.68em; border: 0; background: var(--ink-2); transform: none; }
+@media (max-width: 860px) { .isnt__grid { grid-template-columns: 1fr; } }
+
+/* ---------- Buy: requirements first, then the button ---------- */
+.buy { background: var(--step); padding-block: var(--section); margin-top: var(--section); }
+.buy__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(32px, 4vw, 72px); align-items: start; }
+.buy__copy { display: grid; gap: 22px; position: sticky; top: 8svh; }
+.price { font-family: var(--display); font-weight: 800; font-size: clamp(72px, 8vw, 128px); line-height: 0.85; margin: 0; }
+.price small { font-family: var(--text); font-weight: 600; font-size: 18px; color: var(--ink-2); letter-spacing: 0; margin-left: 10px; }
+.buy__terms { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 17px; }
+.buy__terms li { display: flex; gap: 10px; }
+.buy__terms li::before { content: ""; flex: none; width: 6px; height: 6px; margin-top: 0.62em; border-radius: 50%; background: var(--copper); }
+.req { background: var(--ground); border-radius: 24px; padding: clamp(24px, 2.6vw, 40px); display: grid; gap: 20px; box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--copper) 55%, transparent); }
+.req h3 { margin: 0; }
+.req ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 18px; counter-reset: req; }
+.req li { display: grid; gap: 4px; padding-left: 44px; position: relative; counter-increment: req; }
+.req li::before { content: counter(req); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--step-2); color: var(--copper); font-weight: 700; font-size: 15px; }
+.req li b { font-size: 18px; line-height: 1.3; }
+.req li span { color: var(--ink-2); font-size: 16px; line-height: 1.5; }
+.req q { quotes: "\201C" "\201D"; color: var(--ink); }
+.req code, .faq code { font: 500 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--step-2); padding: 2px 6px; border-radius: 6px; overflow-wrap: anywhere; }
+.req__act { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; padding-top: 4px; }
+.req__act p { margin: 0; font-size: 15px; color: var(--ink-2); max-width: 30em; }
+@media (max-width: 960px) { .buy__grid { grid-template-columns: 1fr; } .buy__copy { position: static; } }
+
+/* ---------- FAQ ---------- */
+.faq { padding-block: var(--section) 0; }
+.faq__list { display: grid; gap: 4px; max-width: 60em; }
+.faq details { background: var(--step); border-radius: 14px; }
+.faq summary { cursor: pointer; list-style: none; padding: 18px 56px 18px 22px; font-weight: 600; font-size: 19px; line-height: 1.35; position: relative; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: ""; position: absolute; right: 24px; top: 50%; width: 10px; height: 10px; border-right: 2px solid var(--copper); border-bottom: 2px solid var(--copper); transform: translateY(-70%) rotate(45deg); transition: transform 180ms var(--ease-out); }
+.faq details[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
+.faq details > div { padding: 0 22px 20px; color: var(--ink-2); font-size: 17px; display: grid; gap: 10px; max-width: 52em; }
+.faq details p { margin: 0; }
+.support { padding-block: clamp(48px, 6vw, 88px) 0; }
+.support p { max-width: 44em; }
+.close__legal { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; color: var(--ink-2); }
+.close__fine { font-size: 13px; color: var(--ink-2); max-width: 70em; margin: 0; }
 </style>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "What do I get when I buy Velaria?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "One download for your Mac. It contains the Velaria output that DaVinci Resolve Studio plays to, the Velaria View app for your Quest, the Velaria effects for Resolve (Canvas Control, Orient 360 and Trim), an installer and uninstaller, and the setup guide. It is a one-time purchase with no subscription and no licence key."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Which Mac, which Resolve and which headset do I need?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "A Mac with Apple silicon running macOS 13 or newer, DaVinci Resolve Studio 19, 20 or 21, and a Meta Quest 3. Quest 2 and Quest Pro run the app, but Quest 3 is the headset we test on. You also need a USB-C data cable for the install. After that you can work over the cable or over Wi-Fi."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does it work with the free version of DaVinci Resolve?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. The free version has no video output for Velaria to connect to, so Velaria needs DaVinci Resolve Studio."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Why does my Quest need developer mode?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Velaria View is not in the Meta Horizon Store yet, so the installer loads it onto your headset over the cable. Meta only allows that when developer mode is on. Turning it on means creating a free Meta developer account, and Meta may take a few days to verify the account. If you are not comfortable doing that, please wait for a store version before you buy."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "macOS says it can't verify the developer. Is that expected?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes. Velaria 1.0 is not signed or notarized by Apple. On most Macs the installer runs from Terminal without a warning. If macOS does stop it, the requirements box above gives the exact message and the fix: System Settings, Privacy & Security, Open Anyway, then run the installer again."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "I own a DeckLink or UltraStudio. Can I keep using it?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes, but not at the same moment in version 1.0. Resolve sees Velaria as a Blackmagic video device, so while Velaria is installed it takes the place of Blackmagic Desktop Video. The installer sets Blackmagic's driver aside and asks you first; the uninstaller puts it back. Having both listed side by side in Resolve is in the works and will be a free update."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does it work with Premiere Pro, Final Cut Pro or on Windows?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. Velaria 1.0 is for DaVinci Resolve Studio on a Mac."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does it work with Apple Vision Pro, Pico or other headsets?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. Velaria 1.0 is for Meta Quest. If you work on Apple Vision Pro, DaVinci Resolve Studio has its own monitoring for that headset."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Which formats and resolutions can I preview?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "360 in mono or over/under stereo, and 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees. VR180 and anything up to 7680 x 4320 reaches the headset at full size. Resolve cannot send a square frame taller than that, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Can I finish a colour grade in the headset?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. A Quest is not a reference display. Velaria gives you scopes measured on the Mac and a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Cable or Wi-Fi?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Both work, and the app finds your Mac on its own. The USB-C cable is the steadier choice. Over Wi-Fi, the Mac and the headset need to be on the same network, and a fast, uncrowded one."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "How is this different from a headset app that shows a video stream from my Mac?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Those apps show you a picture. Velaria also stays in step with Resolve's own viewer, frame for frame, and it lets you change the project from inside the shot: move an overlay, set its depth, level the horizon, set a keyframe. Every change is a real change in your Resolve project, with undo."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "When is dome support coming, and what will it cost?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Dome preview is planned for version 1.1 as a paid add-on for people who make fulldome and planetarium work. We have not set a date. Version 1.0 does not include it."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "How many computers can I install it on? Are updates free?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "One purchase covers one person, on the Macs and headsets that person uses. A second editor needs a second copy. Every 1.x update is free. A later major version may be a paid upgrade."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does Velaria send any data anywhere?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. There is no account, no analytics and no telemetry. The picture travels between your Mac and your headset over the cable or your own network, and nowhere else. The privacy statement has the details."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "What if it doesn't work for me?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Write to us within 14 days of buying and we will refund you, no questions asked. Support is by email. If you run the log script that comes with Velaria and attach the file, we can usually see what went wrong."
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body>
 
 <header class="bar wrap">
-  <a class="wordmark" href="#top" aria-label="Kalyx, back to top">KALYX</a>
+  <a class="wordmark" href="#top" aria-label="Velaria, back to top">VELARIA</a>
   <nav aria-label="Main">
     <a class="navlink" href="#how">How it works</a>
     <a class="navlink" href="#features">Features</a>
-    <a class="navlink" href="#tiers">Tiers</a>
-    <a class="navlink" href="#free">Free tools</a>
-    <a class="navlink" href="#roadmap">Roadmap</a>
-    <a class="button" href="#alpha">Join the alpha</a>
+    <a class="navlink" href="#formats">Formats</a>
+    <a class="navlink" href="#faq">Questions</a>
+    <a class="button" href="#buy">Buy Velaria</a>
   </nav>
 </header>
 
 <main id="top">
   <section class="hero" aria-labelledby="hero-title">
-    <img class="hero__picture" src="img/dome.jpg" alt="An editor in a headset stands inside a vast paper dome, pulling a 3D title into place with a copper beam from her controller" width="2200" height="1228" fetchpriority="high">
+    <img class="hero__picture" src="img/dome.jpg" alt="An editor in a headset stands inside her film, pulling a 3D title into place with a copper beam from her controller" width="2200" height="1228" fetchpriority="high">
     <div class="hero__copy wrap">
       <h1 id="hero-title" class="display"><span class="line"><span style="--i:0">Edit your immersive film</span></span><span class="line"><span style="--i:1">from inside it.</span></span></h1>
-      <p class="lead" data-load style="--d:420ms">Kalyx streams your live timeline from Resolve, Premiere Pro or After Effects to a Meta Quest. Scrub on your Mac and see the shot in the headset, in stereo, at full size. In Resolve, you can also move titles, set their depth and level the horizon without taking it off.</p>
+      <p class="lead" data-load style="--d:420ms">Velaria shows your live DaVinci Resolve timeline in a Meta Quest. Scrub on your Mac and you are standing in the shot, in stereo, at full size. Then move a title, set its depth and level the horizon without taking the headset off.</p>
       <div class="hero__act" data-load style="--d:500ms">
-        <a class="button" href="#alpha">Join the alpha</a>
+        <a class="button" href="#buy">Buy Velaria</a>
         <a class="textlink" href="#how">See how it works</a>
       </div>
       <dl class="facts" data-load style="--d:580ms">
-        <div><dt>Works with</dt><dd>DaVinci Resolve Studio, Premiere Pro, After Effects</dd></div>
-        <div><dt>Formats</dt><dd>360, VR180, fisheye 180, dome, flat</dd></div>
-        <div><dt>Runs on</dt><dd>A Mac with Apple silicon and a Quest 2, 3 or Pro</dd></div>
-        <div><dt>Connects</dt><dd>Over Wi-Fi or a USB-C cable</dd></div>
+        <div><dt>Works with</dt><dd>DaVinci Resolve Studio on a Mac</dd></div>
+        <div><dt>Formats</dt><dd>360 and 180, mono or stereo</dd></div>
+        <div><dt>Headset</dt><dd>Meta Quest 3, over USB-C or Wi-Fi</dd></div>
+        <div><dt>Price</dt><dd><span data-price="core">See below</span>, once. No subscription.</dd></div>
       </dl>
     </div>
   </section>
@@ -293,26 +442,26 @@ form { display: grid; gap: 18px; max-width: 560px; }
   <section class="how wrap" id="how" aria-labelledby="how-title">
     <div class="sechead">
       <h2 id="how-title" class="head" data-reveal>Install. Headset on. Press play.</h2>
-      <p class="lead muted" data-reveal>Kalyx sits between the editor you already use and the headset you already own. Nothing changes in how you cut.</p>
+      <p class="lead muted" data-reveal>Velaria sits between the editor you already use and the headset you already own. Nothing changes in how you cut.</p>
     </div>
     <div class="chain" data-reveal>
       <div class="chain__step">
         <p class="chain__where">On your Mac</p>
-        <h3 class="sub">Install Kalyx</h3>
-        <p>Your editor sees Kalyx as one more monitor.</p>
+        <h3 class="sub">Install Velaria</h3>
+        <p>Resolve sees Velaria as one more video output.</p>
         <ul>
-          <li>Resolve Studio: pick Kalyx as the video output</li>
-          <li>Premiere Pro and After Effects: send through Mercury Transmit with the free NDI Tools</li>
+          <li>One installer, run once</li>
+          <li>In Resolve's Video I/O, pick Velaria (Quest)</li>
         </ul>
       </div>
       <svg class="chain__arrow" viewBox="0 0 44 20" aria-hidden="true"><path d="M2 10h36M30 3l8 7-8 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="chain__step">
         <p class="chain__where">On your Quest</p>
         <h3 class="sub">Put the headset on</h3>
-        <p>The Kalyx app finds your Mac on its own.</p>
+        <p>The Velaria View app finds your Mac on its own.</p>
         <ul>
-          <li>Wi-Fi, or a USB-C cable when the network is busy</li>
-          <li>Two headsets per Mac</li>
+          <li>USB-C cable, or Wi-Fi on the same network</li>
+          <li>No pairing codes and no addresses to type</li>
         </ul>
       </div>
       <svg class="chain__arrow" viewBox="0 0 44 20" aria-hidden="true"><path d="M2 10h36M30 3l8 7-8 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -321,7 +470,7 @@ form { display: grid; gap: 18px; max-width: 560px; }
         <h3 class="sub">Press play</h3>
         <p>The shot under your playhead is the shot you're standing in.</p>
         <ul>
-          <li>Full-size frame, live as you scrub</li>
+          <li>In step with Resolve's viewer as you scrub</li>
           <li>Stereo depth you can actually see</li>
           <li>Nothing to export to check</li>
         </ul>
@@ -332,7 +481,7 @@ form { display: grid; gap: 18px; max-width: 560px; }
   <section class="depth" id="depth" aria-labelledby="depth-title">
     <h2 id="depth-title" class="vh">Grab your title and push it back in depth</h2>
     <div class="depth__stage">
-      <img class="depth__poster" src="img/depth/61.jpg" alt="From behind, the editor in her headset holds a controller toward the 3D title STRANGE WORLDS, now level and set far back against the canyon walls" width="1280" height="716">
+      <img class="depth__poster" src="img/depth/61.jpg" alt="From behind, the editor in her headset holds a controller toward a 3D title, now level and set far back against the canyon walls" width="1280" height="716">
       <canvas class="depth__canvas" aria-hidden="true"></canvas>
       <div class="depth__scrim"></div>
       <div class="depth__caps wrap">
@@ -345,11 +494,11 @@ form { display: grid; gap: 18px; max-width: 560px; }
   <section class="features wrap" id="features" aria-labelledby="features-title">
     <div class="sechead">
       <h2 id="features-title" class="head" data-reveal>Fix it while you're in there.</h2>
-      <p class="lead muted" data-reveal>Point your controller at a title, a footage window or the whole picture, and change it from inside the shot. Every move is a real change in your project, with undo.</p>
+      <p class="lead muted" data-reveal>Point at a title, a footage window or the whole picture, and change it from inside the shot. Every move is a real change in your Resolve project, with undo.</p>
     </div>
     <div class="features__grid">
       <figure class="panel" data-reveal>
-        <svg viewBox="0 0 900 840" role="img" aria-label="The Kalyx Placement panel: a pan ring at 24 degrees, a tilt arc at 8 degrees, distance and scale throttles, and roll dials, each with a keyframe diamond">
+        <svg viewBox="0 0 900 840" role="img" aria-label="The Velaria Placement panel: a pan ring at 24 degrees, a tilt arc at 8 degrees, distance and scale throttles, and roll dials, each with a keyframe diamond">
           <rect x="2" y="2" width="896" height="836" rx="16" fill="#2a292e" stroke="#ffffff1f"/>
           <rect x="390" y="12" width="120" height="6" rx="3" fill="#aaaaab" opacity=".9"/>
           <text x="32" y="42" fill="#b9b9bb" font-family="Saira" font-weight="700" font-size="18" letter-spacing="5">PLACEMENT</text>
@@ -409,9 +558,9 @@ form { display: grid; gap: 18px; max-width: 560px; }
         <li data-reveal><h3>Level and re-orient 360</h3><p>Turn on the level grid for a true horizon, then re-level the shot or turn the sphere so the action starts in front.</p></li>
         <li data-reveal><h3>Keyframes and undo</h3><p>A keyframe on any control, marks on the timeline deck, and undo that goes straight to your Resolve project.</p></li>
         <li data-reveal><h3>Always know what you're moving</h3><p>Overlays, patches and the whole picture are separate layers, each named, with a lock so the plate stays put.</p></li>
-        <li data-reveal><h3>Panels you arrange</h3><p>Placement, Look and Timeline panels sit where you leave them. Turn off the ones you don't need.</p></li>
-        <li data-reveal><h3>Scopes in the headset <span class="status status--build">Building</span></h3><p>Waveform, RGB parade, vectorscope and histogram, measured from the uncompressed frame your editor sends.</p></li>
-        <li data-reveal><h3>Colour trim pass <span class="status">Planned</span></h3><p>Exposure, lift, gamma, gain, saturation and contrast on a trim layer above your grade. A trim on the device your audience will use, not a final grade.</p></li>
+        <li data-reveal><h3>Scopes in the headset</h3><p>Waveform, RGB parade, vectorscope and histogram, measured on your Mac from the frame Resolve sends, before any compression.</p></li>
+        <li data-reveal><h3>A trim pass on the delivery device</h3><p>Exposure, lift, gamma, gain, contrast, saturation, temperature and tint on a layer above your grade. A trim for the headset your audience will wear, not a final grade.</p></li>
+        <li data-reveal><h3>It tells you what's wrong</h3><p>When a Resolve setting is off, the headset names it and gives the fix in Resolve's own menu words.</p></li>
       </ul>
     </div>
   </section>
@@ -428,202 +577,178 @@ form { display: grid; gap: 18px; max-width: 560px; }
         </div>
       </div>
       <div class="level__view" id="level-view">
-        <img src="img/dome.jpg" alt="The paper canyon inside the dome, tilted off level" loading="lazy">
+        <img src="img/dome.jpg" alt="A canyon scene, tilted off level" loading="lazy">
         <div class="level__line" aria-hidden="true"></div>
       </div>
     </div>
   </section>
 
-  <section class="tiers wrap" id="tiers" aria-labelledby="tiers-title">
+  <section class="tiers wrap" id="formats" aria-labelledby="formats-title" style="padding-top: var(--section)">
     <div class="sechead">
-      <h2 id="tiers-title" class="head" data-reveal>Three tiers. Pick the one that fits the job.</h2>
-      <p class="lead muted" data-reveal>Each tier includes everything in the one before it.</p>
+      <h2 id="formats-title" class="head" data-reveal>360 and 180 today. Dome is next.</h2>
+      <p class="lead muted" data-reveal>Velaria shows each format the way your audience will see it, mono or stereo.</p>
     </div>
     <div class="tiers__grid">
       <article class="tier" data-reveal>
-        <p class="tier__name">Kalyx View</p>
-        <h3>See it.</h3>
-        <p>Your live timeline in the headset, in every format you cut.</p>
+        <p class="tier__name">Included</p>
+        <h3>360</h3>
+        <p>The whole sphere, around you.</p>
         <ul>
-          <li>Live monitor from Resolve Studio, Premiere Pro and After Effects</li>
-          <li>360 over/under and mono, VR180, fisheye 180, flat</li>
-          <li>Level grid and overlay outline</li>
-          <li>Scopes in the headset <em>Building</em></li>
-          <li>Wi-Fi or USB-C, two headsets per Mac</li>
+          <li>Mono, or stereo over/under</li>
+          <li>Level grid, re-level and re-orient</li>
+          <li>Up to 7680 x 4320 at full size</li>
+          <li>Square stereo timelines monitor at 3840 x 3840</li>
         </ul>
-      </article>
-      <article class="tier tier--mid" data-reveal>
-        <p class="tier__name">Kalyx Canvas</p>
-        <h3>Shape it.</h3>
-        <p>Change your project from inside the shot.</p>
-        <ul>
-          <li class="plus">Everything in View</li>
-          <li>Select and move overlays in the scene</li>
-          <li>Pan, tilt, roll, distance, scale and stereo depth</li>
-          <li>Re-level and re-orient 360 footage</li>
-          <li>Keyframes and undo as real project changes</li>
-          <li>Placement templates for footage, titles and 3D in Resolve</li>
-          <li>Colour trim pass <em>Planned</em></li>
-        </ul>
-        <p class="tier__when">Resolve today. After Effects is planned for the beta. Premiere Pro is monitor only.</p>
       </article>
       <article class="tier" data-reveal>
-        <p class="tier__name">Kalyx Theatre</p>
-        <h3>Sit in the room it's for.</h3>
-        <p>For dome, giant screen and museum work.</p>
+        <p class="tier__name">Included</p>
+        <h3>180</h3>
+        <p>VR180, straight from the timeline.</p>
         <ul>
-          <li class="plus">Everything in Canvas</li>
-          <li>Dome, giant screen and cinema wall at real geometry</li>
-          <li>Pick a seat and watch from it</li>
-          <li>Review together from a second headset</li>
-          <li>Venue setup and priority support</li>
+          <li>Side-by-side VR180, at full size</li>
+          <li>Dual fisheye, unwrapped in the headset</li>
+          <li>Lens presets from 144 to 220 degrees, with fine trim</li>
         </ul>
-        <p class="tier__when">Coming in 2027.</p>
       </article>
-    </div>
-    <div class="tiers__note">
-      <p class="muted">Pricing is set at launch, and everyone on the alpha list keeps launch pricing.</p>
-      <a class="button" href="#alpha">Join the alpha</a>
+      <article class="tier" data-reveal>
+        <p class="tier__name">Coming in 1.1</p>
+        <h3>Dome</h3>
+        <p>For fulldome and planetarium work.</p>
+        <ul>
+          <li class="plus">A dome master on a tilted dome, seen from a seat</li>
+          <li class="plus">A paid add-on to Velaria</li>
+          <li class="plus">Not in version 1.0, and no date yet</li>
+        </ul>
+        <p class="tier__when">Making a dome show? <a class="textlink" data-mail="Velaria Dome">Tell us</a> and we'll write when it's ready.</p>
+      </article>
     </div>
   </section>
 
-  <section class="free wrap" id="free" aria-labelledby="free-title">
+  <section class="isnt wrap" id="fit" aria-labelledby="fit-title">
     <div class="sechead">
-      <h2 id="free-title" class="head" data-reveal>Two tools, free. Before and after the edit.</h2>
-      <p class="lead muted" data-reveal>We built these to finish our own 360 films. They're yours to download, no tier and no account needed.</p>
+      <h2 id="fit-title" class="head" data-reveal>What it is. What it isn't.</h2>
+      <p class="lead muted" data-reveal>Velaria is a small tool that does one job. Here is the plain list, so you know before you buy.</p>
     </div>
-    <div class="free__grid">
-      <article class="freebie" data-reveal>
-        <p class="tier__name">Before the edit</p>
-        <h3>Kalyx Stitch</h3>
-        <p>Batch-stitch a whole card of Insta360 footage in one pass, ready to cut.</p>
+    <div class="isnt__grid">
+      <article class="tier tier--mid" data-reveal>
+        <p class="tier__name">Velaria is</p>
         <ul>
-          <li>Point it at a folder, let it run overnight</li>
-          <li>Stitched 360 files ready for your editor</li>
+          <li>A live headset monitor for DaVinci Resolve Studio on a Mac</li>
+          <li>A way to place overlays, set depth and level a shot from inside it</li>
+          <li>Built for 360 and 180, mono or stereo</li>
+          <li>A one-time purchase, with every 1.x update included</li>
+          <li>Private: nothing leaves your Mac and your headset</li>
         </ul>
-        <div class="freebie__act"><a class="button" href="#free">Download for Mac</a><span class="muted">Free</span></div>
       </article>
-      <article class="freebie" data-reveal>
-        <p class="tier__name">After the edit</p>
-        <h3>Kalyx Publish</h3>
-        <p>Encode your finished film and tag it so YouTube plays it as 360 or VR180.</p>
+      <article class="tier" data-reveal>
+        <p class="tier__name">Velaria isn't</p>
         <ul>
-          <li>Delivery presets for 360 and VR180</li>
-          <li>The metadata YouTube needs, written for you</li>
+          <li class="no">For Windows, Premiere Pro or Final Cut Pro</li>
+          <li class="no">For Apple Vision Pro, Pico or the free version of Resolve</li>
+          <li class="no">A Meta Horizon Store app. You load it with developer mode</li>
+          <li class="no">Signed by Apple yet. macOS may ask you to approve it</li>
+          <li class="no">A reference display, a stitcher or an encoder</li>
         </ul>
-        <div class="freebie__act"><a class="button" href="#free">Download for Mac</a><span class="muted">Free</span></div>
       </article>
     </div>
   </section>
 
-  <section class="roadmap wrap" id="roadmap" aria-labelledby="roadmap-title">
-    <div class="sechead">
-      <h2 id="roadmap-title" class="head" data-reveal>What works today. What's next.</h2>
-      <p class="lead muted" data-reveal>The list of what works today is exact. Dates further out are plans, and alpha users help set the order.</p>
-    </div>
-    <div class="tablewrap" data-reveal>
-      <table class="apps">
-        <caption class="vh">Feature support by editing app</caption>
-        <thead><tr><th scope="col">By app</th><th scope="col">Resolve Studio</th><th scope="col">Premiere Pro</th><th scope="col">After Effects</th></tr></thead>
-        <tbody>
-          <tr><td>Live monitor, every format</td><td class="yes">Now</td><td class="yes">Now</td><td class="yes">Now</td></tr>
-          <tr><td>Level grid and overlay outline</td><td class="yes">Now</td><td class="yes">Now</td><td class="yes">Now</td></tr>
-          <tr><td>Scopes in the headset</td><td class="soon">Building</td><td class="soon">Building</td><td class="soon">Building</td></tr>
-          <tr><td>Move overlays from inside the shot</td><td class="yes">Now</td><td class="later">No date</td><td class="soon">Beta</td></tr>
-          <tr><td>Re-level and re-orient 360</td><td class="yes">Now</td><td class="later">No date</td><td class="soon">Beta</td></tr>
-          <tr><td>Keyframes and undo from the headset</td><td class="yes">Now</td><td class="later">No date</td><td class="soon">Beta</td></tr>
-          <tr><td>Colour trim pass</td><td class="soon">Beta</td><td class="later">No date</td><td class="later">Later</td></tr>
-          <tr><td>Dome, giant screen, seat picker</td><td class="later">2027</td><td class="later">2027</td><td class="later">2027</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="when">
-      <div class="when__col" data-reveal>
-        <p>Now · alpha, Oct to Nov 2026</p>
-        <h3 class="sub">In your hands</h3>
-        <ul>
-          <li><span class="status status--now">Shipped</span><b>Live monitor in every format</b><span>360 over/under and mono, VR180, Canon dual fisheye, flat. Quest 2, 3 and Pro.</span></li>
-          <li><span class="status status--now">Shipped</span><b>Premiere Pro and After Effects monitoring</b><span>Monitor only. After Effects controls are planned for the beta; Premiere controls have no date.</span></li>
-          <li><span class="status status--now">Shipped</span><b>Place overlays from inside the shot</b><span>Resolve. Select, drag, set depth, undo.</span></li>
-          <li><span class="status status--now">Shipped</span><b>Level grid, re-level, re-orient</b><span>A world-level horizon and the sphere controls on one panel.</span></li>
-          <li><span class="status status--now">Shipped</span><b>Keyframes from the headset</b><span>A diamond per control, marks on the timeline.</span></li>
-          <li><span class="status status--build">Building</span><b>Scopes in the headset</b><span>Waveform, parade, vectorscope, histogram.</span></li>
-          <li><span class="status status--build">Building</span><b>Sideload guide and install script</b><span>Until the signed installer lands.</span></li>
+  <section class="buy" id="buy" aria-labelledby="buy-title">
+    <div class="buy__grid wrap">
+      <div class="buy__copy">
+        <h2 id="buy-title" class="head">Buy it once.</h2>
+        <p class="price"><span data-price="core">&nbsp;</span><small>one-time</small></p>
+        <noscript><p class="muted">The price is shown at checkout.</p></noscript>
+        <ul class="buy__terms">
+          <li>No subscription and no licence key</li>
+          <li>Every 1.x update included</li>
+          <li>One person, on the Macs and headsets you use</li>
+          <li>Full refund within <span data-v="refundDays">14</span> days, no questions asked</li>
+          <li>Sales tax or VAT is added at checkout where it applies</li>
         </ul>
       </div>
-      <div class="when__col" data-reveal>
-        <p>Next · beta, Dec 2026 to early 2027</p>
-        <h3 class="sub">What the beta adds</h3>
-        <ul>
-          <li><span class="status status--build">Building</span><b>Signed installer, licence and free trial</b><span>One notarized Mac installer for View and Canvas.</span></li>
-          <li><span class="status status--build">Building</span><b>Fisheye lens presets</b><span>Canon RF 5.2 mm and RF-S 3.9 mm, 180, 200, 220 and custom.</span></li>
-          <li><span class="status">Planned</span><b>Colour trim pass in the headset</b><span>Exposure, lift, gamma, gain, saturation, contrast. Resolve first.</span></li>
-          <li><span class="status">Planned</span><b>After Effects controls</b><span>The same panels driving After Effects' own VR effects.</span></li>
-          <li><span class="status">Planned</span><b>Set the horizon by pointing at it</b><span>Mark two points on the real horizon and the shot levels itself.</span></li>
-          <li><span class="status">Planned</span><b>Faster round trip in Resolve</b><span>A fast-preview switch for heavy timelines.</span></li>
-          <li><span class="status">Planned</span><b>Review together</b><span>Several headsets on one Mac, watching the same timeline.</span></li>
-        </ul>
-      </div>
-      <div class="when__col" data-reveal>
-        <p>Later · 2027</p>
-        <h3 class="sub">On the list, in rough order</h3>
-        <ul>
-                    <li><span class="status">Planned</span><b>Kalyx Theatre</b><span>Dome, giant screen and cinema wall at real geometry, with a seat picker.</span></li>
-          <li><span class="status">Planned</span><b>VR180 and fulldome output</b><span>Titles placed for VR180 and dome masters, and dome presets in Kalyx Publish.</span></li>
-          <li><span class="status">Planned</span><b>Send the trim to the colour page</b><span>Hand your headset trim to the colourist as a node.</span></li>
-          <li><span class="status">Planned</span><b>Paint out the tripod from the headset</b><span>Small nadir and zenith patches; detailed paint stays in Fusion.</span></li>
-          <li><span class="status">Planned</span><b>Pico, then the Meta store</b><span>Sideloaded on Quest until then.</span></li>
-          <li><span class="status">Planned</span><b>Windows</b><span>Premiere and After Effects first, Resolve after.</span></li>
-        </ul>
-      </div>
-    </div>
-    <p class="roadmap__foot">Not promised: controls inside Premiere Pro. They need a plug-in panel inside Premiere that we haven't proven yet, so Premiere is a live monitor until we have. Not planned: an Apple Vision Pro app, since Resolve already monitors to it. Final Cut Pro comes after Adobe, if alpha users ask for it.</p>
-  </section>
-
-  <section class="alpha" id="alpha" aria-labelledby="alpha-title">
-    <div class="alpha__grid wrap">
-      <div class="alpha__copy">
-        <h2 id="alpha-title" class="head">Go first.</h2>
-        <p class="lead">The alpha is free and small: ten seats for editors with a real 360, 180 or dome project in the next two months, an Apple silicon Mac and a Quest.</p>
-        <p class="muted">You get every build and a say in what comes next. We get your honest notes. Launch pricing is locked for everyone on the list.</p>
-      </div>
-      <div>
-        <form id="alpha-form" novalidate>
-          <div class="row2">
-            <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required></div>
-            <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required aria-describedby="f-email-err"></div>
-          </div>
-          <div class="row2">
-            <div class="field"><label for="f-nle">You cut in</label>
-              <select id="f-nle" name="nle"><option>DaVinci Resolve Studio</option><option>Premiere Pro</option><option>After Effects</option><option>Something else</option></select></div>
-            <div class="field"><label for="f-make">You make</label>
-              <select id="f-make" name="make"><option>360 stereo</option><option>VR180</option><option>Fulldome or planetarium</option><option>Giant screen</option><option>Museum and exhibition</option></select></div>
-          </div>
-          <p id="f-email-err" class="form__note" aria-live="polite">One email when your seat opens. No newsletter.</p>
-          <div><button class="button" type="submit">Join the alpha</button></div>
-        </form>
-        <div class="thanks" id="thanks" hidden>
-          <h3>You're on the list.</h3>
-          <p>Thanks. We'll write when your seat opens; invitations go out in small groups so we can talk to each of you.</p>
+      <div class="req" id="requirements">
+        <h3 class="sub">Check these five things first</h3>
+        <ol>
+          <li><b>A Mac with Apple silicon, and DaVinci Resolve Studio.</b><span>macOS 13 or newer, and Resolve Studio 19, 20 or 21. The free version of Resolve will not work.</span></li>
+          <li><b>A Meta Quest 3 with developer mode on.</b><span>Developer mode needs a free Meta developer account, and Meta may take a few days to verify it. Quest 2 and Quest Pro run the app, but we test on Quest 3.</span></li>
+          <li><b>Velaria is not signed by Apple.</b><span>You install it from Terminal with one command, and on most Macs it runs without a warning. If macOS says <q>Apple could not verify [file name] is free of malware that may harm your Mac or compromise your privacy</q> (macOS 15 and newer) or <q>[file name] cannot be opened because the developer cannot be verified</q> (macOS 13 and 14), click Done, open System Settings, go to Privacy &amp; Security, scroll to Security and click Open Anyway. Then run the installer again.</span></li>
+          <li><b>It takes the place of Blackmagic Desktop Video while installed.</b><span>If you use a DeckLink or UltraStudio, you can have that or Velaria active, not both at once. The installer asks before it sets Blackmagic's driver aside, and the uninstaller puts it back. Showing both in Resolve is planned as a free update.</span></li>
+          <li><b>Support is by email, and updates come when they're ready.</b><span>There is no phone support and no guaranteed response time. If it doesn't work on your setup, you get your money back.</span></li>
+        </ol>
+        <div class="req__act">
+          <a class="button" data-buy href="#BUY-URL">Buy Velaria</a>
+          <p>Secure checkout by Lemon Squeezy. Your download link arrives by email. By buying you agree to the <a class="textlink" href="#EULA-URL">licence agreement</a>.</p>
         </div>
       </div>
     </div>
   </section>
+
+  <section class="faq wrap" id="faq" aria-labelledby="faq-title">
+    <div class="sechead">
+      <h2 id="faq-title" class="head" data-reveal>Questions, answered straight.</h2>
+      <p class="lead muted" data-reveal>If yours isn't here, write to us before you buy. We would rather answer a question than process a refund.</p>
+    </div>
+    <div class="faq__list">
+      <details open><summary>What do I get when I buy Velaria?</summary><div><p>One download for your Mac. It contains the Velaria output that DaVinci Resolve Studio plays to, the Velaria View app for your Quest, the Velaria effects for Resolve (Canvas Control, Orient 360 and Trim), an installer and uninstaller, and the setup guide.</p><p>It is a one-time purchase with no subscription and no licence key.</p></div></details>
+      <details><summary>Which Mac, which Resolve and which headset do I need?</summary><div><p>A Mac with Apple silicon running macOS 13 or newer, DaVinci Resolve Studio 19, 20 or 21, and a Meta Quest 3. Quest 2 and Quest Pro run the app, but Quest 3 is the headset we test on.</p><p>You also need a USB-C data cable for the install. After that you can work over the cable or over Wi-Fi.</p></div></details>
+      <details><summary>Does it work with the free version of DaVinci Resolve?</summary><div><p>No. The free version has no video output for Velaria to connect to, so Velaria needs DaVinci Resolve Studio.</p></div></details>
+      <details><summary>Why does my Quest need developer mode?</summary><div><p>Velaria View is not in the Meta Horizon Store yet, so the installer loads it onto your headset over the cable. Meta only allows that when developer mode is on. Turning it on means creating a free Meta developer account, and Meta may take a few days to verify the account.</p><p>If you are not comfortable doing that, please wait for a store version before you buy.</p></div></details>
+      <details><summary>macOS says it can't verify the developer. Is that expected?</summary><div><p>Yes. Velaria 1.0 is not signed or notarized by Apple. On most Macs the installer runs from Terminal without a warning. If macOS does stop it, the requirements box above gives the exact message and the fix: System Settings, Privacy &amp; Security, Open Anyway, then run the installer again.</p></div></details>
+      <details><summary>I own a DeckLink or UltraStudio. Can I keep using it?</summary><div><p>Yes, but not at the same moment in version 1.0. Resolve sees Velaria as a Blackmagic video device, so while Velaria is installed it takes the place of Blackmagic Desktop Video. The installer sets Blackmagic's driver aside and asks you first; the uninstaller puts it back.</p><p>Having both listed side by side in Resolve is in the works and will be a free update.</p></div></details>
+      <details><summary>Does it work with Premiere Pro, Final Cut Pro or on Windows?</summary><div><p>No. Velaria 1.0 is for DaVinci Resolve Studio on a Mac.</p></div></details>
+      <details><summary>Does it work with Apple Vision Pro, Pico or other headsets?</summary><div><p>No. Velaria 1.0 is for Meta Quest. If you work on Apple Vision Pro, DaVinci Resolve Studio has its own monitoring for that headset.</p></div></details>
+      <details><summary>Which formats and resolutions can I preview?</summary><div><p>360 in mono or over/under stereo, and 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees.</p><p>VR180 and anything up to 7680 x 4320 reaches the headset at full size. Resolve cannot send a square frame taller than that, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed.</p></div></details>
+      <details><summary>Can I finish a colour grade in the headset?</summary><div><p>No. A Quest is not a reference display. Velaria gives you scopes measured on the Mac and a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor.</p></div></details>
+      <details><summary>Cable or Wi-Fi?</summary><div><p>Both work, and the app finds your Mac on its own. The USB-C cable is the steadier choice. Over Wi-Fi, the Mac and the headset need to be on the same network, and a fast, uncrowded one.</p></div></details>
+      <details><summary>How is this different from a headset app that shows a video stream from my Mac?</summary><div><p>Those apps show you a picture. Velaria also stays in step with Resolve's own viewer, frame for frame, and it lets you change the project from inside the shot: move an overlay, set its depth, level the horizon, set a keyframe. Every change is a real change in your Resolve project, with undo.</p></div></details>
+      <details><summary>When is dome support coming, and what will it cost?</summary><div><p>Dome preview is planned for version 1.1 as a paid add-on for people who make fulldome and planetarium work. We have not set a date. Version 1.0 does not include it.</p></div></details>
+      <details><summary>How many computers can I install it on? Are updates free?</summary><div><p>One purchase covers one person, on the Macs and headsets that person uses. A second editor needs a second copy. Every 1.x update is free. A later major version may be a paid upgrade.</p></div></details>
+      <details><summary>Does Velaria send any data anywhere?</summary><div><p>No. There is no account, no analytics and no telemetry. The picture travels between your Mac and your headset over the cable or your own network, and nowhere else. The privacy statement has the details.</p></div></details>
+      <details><summary>What if it doesn't work for me?</summary><div><p>Write to us within 14 days of buying and we will refund you, no questions asked. Support is by email. If you run the log script that comes with Velaria and attach the file, we can usually see what went wrong.</p></div></details>
+    </div>
+  </section>
+
+  <section class="support wrap" id="support" aria-labelledby="support-title">
+    <h2 id="support-title" class="sub">Help when you need it</h2>
+    <p class="lead muted" style="margin-top:14px">Start with the <a class="textlink" href="#DOCS-URL">setup guide</a>, which takes about twenty minutes the first time. If you get stuck, email <a class="textlink" data-mail="Velaria support">us</a> and attach the file the log script makes. A person who works on Velaria reads every message.</p>
+  </section>
 </main>
 
 <footer class="close wrap">
-  <p class="close__name" aria-hidden="true">Kalyx</p>
+  <p class="close__name" aria-hidden="true">Velaria</p>
   <div class="close__row">
-    <span>Edit your immersive film from inside it.</span>
-    <nav aria-label="Footer"><a class="textlink" href="#how">How it works</a><a class="textlink" href="#tiers">Tiers</a><a class="textlink" href="#free">Free tools</a><a class="textlink" href="#roadmap">Roadmap</a><a class="textlink" href="#alpha">Join the alpha</a></nav>
+    <span>Edit your immersive film from inside it. Made by Hammer &amp; Anvil.</span>
+    <nav aria-label="Footer"><a class="textlink" href="#how">How it works</a><a class="textlink" href="#formats">Formats</a><a class="textlink" href="#faq">Questions</a><a class="textlink" href="#buy">Buy</a></nav>
   </div>
+  <div class="close__legal">
+    <a class="textlink" href="#EULA-URL">Licence agreement</a>
+    <a class="textlink" href="#PRIVACY-URL">Privacy</a>
+    <a class="textlink" href="#NOTICES-URL">Third-party notices</a>
+    <a class="textlink" href="#DOCS-URL">Setup guide</a>
+  </div>
+  <p class="close__fine">DaVinci Resolve, DeckLink and UltraStudio are trademarks of Blackmagic Design Pty Ltd. Meta and Quest are trademarks of Meta Platforms, Inc. Mac and macOS are trademarks of Apple Inc. Velaria is an independent product and is not made, endorsed or supported by these companies.</p>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
 (() => {
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const V = window.VELARIA, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Prices, buy link, support address: all from VELARIA at the top of the file */
+  const money = (n) => '$' + n + (V.currency === 'USD' ? '' : ' ' + V.currency);
+  document.querySelectorAll('[data-price]').forEach((el) => { el.textContent = money(el.dataset.price === 'dome' ? V.priceDome : V.priceCore) + (el.closest('.price') ? '' : ' ' + V.currency); });
+  document.querySelectorAll('[data-v]').forEach((el) => { el.textContent = V[el.dataset.v]; });
+  document.querySelectorAll('[data-buy]').forEach((el) => { el.href = V.buyUrl; });
+  document.querySelectorAll('[data-mail]').forEach((el) => { el.href = 'mailto:' + V.supportEmail + '?subject=' + encodeURIComponent(el.dataset.mail); });
+  const ld = document.createElement('script'); ld.type = 'application/ld+json';
+  ld.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'Velaria',
+    applicationCategory: 'MultimediaApplication', operatingSystem: 'macOS 13 or later; Meta Quest',
+    description: document.querySelector('meta[name="description"]').content,
+    publisher: { '@type': 'Organization', name: 'Hammer & Anvil' },
+    offers: { '@type': 'Offer', price: String(V.priceCore), priceCurrency: V.currency, availability: 'https://schema.org/InStock' } });
+  document.head.appendChild(ld);
 
   /* Dial tick dots on the panel, as the headset draws them */
   const NS = 'http://www.w3.org/2000/svg';
@@ -647,25 +772,11 @@ form { display: grid; gap: 18px; max-width: 560px; }
   };
   roll.addEventListener('input', setRoll); setRoll();
 
-  /* Alpha form (prototype: nothing is sent) */
-  const form = document.getElementById('alpha-form');
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = form.elements.email;
-    if (!form.elements.name.value.trim() || !email.validity.valid || !email.value) {
-      document.getElementById('f-email-err').textContent = 'Add your name and a working email so we can reach you.';
-      (form.elements.name.value.trim() ? email : form.elements.name).focus();
-      return;
-    }
-    form.hidden = true; document.getElementById('thanks').hidden = false;
-  });
-
   if (reduce || !window.gsap || !window.ScrollTrigger) {
     document.querySelectorAll('[data-reveal]').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; });
     return;
   }
   gsap.registerPlugin(ScrollTrigger);
-
   /* Depth: 61 stop-motion pictures, stepped through by the scroll. The one pinned section. */
   (() => {
     const stage = document.querySelector('.depth__stage');
@@ -688,6 +799,7 @@ form { display: grid; gap: 18px; max-width: 560px; }
       shown = i; poster.style.visibility = 'hidden';
     };
     frames[0].addEventListener('load', size, { once: true });
+    frames[0].addEventListener('error', () => {}, { once: true });
     addEventListener('resize', size);
     document.documentElement.classList.add('can-scrub');
     const tl = gsap.timeline({ scrollTrigger: { trigger: '.depth', start: 'top top', end: '+=220%', pin: stage, scrub: true } });
@@ -707,4 +819,5 @@ form { display: grid; gap: 18px; max-width: 560px; }
 })();
 </script>
 
-</body></html>
+</body>
+</html>
