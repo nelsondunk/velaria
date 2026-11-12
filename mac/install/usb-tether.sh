@@ -9,7 +9,7 @@ while true; do
     list=$("$ADB" -s "$s" reverse --list 2>/dev/null)
     for PORT in $PORTS; do
       if ! echo "$list" | grep -q "tcp:$PORT"; then
-        if "$ADB" -s "$s" reverse tcp:$PORT tcp:$PORT >/dev/null 2>&1; then
+        if "$ADB" -s "$s" reverse "tcp:$PORT" "tcp:$PORT" >/dev/null 2>&1; then
           echo "$(date '+%F %T') tether up for $s on $PORT"
         fi
       fi

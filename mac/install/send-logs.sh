@@ -19,7 +19,7 @@ tail -n 2000 "$HOME/Library/Application Support/Blackmagic Design/DaVinci Resolv
   echo "python3: $(python3 --version 2>&1)"
   echo "clt: $(xcode-select -p 2>&1)"
   for a in ca.skylightproductions.velaria.bridge ca.skylightproductions.velaria.usb ca.skylightproductions.velaria.ndi; do
-    echo "agent $a: $(launchctl print gui/$(id -u)/$a 2>/dev/null | grep -E 'state =|pid =' | tr -s ' \n' ' ')"
+    echo "agent $a: $(launchctl print "gui/$(id -u)/$a" 2>/dev/null | grep -E 'state =|pid =' | tr -s ' \n' ' ')"
   done
 } > "$T/mac/versions.txt"
 ADB=$(command -v adb || true); [ -z "$ADB" ] && [ -x /opt/homebrew/bin/adb ] && ADB=/opt/homebrew/bin/adb

@@ -1,8 +1,11 @@
 #!/bin/bash
-# VR Link installer: puts the virtual DeckLink driver where DaVinci Resolve looks for Blackmagic hardware,
+# Velaria installer: puts the virtual DeckLink driver where DaVinci Resolve looks for Blackmagic hardware,
 # installs the USB-tether helper, and (if a Quest is plugged in) installs the headset app.
 #
-#   sudo ./install.sh            install / update
+#   sudo ./install.sh                       install / update
+#   sudo ./install.sh --replace-blackmagic  install, setting Blackmagic Desktop Video aside (--uninstall restores it)
+#   sudo ./install.sh --headset             install / update the headset app only
+#   sudo ./install.sh --ndi                 also start the experimental Premiere / After Effects (NDI) source
 #   sudo ./install.sh --uninstall
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -82,9 +85,10 @@ find_adb() {
 if [ "${1:-}" = "--headset" ]; then
   find_adb
   [ -n "$ADB" ] || { echo "adb not found: this package should contain platform-tools/adb (Google's Android platform tools)."; exit 1; }
+  [ -f "$HERE/Velaria.apk" ] || { echo "Velaria.apk not found next to this script. Run this from inside the unzipped Velaria folder."; exit 1; }
   xattr -dr com.apple.quarantine "$(dirname "$ADB")" 2>/dev/null || true
   echo "Waiting for the Quest (plug it in, put it on, allow USB debugging)..."
-  for i in $(seq 1 60); do sudo -u "$USER_NAME" "$ADB" get-state >/dev/null 2>&1 && break; sleep 1; done
+  for _ in $(seq 1 60); do sudo -u "$USER_NAME" "$ADB" get-state >/dev/null 2>&1 && break; sleep 1; done
   sudo -u "$USER_NAME" "$ADB" get-state >/dev/null 2>&1 || { echo "No headset seen in 60 s."; exit 1; }
   sudo -u "$USER_NAME" "$ADB" install -r "$HERE/Velaria.apk" && echo "Installed Velaria View on the headset." && exit 0
   exit 1
@@ -111,7 +115,12 @@ rm -rf "$FW_DST"
 ditto "$FW_SRC" "$FW_DST"
 chown -R root:wheel "$FW_DST"
 xattr -dr com.apple.quarantine "$FW_DST" 2>/dev/null || true
-codesign --verify "$FW_DST" && echo "Installed driver: $FW_DST ($(defaults read "$FW_DST/Resources/Info.plist" VRLinkBuild))"
+if codesign --verify "$FW_DST"; then
+  echo "Installed driver: $FW_DST ($(defaults read "$FW_DST/Resources/Info.plist" VRLinkBuild 2>/dev/null || echo 'build unknown'))"
+else
+  echo "Warning: the driver was copied to $FW_DST but its signature does not verify. Resolve may refuse to load it."
+  echo "Download the Velaria zip again, unzip it fresh, and run the installer from the new folder."
+fi
 
 legacy_cleanup
 
@@ -216,7 +225,7 @@ EOF
 else
   echo "adb not found and none in this package. USB tether and headset install skipped; Wi-Fi still works."
 fi
-# 5b. Fonts the Velaria 3D Titles are set in (Montserrat, SIL Open Font License, licence beside them). Resolve reads
+# 5b. Fonts for titles (Montserrat, SIL Open Font License, licence beside them). Resolve reads
 #     fonts at launch; a missing font silently falls back to another face, so this is not optional.
 if [ -d "$HERE/fonts" ]; then
   sudo -u "$USER_NAME" mkdir -p "$USER_HOME/Library/Fonts"
@@ -224,12 +233,12 @@ if [ -d "$HERE/fonts" ]; then
   for f in "$HERE"/fonts/*.ttf; do
     [ -f "$f" ] || continue
     if [ ! -f "$USER_HOME/Library/Fonts/$(basename "$f")" ]; then sudo -u "$USER_NAME" cp "$f" "$USER_HOME/Library/Fonts/" && n=$((n+1)); fi
+    xattr -d com.apple.quarantine "$USER_HOME/Library/Fonts/$(basename "$f")" 2>/dev/null || true   # ours only, not every font the user owns
   done
-  xattr -dr com.apple.quarantine "$USER_HOME/Library/Fonts" 2>/dev/null || true
-  [ "$n" -gt 0 ] && echo "Installed $n font file(s) for the Velaria 3D Titles (Montserrat)."
+  if [ "$n" -gt 0 ]; then echo "Installed $n font file(s) for titles (Montserrat)."; fi
 fi
 
-# 6. Fusion library: the Velaria macros (Canvas Control, 3D Titles, 3D Cards, Orient 360) for the Fusion page and the
+# 6. Fusion library: the Velaria macros (Canvas Control, Orient 360, Trim) for the Fusion page and the
 #    Edit page's Effects > Velaria folder, plus the upgrade script (Fusion > Scripts > Comp). Anything already there is
 #    backed up beside the library with today's date. Resolve reads the library at launch.
 FUSION="$USER_HOME/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion"
@@ -238,6 +247,7 @@ if [ -d "$HERE/macros" ] && [ -d "$(dirname "$FUSION")" ]; then
   BK="$(dirname "$FUSION")/Fusion-archive/$STAMP"
   for d in Macros Templates/Edit/Effects/Velaria Scripts/Comp; do sudo -u "$USER_NAME" mkdir -p "$FUSION/$d"; done
   for f in "$HERE"/macros/Velaria*.setting; do
+    [ -f "$f" ] || continue   # an empty macros folder leaves the pattern itself in $f
     n=$(basename "$f")
     for d in Macros Templates/Edit/Effects/Velaria; do
       case "$n" in "Velaria 3D Title"*) [ "$d" = Macros ] || continue;; esac   # titles output a 3D scene: Fusion page only
