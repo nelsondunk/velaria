@@ -21,7 +21,7 @@ done
 while IFS= read -r f; do fail "internal file in the release: ${f#"$DIR"/}"; done < <(
   find "$DIR" \( -iname '*3D Card*' -o -iname '*3D Title*' -o -iname '*Fact Card*' -o -iname 'Skylight_PIP*' \
     -o -iname '*.comp' -o -iname 'test_*' -o -iname '*soak*' -o -iname '*regression*' -o -iname 'roadmap*' \
-    -o -iname '*audit*' -o -iname 'alpha-*' -o -iname 'pack.sh' -o -iname '.DS_Store' -o -iname '.git*' \) -print)
+    -o -iname '*audit*' -o -iname 'alpha-*' -o -iname 'release-checklist*' -o -iname 'pack.sh' -o -iname '.DS_Store' -o -iname '.git*' \) -print)
 
 # 3. Words that must not appear in any text file a customer can open. Binary files are skipped (grep -I).
 #    Internal machine and project names, the internal card names, and paths from the development machines.
