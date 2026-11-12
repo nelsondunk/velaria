@@ -392,7 +392,7 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
     const float metaX = padL + 60 + 10;   // row B and C text lines up with the first named chip
     if (!m || !m->bridgeOk) {
         c.text(padL, rowA + 40, "The Resolve bridge isn't running on the Mac", S24, kText);
-        c.text(padL, rowB + 26, "python3 ~/VRLink/mac/bridge/vrlink_bridge.py \xC2\xB7 it reconnects on its own once it is up", S20, kDim);
+        c.text(padL, rowB + 26, "On the Mac, run sudo ./install.sh from the Velaria folder \xC2\xB7 it reconnects on its own", S20, kDim);
         return rects;
     }
     auto statusLine = [&](float y) {

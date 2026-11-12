@@ -59,17 +59,18 @@ static EditGroup patch(const char* tool, const char* clipName, int track) {
     return g;
 }
 
+// Sample names are neutral on purpose: these pictures are published in the public docs (docs/public, docs/site).
 int main(int argc, char** argv) {
     std::string out = argc > 1 ? argv[1] : "host/preview";
     auto model = std::make_shared<EditModel>();
     EditModel& m = *model;
-    m.bridgeOk = true; m.haveTimeline = true; m.timelineName = "Strange Worlds 360 v12"; m.fps = 29.97;
+    m.bridgeOk = true; m.haveTimeline = true; m.timelineName = "Demo 360 v1"; m.fps = 29.97;
     m.start = 108000; m.end = 108000 + 120 * 30; m.frame = 108000 + 84 * 30 + 11; m.tc = "01:01:24:11"; m.tracks = 7;
     for (int i = 0; i < 6; i++) { EditClip c; c.key = "p" + std::to_string(i); c.name = "C03" + std::to_string(i) + "_03122139"; c.track = 1; c.start = m.start + i * 600; c.end = c.start + 600; c.fusion = i % 2 == 0; m.clips.push_back(c); }
-    { EditClip c; c.key = "hb"; c.name = "Hay Bale V3"; c.track = 3; c.start = m.frame - 200; c.end = m.frame + 300; c.fusion = true; c.colour = "Orange"; m.clips.push_back(c); }
+    { EditClip c; c.key = "tc"; c.name = "Title card"; c.track = 3; c.start = m.frame - 200; c.end = m.frame + 300; c.fusion = true; c.colour = "Orange"; m.clips.push_back(c); }
     { EditClip c; c.key = "fw"; c.name = "Footage window"; c.track = 4; c.start = m.frame - 100; c.end = m.frame + 500; c.fusion = true; c.colour = "Teal"; m.clips.push_back(c); }
     { EditClip c; c.key = "lt"; c.name = "Lower third"; c.track = 5; c.start = m.frame - 50; c.end = m.frame + 200; c.fusion = true; m.clips.push_back(c); }
-    m.groups = {card("Velaria3DCard_HayBale", "Hay Bale V3", 3), card("Velaria_CanvasControl", "Footage window", 4), card("Velaria_CanvasControl", "Lower third", 5),
+    m.groups = {card("Velaria_CanvasControl", "Title card", 3), card("Velaria_CanvasControl", "Footage window", 4), card("Velaria_CanvasControl", "Lower third", 5),
                 patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2),
                 patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2)};
     m.groups[3].clipName = "Nadir \xC2\xB7 left eye"; m.groups[4].clipName = "Nadir \xC2\xB7 right eye"; m.groups[5].clipName = "Tripod leg";
