@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>180, 360 and fisheye: picking the right view | Velaria docs</title>
+<meta name="description" content="Velaria layout and projection settings: VR180, 360, mono and stereo, and the dual-fisheye preview with its lens presets.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="180, 360 and fisheye: picking the right view | Velaria docs">
+<meta property="og:description" content="Velaria layout and projection settings: VR180, 360, mono and stereo, and the dual-fisheye preview with its lens presets.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#15181d">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "180, 360 and fisheye: picking the right view", "description": "Velaria layout and projection settings: VR180, 360, mono and stereo, and the dual-fisheye preview with its lens presets.", "inLanguage": "en-CA", "isPartOf": {"@type": "WebSite", "name": "Velaria docs"}, "about": {"@type": "SoftwareApplication", "name": "Velaria", "operatingSystem": "macOS 13 or later; Meta Quest", "applicationCategory": "MultimediaApplication"}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@800&family=Saira:wght@400;600;700&display=swap">
+<style>
+/* Tokens are the sales page's (site/index.html): one dark room, copper for what you act on, ice for status. */
+:root {
+  --ground: #15181d; --step: #1d222a; --step-2: #252b34; --well: #0d0f13;
+  --ink: #f2f3f5; --ink-2: #b4b8bf; --rule: #ffffff1f;
+  --copper: #e0a97a; --on-copper: #15181d; --ice: #8fc1d9;
+  --display: "Saira Extra Condensed", "Saira", "Arial Narrow", system-ui, sans-serif;
+  --text: "Saira", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --margin: clamp(16px, 3.2vw, 48px);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--text); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: var(--copper); text-underline-offset: 3px; }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--copper); color: var(--on-copper); padding: 8px 12px; border-radius: 8px; z-index: 5; }
+.skip:focus { left: 8px; }
+.frame { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+.rail { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; padding: 28px 16px 28px var(--margin); border-right: 1px solid var(--rule); background: var(--step); }
+.brand { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 32px; line-height: 1; letter-spacing: 0.02em; margin: 0; }
+.brand a { color: var(--ink); text-decoration: none; }
+.brand-sub { font-weight: 600; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2); margin: 8px 0 0; }
+.pages { list-style: none; margin: 24px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.pages a { display: block; padding: 9px 12px; border-radius: 10px; color: var(--ink-2); text-decoration: none; font-weight: 600; }
+.pages a:hover { color: var(--ink); background: var(--step-2); }
+.pages a[aria-current="page"] { color: var(--on-copper); background: var(--copper); }
+.toc { margin: 4px 0 10px 12px; padding: 0; list-style: none; font-size: 14px; }
+.toc a { color: var(--ink-2); text-decoration: none; padding: 4px 12px; display: block; border-left: 2px solid var(--rule); }
+.toc a:hover { color: var(--ink); border-left-color: var(--copper); }
+.rail-foot { margin-top: 24px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+main { padding: 44px var(--margin) 96px; min-width: 0; }
+.page { max-width: 74ch; margin: 0 auto; min-width: 0; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--copper); margin: 0 0 10px; }
+h1 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 6vw, 64px); line-height: 0.95; margin: 0 0 20px; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 32px; line-height: 1; letter-spacing: 0.01em; margin: 48px 0 14px; padding-top: 22px; border-top: 1px solid var(--rule); text-wrap: balance; scroll-margin-top: 16px; }
+h3 { font-size: 18px; margin: 28px 0 8px; }
+ul, ol { padding-left: 22px; }
+li { margin: 5px 0; }
+strong { font-weight: 700; }
+code { font-family: var(--mono); font-size: 0.86em; background: var(--step-2); padding: 1px 6px; border-radius: 6px; overflow-wrap: anywhere; }
+pre { background: var(--well); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: 14px; overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); font-weight: 700; }
+img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--rule); background: var(--ground); margin: 18px 0 6px; display: block; }
+.next { display: flex; justify-content: space-between; gap: 16px; margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--rule); font-weight: 600; }
+.next a { text-decoration: none; }
+.next a:hover { text-decoration: underline; }
+.fine { margin-top: 28px; font-size: 13px; color: var(--ink-2); }
+:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+@media (max-width: 880px) {
+  .frame { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding: 18px var(--margin); }
+  .pages { flex-direction: row; flex-wrap: wrap; margin-top: 14px; }
+  .pages a { padding: 7px 10px; font-size: 15px; }
+  .toc, .rail-foot { display: none; }
+  main { padding-top: 28px; padding-bottom: 64px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to the page</a>
+<div class="frame">
+  <nav class="rail" aria-label="Velaria docs">
+    <p class="brand"><a href="#SITE-URL">Velaria</a></p>
+    <p class="brand-sub">Docs · 1.0</p>
+    <ul class="pages"><li><a href="index.html">Start here</a></li><li><a href="setup.html">Setup guide</a></li><li><a href="canvas-control.html">Canvas Control</a></li><li><a href="orient-360.html">Orient 360 and patches</a></li><li><a href="trim.html">Trim</a></li><li><a href="180-and-fisheye.html" aria-current="page">180, 360 and fisheye</a><ul class="toc"><li><a href="#what-auto-does">What Auto does</a></li><li><a href="#layout">Layout</a></li><li><a href="#projection">Projection</a></li><li><a href="#fisheye-lens-presets">Fisheye lens presets</a></li><li><a href="#quick-answers">Quick answers</a></li></ul></li><li><a href="headset.html">Headset reference</a></li><li><a href="known-limits.html">Known limits</a></li><li><a href="support.html">Support and logs</a></li><li><a href="uninstall.html">Uninstall</a></li><li><a href="changelog.html">What changed</a></li></ul>
+    <p class="rail-foot">For a Mac with Apple silicon, DaVinci Resolve Studio and a Meta Quest. The pictures of the headset panels are drawn by the app's own code.</p>
+  </nav>
+  <main id="content">
+    <article class="page">
+      <p class="eyebrow">Velaria · 180, 360 and fisheye</p>
+      <h1>180, 360 and fisheye: picking the right view</h1>
+      
+<p>Velaria View has to know two things about the picture: how the eyes are packed (the layout) and what shape the picture is (the projection). It works both out on its own in most cases. This page covers when to set them by hand.</p>
+<p>Both settings are in the headset: look down, open the <strong>Look</strong> panel, <strong>View</strong> tab, under <strong>Picture</strong>. Tap a setting to step through its choices. Your choice is remembered.</p>
+<h2 id="what-auto-does">What Auto does</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>The picture Resolve sends</th>
+<th>Auto shows it as</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Twice as wide as it is tall (for example 5760 x 2880)</td>
+<td>Side by side, 180°</td>
+</tr>
+<tr>
+<td>Square (for example 3840 x 3840)</td>
+<td>Over/under, 360°</td>
+</tr>
+</tbody>
+</table></div>
+<p>Anything else needs setting by hand. The common case is a <strong>mono 360</strong> shot at 2:1: set Layout to <em>Mono</em> and Projection to <em>360°</em>.</p>
+<h2 id="layout">Layout</h2>
+<p><em>Auto</em>, <em>Mono</em>, <em>Side by side</em>, <em>Over/under</em>.</p>
+<p><strong>Swap eyes</strong> is next to it. If depth looks inside out, or near things are uncomfortable to look at, the eyes are the wrong way round. Tap it.</p>
+<h2 id="projection">Projection</h2>
+<p><em>Auto</em>, <em>Flat</em>, <em>180°</em>, <em>360°</em>, <em>Fisheye 180°</em>.</p>
+<ul>
+<li><strong>180° and 360°</strong> expect an equirectangular picture, the stretched map shape that stitching software and most VR180 cameras' own software produce.</li>
+<li><strong>Fisheye 180°</strong> is for footage straight from a dual-fisheye lens, with two circles side by side and nothing converted yet. Velaria unwraps the circles in the headset so you can review camera originals before you convert them.</li>
+<li><strong>Flat</strong> shows the picture on a flat screen in front of you.</li>
+</ul>
+<h2 id="fisheye-lens-presets">Fisheye lens presets</h2>
+<p>With Projection on <em>Fisheye 180°</em>, a row of lens presets appears. Each sets the field of view the image circle covers:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Field of view</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Canon 5.2</td>
+<td>190°</td>
+</tr>
+<tr>
+<td>Canon 3.9</td>
+<td>144°</td>
+</tr>
+<tr>
+<td>180°</td>
+<td>180°</td>
+</tr>
+<tr>
+<td>200°</td>
+<td>200°</td>
+</tr>
+<tr>
+<td>220°</td>
+<td>220°</td>
+</tr>
+</tbody>
+</table></div>
+<p>Under the presets, the <strong>5°</strong> minus and plus chips trim the value between 120° and 240°. Velaria assumes each eye's image circle touches the edges of its half of the picture.</p>
+<p>If straight lines bow outward or the world seems to swim when you turn your head, the field of view is too low or too high. Step it by 5° until a straight edge stays straight as you look across it.</p>
+<p>The fisheye view is for checking framing, depth and comfort. It is not a calibrated lens conversion, and it does not correct for the small differences between individual lenses. Judge final geometry on your converted footage.</p>
+<h2 id="quick-answers">Quick answers</h2>
+<ul>
+<li><strong>A 360 shot looks like a flat band, or the top and bottom are missing.</strong> A square timeline needs <strong>Timeline Settings &gt; Output scaling &gt; 3840 x 3840</strong> in Resolve while you monitor. The headset's status line tells you when this is the cause.</li>
+<li><strong>The picture is doubled, one eye beside the other.</strong> Layout is wrong. Set it to <em>Side by side</em> or <em>Over/under</em> to match the timeline.</li>
+<li><strong>Everything is the right shape but feels wrong.</strong> Try <strong>Swap eyes</strong>.</li>
+</ul>
+      <p class="next"><a href="trim.html" rel="prev">&larr; Trim</a><a href="headset.html" rel="next">Headset reference &rarr;</a></p>
+      <p class="fine">DaVinci Resolve, DeckLink and UltraStudio are trademarks of Blackmagic Design Pty Ltd. Meta and Quest are trademarks of Meta Platforms, Inc. Mac and macOS are trademarks of Apple Inc. Canon is a trademark of Canon Inc. NDI is a trademark of Vizrt NDI AB. Velaria is an independent product and is not made or endorsed by any of them.</p>
+    </article>
+  </main>
+</div>
+</body>
+</html>

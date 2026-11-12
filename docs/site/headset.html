@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velaria View headset reference | Velaria docs</title>
+<meta name="description" content="Every Velaria View panel in the Quest headset: the strip, Placement, Look, Timeline, Scopes, the level grid and controller shortcuts.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Velaria View headset reference | Velaria docs">
+<meta property="og:description" content="Every Velaria View panel in the Quest headset: the strip, Placement, Look, Timeline, Scopes, the level grid and controller shortcuts.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#15181d">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Velaria View headset reference", "description": "Every Velaria View panel in the Quest headset: the strip, Placement, Look, Timeline, Scopes, the level grid and controller shortcuts.", "inLanguage": "en-CA", "isPartOf": {"@type": "WebSite", "name": "Velaria docs"}, "about": {"@type": "SoftwareApplication", "name": "Velaria", "operatingSystem": "macOS 13 or later; Meta Quest", "applicationCategory": "MultimediaApplication"}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@800&family=Saira:wght@400;600;700&display=swap">
+<style>
+/* Tokens are the sales page's (site/index.html): one dark room, copper for what you act on, ice for status. */
+:root {
+  --ground: #15181d; --step: #1d222a; --step-2: #252b34; --well: #0d0f13;
+  --ink: #f2f3f5; --ink-2: #b4b8bf; --rule: #ffffff1f;
+  --copper: #e0a97a; --on-copper: #15181d; --ice: #8fc1d9;
+  --display: "Saira Extra Condensed", "Saira", "Arial Narrow", system-ui, sans-serif;
+  --text: "Saira", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --margin: clamp(16px, 3.2vw, 48px);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--text); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: var(--copper); text-underline-offset: 3px; }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--copper); color: var(--on-copper); padding: 8px 12px; border-radius: 8px; z-index: 5; }
+.skip:focus { left: 8px; }
+.frame { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+.rail { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; padding: 28px 16px 28px var(--margin); border-right: 1px solid var(--rule); background: var(--step); }
+.brand { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 32px; line-height: 1; letter-spacing: 0.02em; margin: 0; }
+.brand a { color: var(--ink); text-decoration: none; }
+.brand-sub { font-weight: 600; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2); margin: 8px 0 0; }
+.pages { list-style: none; margin: 24px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.pages a { display: block; padding: 9px 12px; border-radius: 10px; color: var(--ink-2); text-decoration: none; font-weight: 600; }
+.pages a:hover { color: var(--ink); background: var(--step-2); }
+.pages a[aria-current="page"] { color: var(--on-copper); background: var(--copper); }
+.toc { margin: 4px 0 10px 12px; padding: 0; list-style: none; font-size: 14px; }
+.toc a { color: var(--ink-2); text-decoration: none; padding: 4px 12px; display: block; border-left: 2px solid var(--rule); }
+.toc a:hover { color: var(--ink); border-left-color: var(--copper); }
+.rail-foot { margin-top: 24px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+main { padding: 44px var(--margin) 96px; min-width: 0; }
+.page { max-width: 74ch; margin: 0 auto; min-width: 0; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--copper); margin: 0 0 10px; }
+h1 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 6vw, 64px); line-height: 0.95; margin: 0 0 20px; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 32px; line-height: 1; letter-spacing: 0.01em; margin: 48px 0 14px; padding-top: 22px; border-top: 1px solid var(--rule); text-wrap: balance; scroll-margin-top: 16px; }
+h3 { font-size: 18px; margin: 28px 0 8px; }
+ul, ol { padding-left: 22px; }
+li { margin: 5px 0; }
+strong { font-weight: 700; }
+code { font-family: var(--mono); font-size: 0.86em; background: var(--step-2); padding: 1px 6px; border-radius: 6px; overflow-wrap: anywhere; }
+pre { background: var(--well); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: 14px; overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); font-weight: 700; }
+img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--rule); background: var(--ground); margin: 18px 0 6px; display: block; }
+.next { display: flex; justify-content: space-between; gap: 16px; margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--rule); font-weight: 600; }
+.next a { text-decoration: none; }
+.next a:hover { text-decoration: underline; }
+.fine { margin-top: 28px; font-size: 13px; color: var(--ink-2); }
+:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+@media (max-width: 880px) {
+  .frame { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding: 18px var(--margin); }
+  .pages { flex-direction: row; flex-wrap: wrap; margin-top: 14px; }
+  .pages a { padding: 7px 10px; font-size: 15px; }
+  .toc, .rail-foot { display: none; }
+  main { padding-top: 28px; padding-bottom: 64px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to the page</a>
+<div class="frame">
+  <nav class="rail" aria-label="Velaria docs">
+    <p class="brand"><a href="#SITE-URL">Velaria</a></p>
+    <p class="brand-sub">Docs · 1.0</p>
+    <ul class="pages"><li><a href="index.html">Start here</a></li><li><a href="setup.html">Setup guide</a></li><li><a href="canvas-control.html">Canvas Control</a></li><li><a href="orient-360.html">Orient 360 and patches</a></li><li><a href="trim.html">Trim</a></li><li><a href="180-and-fisheye.html">180, 360 and fisheye</a></li><li><a href="headset.html" aria-current="page">Headset reference</a><ul class="toc"><li><a href="#the-strip">The strip</a></li><li><a href="#placement">Placement</a></li><li><a href="#look">Look</a></li><li><a href="#timeline">Timeline</a></li><li><a href="#scopes">Scopes</a></li><li><a href="#level-grid">Level grid</a></li><li><a href="#controller-shortcuts">Controller shortcuts</a></li></ul></li><li><a href="known-limits.html">Known limits</a></li><li><a href="support.html">Support and logs</a></li><li><a href="uninstall.html">Uninstall</a></li><li><a href="changelog.html">What changed</a></li></ul>
+    <p class="rail-foot">For a Mac with Apple silicon, DaVinci Resolve Studio and a Meta Quest. The pictures of the headset panels are drawn by the app's own code.</p>
+  </nav>
+  <main id="content">
+    <article class="page">
+      <p class="eyebrow">Velaria · Headset reference</p>
+      <h1>Velaria View headset reference</h1>
+      
+<p>Every panel as the headset draws it. These pictures come from the app's own drawing code, so they match the app.</p>
+<p><strong>Hands:</strong> pinch to press, pinch and hold to drag. <strong>Controllers:</strong> point and pull the trigger. <strong>Look down</strong> to open the panels and look back up past the horizon to close them. Grab a panel's top bar to move it. It stays where you put it.</p>
+<h2 id="the-strip">The strip</h2>
+<p>The strip is always there when the panels are open. It answers two questions at a glance: which layer am I on, and which thing will my hand move?</p>
+<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip on the Overlays layer with a footage window picked" src="ref/strip-overlays.png" />
+<ul>
+<li><strong>Overlays · Patches · Picture</strong> is the layer control, with a count of what is on this frame. Overlays are titles and footage windows, and you can pick them in the picture. Patches are LatLong Patcher windows. Picture is the whole sphere (PanoMap or Velaria Orient 360) and the Velaria Trim pass.</li>
+<li>The four icons on the right show and hide the <strong>Placement</strong>, <strong>Look</strong>, <strong>Timeline</strong> and <strong>Scopes</strong> panels. The chevron rolls the strip up to its bar.</li>
+<li>Row two has one chip for each thing on this layer. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.</li>
+<li><strong>Copy</strong>, <strong>Paste</strong> and <strong>Undo</strong> act on the picked chip. Undo is Resolve's undo.</li>
+<li>Below that: timecode, track, clip, and what the overlay is built from. Then the status line: the link (USB or Wi-Fi), the software, and the last round trip (<em>Resolve updated in 0.4 s</em> or <em>Rendering… 1.2 s</em>).</li>
+</ul>
+<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip on the Patches layer with a locked patch picked" src="ref/strip-patches.png" />
+<p>On Patches, nothing in the picture can be picked. Tap a chip instead. The lock switch on the right locks the picked patch. A locked patch shows a lock on its chip, and the panels refuse changes until you unlock it.</p>
+<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip when nothing is on this layer" src="ref/strip-empty.png" />
+<p>An empty layer says so and offers the nearest overlay on either side, with its timecode. One pinch jumps there.</p>
+<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip while Resolve renders a change" src="ref/strip-rendering.png" />
+<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip showing a setup warning" src="ref/strip-setup-warning.png" />
+<p>When Resolve's monitoring size, output scaling or frame rate is wrong, or no picture arrives, the status line says so with the fix in Resolve's own menu words. Fix it and the line clears on its own.</p>
+<h2 id="placement">Placement</h2>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Placement panel for an overlay" src="ref/placement-card.png" />
+<ul>
+<li><strong>Ring (Pan):</strong> you are the centre and front is up, at the white notch. Drag the dot around. The copper arc shows how far from front you are.</li>
+<li><strong>Arc (Tilt):</strong> a side view. The white line is the horizon.</li>
+<li><strong>Throttles (Distance, Scale):</strong> up is nearer or bigger. The real units are printed beside the travel.</li>
+<li><strong>Dials (Roll, and the window's own yaw, pitch and roll):</strong> drag up or down to turn. Tap a dial to zero it.</li>
+<li>The diamond beside a control is its keyframe. Outline: not animated. White: animated. Copper: a keyframe on this frame. Tap it to set a keyframe at the playhead.</li>
+<li>Or skip the panel: pinch an overlay in the picture and drag it. Pan and Tilt follow your hand.</li>
+</ul>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Placement panel for a patch" src="ref/placement-patch.png" />
+<p>For a patch or the whole picture, the same panel shows that tool's rotations. A locked patch shows LOCKED and ignores drags.</p>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Placement panel as TRIM" src="ref/placement-trim.png" />
+<p>With a <strong>Velaria Trim</strong> picked on the Picture layer, the Placement panel becomes <strong>TRIM</strong>: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.</p>
+<h2 id="look">Look</h2>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Look panel on the Frame tab" src="ref/look-frame.png" />
+<p>The tabs are the effect's own Inspector pages (Frame, Glow, Stereo). Bars have nudge chips for exact steps. An on/off control is a switch. Colours get a wheel with a brightness bar.</p>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Look panel on the View tab" src="ref/look-view.png" />
+<p>The <strong>View</strong> tab holds the app's own settings:</p>
+<ul>
+<li><strong>Stream and Playback:</strong> picture size, layout, frame rate, bitrate, timecode and delay.</li>
+<li><strong>Source:</strong> Auto, Resolve, or Premiere / After Effects (experimental).</li>
+<li><strong>Picture:</strong> Layout, Projection, Swap eyes, and Delay. Delay is automatic. The 10 ms chips set it by hand; tap the middle chip to go back to automatic.</li>
+<li><strong>Overlays:</strong> Status bar, Level grid, Card outline.</li>
+<li><strong>Panels:</strong> Recentre view, panels placed or following you, Scopes on or off.</li>
+<li><strong>The versions line</strong> at the bottom right: the headset app, the Mac package, the bridge when it differs, and Resolve. Take a screenshot of this line when you ask for help.</li>
+</ul>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The View tab with the fisheye lens presets" src="ref/look-fisheye.png" />
+<p>With the Fisheye 180° projection, the lens presets appear: Canon 5.2 (190°), Canon 3.9 (144°), 180°, 200° and 220°, with a 5° trim either way.</p>
+<h2 id="timeline">Timeline</h2>
+<img loading="lazy" decoding="async" width="1400" height="340" alt="The Timeline panel" src="ref/deck-timeline.png" />
+<p>Clip lanes for each video track, the playhead in red, and markers above. Drag in the lanes to scrub. <strong>Clip</strong> arrows jump to clip edges. <strong>-1</strong> and <strong>+1</strong> step one frame. The chip on the right zooms to All, 60 s or 10 s.</p>
+<p>Play and stop stay in Resolve. Use the space bar.</p>
+<h2 id="scopes">Scopes</h2>
+<img loading="lazy" decoding="async" width="1100" height="560" alt="Scopes: waveform and vectorscope" src="ref/scopes-waveform.png" />
+<p>The scopes are measured on the Mac from the uncompressed picture Resolve plays out, before it is compressed for the headset. Choose waveform with vectorscope, RGB parade, or histograms. The lines at 0, 25, 50, 75 and 100 are video range. The vectorscope carries the 75% colour-bar targets and the skin-tone line.</p>
+<p>Scopes are off until you turn them on, in the View tab or with the scopes icon on the strip.</p>
+<h2 id="level-grid">Level grid</h2>
+<p>Turn it on in the View tab (Overlays, Level grid). A level copper horizon with yaw ticks and pitch lines sits over the footage. Use it with the Picture layer to re-level a shot: bring the real horizon to the line. The grid belongs to the room, not the footage, so it never moves with your edits.</p>
+<h2 id="controller-shortcuts">Controller shortcuts</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Right <strong>A</strong></td>
+<td>Status strip on or off</td>
+</tr>
+<tr>
+<td>Right <strong>B</strong></td>
+<td>Swap eyes</td>
+</tr>
+<tr>
+<td>Left <strong>Menu</strong></td>
+<td>Panels placed or following you</td>
+</tr>
+<tr>
+<td>Right stick up and down</td>
+<td>Delay, 10 ms a step</td>
+</tr>
+<tr>
+<td>Right stick click</td>
+<td>Delay back to automatic</td>
+</tr>
+</tbody>
+</table></div>
+      <p class="next"><a href="180-and-fisheye.html" rel="prev">&larr; 180, 360 and fisheye</a><a href="known-limits.html" rel="next">Known limits &rarr;</a></p>
+      <p class="fine">DaVinci Resolve, DeckLink and UltraStudio are trademarks of Blackmagic Design Pty Ltd. Meta and Quest are trademarks of Meta Platforms, Inc. Mac and macOS are trademarks of Apple Inc. Canon is a trademark of Canon Inc. NDI is a trademark of Vizrt NDI AB. Velaria is an independent product and is not made or endorsed by any of them.</p>
+    </article>
+  </main>
+</div>
+</body>
+</html>

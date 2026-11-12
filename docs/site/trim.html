@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trim: a trim pass from the headset | Velaria docs</title>
+<meta name="description" content="How to make a brightness, contrast and colour trim pass from inside the headset with Velaria Trim on a Resolve adjustment clip.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Trim: a trim pass from the headset | Velaria docs">
+<meta property="og:description" content="How to make a brightness, contrast and colour trim pass from inside the headset with Velaria Trim on a Resolve adjustment clip.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#15181d">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Trim: a trim pass from the headset", "description": "How to make a brightness, contrast and colour trim pass from inside the headset with Velaria Trim on a Resolve adjustment clip.", "inLanguage": "en-CA", "isPartOf": {"@type": "WebSite", "name": "Velaria docs"}, "about": {"@type": "SoftwareApplication", "name": "Velaria", "operatingSystem": "macOS 13 or later; Meta Quest", "applicationCategory": "MultimediaApplication"}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@800&family=Saira:wght@400;600;700&display=swap">
+<style>
+/* Tokens are the sales page's (site/index.html): one dark room, copper for what you act on, ice for status. */
+:root {
+  --ground: #15181d; --step: #1d222a; --step-2: #252b34; --well: #0d0f13;
+  --ink: #f2f3f5; --ink-2: #b4b8bf; --rule: #ffffff1f;
+  --copper: #e0a97a; --on-copper: #15181d; --ice: #8fc1d9;
+  --display: "Saira Extra Condensed", "Saira", "Arial Narrow", system-ui, sans-serif;
+  --text: "Saira", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --margin: clamp(16px, 3.2vw, 48px);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--text); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: var(--copper); text-underline-offset: 3px; }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--copper); color: var(--on-copper); padding: 8px 12px; border-radius: 8px; z-index: 5; }
+.skip:focus { left: 8px; }
+.frame { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+.rail { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; padding: 28px 16px 28px var(--margin); border-right: 1px solid var(--rule); background: var(--step); }
+.brand { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 32px; line-height: 1; letter-spacing: 0.02em; margin: 0; }
+.brand a { color: var(--ink); text-decoration: none; }
+.brand-sub { font-weight: 600; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2); margin: 8px 0 0; }
+.pages { list-style: none; margin: 24px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.pages a { display: block; padding: 9px 12px; border-radius: 10px; color: var(--ink-2); text-decoration: none; font-weight: 600; }
+.pages a:hover { color: var(--ink); background: var(--step-2); }
+.pages a[aria-current="page"] { color: var(--on-copper); background: var(--copper); }
+.toc { margin: 4px 0 10px 12px; padding: 0; list-style: none; font-size: 14px; }
+.toc a { color: var(--ink-2); text-decoration: none; padding: 4px 12px; display: block; border-left: 2px solid var(--rule); }
+.toc a:hover { color: var(--ink); border-left-color: var(--copper); }
+.rail-foot { margin-top: 24px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+main { padding: 44px var(--margin) 96px; min-width: 0; }
+.page { max-width: 74ch; margin: 0 auto; min-width: 0; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--copper); margin: 0 0 10px; }
+h1 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 6vw, 64px); line-height: 0.95; margin: 0 0 20px; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 32px; line-height: 1; letter-spacing: 0.01em; margin: 48px 0 14px; padding-top: 22px; border-top: 1px solid var(--rule); text-wrap: balance; scroll-margin-top: 16px; }
+h3 { font-size: 18px; margin: 28px 0 8px; }
+ul, ol { padding-left: 22px; }
+li { margin: 5px 0; }
+strong { font-weight: 700; }
+code { font-family: var(--mono); font-size: 0.86em; background: var(--step-2); padding: 1px 6px; border-radius: 6px; overflow-wrap: anywhere; }
+pre { background: var(--well); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: 14px; overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); font-weight: 700; }
+img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--rule); background: var(--ground); margin: 18px 0 6px; display: block; }
+.next { display: flex; justify-content: space-between; gap: 16px; margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--rule); font-weight: 600; }
+.next a { text-decoration: none; }
+.next a:hover { text-decoration: underline; }
+.fine { margin-top: 28px; font-size: 13px; color: var(--ink-2); }
+:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+@media (max-width: 880px) {
+  .frame { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding: 18px var(--margin); }
+  .pages { flex-direction: row; flex-wrap: wrap; margin-top: 14px; }
+  .pages a { padding: 7px 10px; font-size: 15px; }
+  .toc, .rail-foot { display: none; }
+  main { padding-top: 28px; padding-bottom: 64px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to the page</a>
+<div class="frame">
+  <nav class="rail" aria-label="Velaria docs">
+    <p class="brand"><a href="#SITE-URL">Velaria</a></p>
+    <p class="brand-sub">Docs · 1.0</p>
+    <ul class="pages"><li><a href="index.html">Start here</a></li><li><a href="setup.html">Setup guide</a></li><li><a href="canvas-control.html">Canvas Control</a></li><li><a href="orient-360.html">Orient 360 and patches</a></li><li><a href="trim.html" aria-current="page">Trim</a><ul class="toc"><li><a href="#set-it-up">Set it up</a></li><li><a href="#the-controls">The controls</a></li><li><a href="#when-the-trim-is-right">When the trim is right</a></li><li><a href="#good-to-know">Good to know</a></li></ul></li><li><a href="180-and-fisheye.html">180, 360 and fisheye</a></li><li><a href="headset.html">Headset reference</a></li><li><a href="known-limits.html">Known limits</a></li><li><a href="support.html">Support and logs</a></li><li><a href="uninstall.html">Uninstall</a></li><li><a href="changelog.html">What changed</a></li></ul>
+    <p class="rail-foot">For a Mac with Apple silicon, DaVinci Resolve Studio and a Meta Quest. The pictures of the headset panels are drawn by the app's own code.</p>
+  </nav>
+  <main id="content">
+    <article class="page">
+      <p class="eyebrow">Velaria · Trim</p>
+      <h1>Trim: a trim pass from the headset</h1>
+      
+<p><strong>Velaria Trim</strong> is a small set of picture controls you adjust while wearing the headset, on the device your audience will wear. It is not a grading tool. The Quest's screen is not a reference display. Use Trim to judge brightness, contrast and colour balance in the headset, then keep the result or build it into your grade.</p>
+<h2 id="set-it-up">Set it up</h2>
+<ol>
+<li>On the Edit page, put an <strong>Adjustment Clip</strong> over the section (Effects &gt; Toolbox &gt; Effects &gt; Adjustment Clip), on the top track so it sees everything below it.</li>
+<li>Drag <strong>Velaria Trim</strong> from Effects &gt; Velaria onto the adjustment clip.</li>
+<li>In the headset, switch the strip to <strong>Picture</strong> and tap <strong>Trim</strong>. The Placement panel becomes <strong>TRIM</strong>.</li>
+</ol>
+<h2 id="the-controls">The controls</h2>
+<p>All nine are on one Inspector page, <em>Trim</em>, and as bars in the headset:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Control</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Exposure</td>
+<td>An offset, from -0.5 to +0.5</td>
+</tr>
+<tr>
+<td>Lift, Gamma, Gain</td>
+<td>Shadows, midtones, highlights</td>
+</tr>
+<tr>
+<td>Contrast</td>
+<td></td>
+</tr>
+<tr>
+<td>Saturation</td>
+<td></td>
+</tr>
+<tr>
+<td>Temperature</td>
+<td>Blue to amber</td>
+</tr>
+<tr>
+<td>Tint</td>
+<td>Green to magenta</td>
+</tr>
+<tr>
+<td>Amount</td>
+<td>0 turns the trim off. Use it for before and after.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each bar has nudge chips for exact steps. Every control keyframes and undoes like any other Resolve control.</p>
+<h2 id="when-the-trim-is-right">When the trim is right</h2>
+<p>Either leave it in place, and it renders in your export like any other effect, or read the values off the Inspector and build them into your grade on the Color page, then delete the adjustment clip.</p>
+<h2 id="good-to-know">Good to know</h2>
+<ul>
+<li>Trim sits on top of your grade. It does not read or change the Color page.</li>
+<li>Temperature and Tint are approximations made with per-channel gain. They are for a trim, not a white balance.</li>
+<li>The scopes in the headset are measured on the Mac from the picture Resolve sends, before it is compressed for the headset.</li>
+</ul>
+      <p class="next"><a href="orient-360.html" rel="prev">&larr; Orient 360 and patches</a><a href="180-and-fisheye.html" rel="next">180, 360 and fisheye &rarr;</a></p>
+      <p class="fine">DaVinci Resolve, DeckLink and UltraStudio are trademarks of Blackmagic Design Pty Ltd. Meta and Quest are trademarks of Meta Platforms, Inc. Mac and macOS are trademarks of Apple Inc. Canon is a trademark of Canon Inc. NDI is a trademark of Vizrt NDI AB. Velaria is an independent product and is not made or endorsed by any of them.</p>
+    </article>
+  </main>
+</div>
+</body>
+</html>

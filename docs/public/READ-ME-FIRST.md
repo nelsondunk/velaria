@@ -1,6 +1,6 @@
 # Velaria: read me first
 
-Velaria shows your DaVinci Resolve timeline in a Meta Quest headset, live and in step with Resolve's viewer. This card is the short version. The full guide is `SETUP.md` in this folder.
+Velaria shows your DaVinci Resolve timeline in a Meta Quest headset, live and in step with Resolve's viewer. This card is the short version. The full guide is the setup guide (`SETUP.md` in the download).
 
 ## Before you install
 
@@ -11,7 +11,7 @@ You need all four. If one is missing, Velaria will not work.
 3. A Meta Quest 3 with **developer mode** on. (Quest 3S, Quest 2 and Quest Pro run the app; Quest 3 is the headset we test on.)
 4. Apple's Command Line Tools. If you are not sure you have them, run `xcode-select --install` in Terminal.
 
-## Install in four lines
+## Install in two lines
 
 ```
 cd ~/Downloads/Velaria-1.0.x
@@ -34,7 +34,7 @@ Velaria View is not in the App Library? The headset was not connected during the
 
 ## Still stuck
 
-Run `./send-logs.sh` from this folder. It makes a zip on your Desktop and sends nothing by itself. Email the zip to [SUPPORT EMAIL] with one line on what you saw. `SUPPORT.md` says what is in the zip.
+Run `./send-logs.sh` from this folder. It makes a zip on your Desktop and sends nothing by itself. Email the zip to [SUPPORT EMAIL] with one line on what you saw. The support page (`SUPPORT.md` in the download) says what is in the zip.
 
 ## Remove it
 
