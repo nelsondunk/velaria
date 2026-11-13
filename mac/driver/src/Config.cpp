@@ -61,6 +61,9 @@ Config load() {
             int s = 0;
             num("StreamWhenNoClient", s);
             c.streamWhenNoClient = s != 0;
+            int co = 1;
+            num("Coexist", co);
+            c.coexist = co != 0;
         }
         if (pl) CFRelease(pl);
         CFReadStreamClose(rs);
@@ -80,8 +83,8 @@ Config load() {
     }
     if (c.maxEncodeWidth < 640) c.maxEncodeWidth = 640;
     if (c.keyframeIntervalSec < 1) c.keyframeIntervalSec = 1;
-    VLOGI("config: layout=%s projection=%s crop=%s maxW=%d bitrate=%d port=%d name=%s trace=%d", c.layout.c_str(),
-          c.projection.c_str(), c.crop.c_str(), c.maxEncodeWidth, c.bitrateMbps, c.port, c.name.c_str(), c.trace);
+    VLOGI("config: layout=%s projection=%s crop=%s maxW=%d bitrate=%d port=%d name=%s trace=%d coexist=%d", c.layout.c_str(),
+          c.projection.c_str(), c.crop.c_str(), c.maxEncodeWidth, c.bitrateMbps, c.port, c.name.c_str(), c.trace, c.coexist);
     return c;
 }
 }  // namespace

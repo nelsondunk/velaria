@@ -16,6 +16,7 @@ struct Config {
     std::string name;                  // shown in the headset; defaults to the Mac's name
     bool trace = false;                // log-only probe mode (no streaming)
     bool streamWhenNoClient = false;   // encode even when no headset is connected (benchmarks)
+    bool coexist = true;               // load Blackmagic's framework underneath when install.sh --coexist set it aside
 
     static const Config& get();        // loaded once per process
 };

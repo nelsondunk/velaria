@@ -37,6 +37,11 @@ echo "Built build/bench"
 $CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk -Isrc \
   tests/area_test.cpp src/ActiveArea.cpp src/Log.cpp -framework CoreFoundation -o $B/area_test
 echo "Built build/area_test"
+# coexistence merge logic against a fake Blackmagic framework (the real one needs docs/decklink-coexistence-test-plan.md)
+$CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk -Isrc -Wall -Wno-unused-parameter \
+  tests/chain_test.cpp src/Chain.cpp -framework CoreFoundation -o $B/chain_test \
+  && $B/chain_test && echo "Built build/chain_test" \
+  || echo "WARNING: chain_test did not build or did not pass (the driver itself is unaffected; see the output above)"
 # test tools: Resolve-like source and reference receiver
 $CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk ../tools/e2e_source.cpp \
   -framework CoreFoundation -o $B/e2e_source
