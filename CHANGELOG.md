@@ -11,6 +11,15 @@ For alpha testers. Newest first. Headset builds are numbered `version+build`; th
 - Cards are not picked or outlined in the scene while the Dome projection is on.
 - **Fixed on the way:** with Projection set to Fisheye 180° the View tab read "flat" and the lens presets never appeared (the label table stopped at 360°). It now reads "Fisheye 180°" and the presets show.
 
+## Unreleased — coexistence with Blackmagic Desktop Video (opt-in, not for customers yet)
+
+**UNTESTED.** Written on Linux (13 Nov 2026); never compiled for macOS, never run beside Desktop Video or a real card. Design and test plan: `docs/decklink-coexistence.md`, `docs/decklink-coexistence-test-plan.md`.
+
+- `sudo ./install.sh --coexist` sets Blackmagic's driver aside where Velaria's driver can load it underneath, so Resolve's Video I/O should list Velaria (Quest) and the Blackmagic device. The default install and `--replace-blackmagic` behave as before.
+- `./install.sh --status` (no sudo) says which driver is active and what is set aside. `send-logs.sh` includes it.
+- `--uninstall` no longer puts an old Blackmagic backup inside a newer Blackmagic driver when Desktop Video was reinstalled after Velaria.
+- Driver log: lines starting `coexist:` record what was loaded, its version and the devices it reports.
+
 ## 1.0.9 — 2 November 2026 (the rename)
 
 Headset app 1.0.9+51. **Kalyx is now Velaria** everywhere: the headset app (*Velaria View*, a new package — install it fresh with `sudo ./install.sh --headset`; your panel layout starts over), the Resolve device (*Velaria (Quest)* in Video and Audio I/O — pick it again after the update), the Fusion library (Effects ▸ **Velaria**: Canvas Control, Orient 360, Trim) and the Mac helpers.

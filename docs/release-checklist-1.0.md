@@ -16,7 +16,7 @@ Aligned with "Nelson's one-time actions" in the 2 Nov launch plan: store, Canon 
 | A4 | Decide whether the `Skylight_UpgradeMacros` script and the `ca.skylightproductions.velaria` identifiers stay as they are for 1.0. The page says the seller is Hammer & Anvil. Renaming touches the installer, the bridge, the headset app ID and every doc, and needs a full re-test. Recommended: keep for 1.0, say "made by Skylight for H&A" nowhere, revisit with signing | Nelson | Fri 20 Nov | Yes or no on the Notion Velaria page |
 | A5 | Legal read of the EULA, privacy statement and notices; read Blackmagic's DeckLink SDK licence and the Android SDK terms for bundling `adb` | Nelson, with a lawyer | Fri 27 Nov | A written reply is saved; the "Open questions" section and every `[VERIFY]` and DRAFT marker are gone from `legal/` |
 | A6 | Get one native Canon dual-fisheye clip (rent, borrow or a Canon rep) | Nelson | Fri 27 Nov | The clip is on the second Mac. If it is not there by this date, 1.0 ships with the fisheye wording as it is in `docs/public/howto-180-and-fisheye.md` ("a preview, not a calibrated conversion") |
-| A7 | Order the used UltraStudio Monitor 3G or Mini Monitor test fixture | Nelson | Fri 20 Nov | Order confirmation saved. It is for coexistence (1.0.1 or 1.1), not a 1.0 blocker |
+| A7 | Order the UltraStudio test fixture: an UltraStudio Monitor 3G or the newer UltraStudio Express Monitor 3G. **Not** the older UltraStudio Mini Monitor: Desktop Video dropped it in 14.0 and it was Intel-only before that (checked 13 Nov; see `docs/decklink-coexistence-test-plan.md`) | Nelson | Fri 20 Nov | Order confirmation saved. It is for coexistence (1.0.1 or 1.1), not a 1.0 blocker |
 
 ## B. Merge and freeze (Nelson and Claude on the Mac)
 
