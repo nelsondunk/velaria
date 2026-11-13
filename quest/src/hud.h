@@ -127,6 +127,12 @@ enum class HudButton {
     // view tab (settings)
     Hud, SwapEyes, Layout, Projection, DelayDown, DelayAuto, DelayUp, ResetView, PinAll, Grid, Outline, Source, FovDown, FovUp,
     FovPreset,      // arg = lens field of view in degrees (View tab presets for the fisheye projection)
+    // dome preview (View tab, shown with the dome projection)
+    DomeTilt,       // arg = tilt preset in degrees
+    DomeTiltDown, DomeTiltUp,   // 1 degree trim
+    DomeSeat,       // arg 0 centre, 1 front, 2 rear, 3 left, 4 right
+    DomeSize,       // next dome diameter
+    DomeFov,        // next master field of view (180 / 200 / 220)
     PanelToggle,    // arg = PanelId: show / hide that panel altogether (dock chips on the Instance strip)
     // instance strip
     GroupPrev, GroupNext, Copy, Paste, PasteAll, Undo, Refresh,
@@ -190,6 +196,8 @@ struct HudInfo {
     bool swapEyes = false, hudOn = true, pinned = false, hands = false, grid = false, outline = true;
     std::string source;       // preference: auto | resolve | ndi
     float fisheyeFov = 190;   // lens FOV used by the fisheye projection
+    float domeTilt = 0, domeDiameter = 16, domeFov = 180;   // dome preview: tilt (deg), diameter (m), master FOV (deg)
+    int domeSeat = 0;         // 0 centre, 1 front, 2 rear, 3 left, 4 right
     std::string serverName;   // what we are connected to ("Resolve", "NDI · Adobe Premiere Pro")
     std::string notice;    // transient message after an action
     std::string warning;   // e.g. dropping frames

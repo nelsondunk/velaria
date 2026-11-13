@@ -57,7 +57,11 @@ enum class MsgType : uint8_t {
 constexpr uint32_t kScopesW = 768, kScopesH = 192, kScopesLayoutV1 = 1;
 
 enum class Layout : uint32_t { Mono = 0, SideBySide = 1, TopBottom = 2 };
-enum class Projection : uint32_t { Flat = 0, Equirect180 = 1, Equirect360 = 2, Fisheye180 = 3 };   // Fisheye180: dual circular fisheye (Canon dual fisheye, Apple Immersive source), unwrapped on the headset
+// Fisheye180: dual circular fisheye (Canon dual fisheye, Apple Immersive source), unwrapped on the headset.
+// Dome: a domemaster (square, mono, equidistant fisheye, zenith at the centre, bottom of frame = front of the dome),
+// shown on a tilted hemisphere. Chosen on the headset only: no sender picks it automatically, because a square
+// frame is also what a 180 or an over/under 360 looks like.
+enum class Projection : uint32_t { Flat = 0, Equirect180 = 1, Equirect360 = 2, Fisheye180 = 3, Dome = 4 };
 
 enum VideoFlags : uint32_t {
     kVideoKeyframe = 1u << 0,
@@ -276,6 +280,7 @@ inline const char* projectionName(uint32_t p) {
         case Projection::Equirect180: return "180";
         case Projection::Equirect360: return "360";
         case Projection::Fisheye180: return "fisheye";
+        case Projection::Dome: return "dome";
     }
     return "?";
 }

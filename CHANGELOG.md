@@ -2,6 +2,15 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## Unreleased — 1.1 work in progress (Dome preview)
+
+**UNTESTED on a headset.** Built on Linux only (13 Nov 2026); nothing below has been seen in a Quest.
+
+- **Dome projection** in the headset (Look ▸ View ▸ Projection: Dome). A domemaster (square, mono, equidistant fisheye, zenith at the centre, bottom of the frame = front of the dome) is shown on a real-sized hemisphere around your seat. Chosen by hand; nothing detects it automatically.
+- **Theatre controls** appear under PICTURE with the Dome projection: tilt presets (Level, 10°, 15°, 20°, 25°, 30°) and a 1° trim, Seat (centre, front, rear, left, right: half a radius off centre), Dome diameter (8 to 24 m) and Master field of view (180°, 200°, 220°; the dome shows the inner 180°). Recentre view also re-takes your seat.
+- Cards are not picked or outlined in the scene while the Dome projection is on.
+- **Fixed on the way:** with Projection set to Fisheye 180° the View tab read "flat" and the lens presets never appeared (the label table stopped at 360°). It now reads "Fisheye 180°" and the presets show.
+
 ## 1.0.9 — 2 November 2026 (the rename)
 
 Headset app 1.0.9+51. **Kalyx is now Velaria** everywhere: the headset app (*Velaria View*, a new package — install it fresh with `sudo ./install.sh --headset`; your panel layout starts over), the Resolve device (*Velaria (Quest)* in Video and Audio I/O — pick it again after the update), the Fusion library (Effects ▸ **Velaria**: Canvas Control, Orient 360, Trim) and the Mac helpers.

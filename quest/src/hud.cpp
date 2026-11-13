@@ -496,6 +496,7 @@ std::string fpsString(double fps) {
 }
 
 std::string layoutLabel(const std::string& layout, const std::string& projection) {
+    if (projection == "dome") return "Dome master";
     if (layout == "mono") return projection == "flat" ? "Flat" : "Mono " + projection;
     return layout + " " + projection;
 }
@@ -706,7 +707,9 @@ static std::string infoKey(const HudInfo& i) {
              i.projectionAuto, i.delayAuto, i.swapEyes, i.hudOn, i.pinned, i.hands, i.grid, i.outline, i.delayMs, (int)i.hz,
              i.arriveMs, i.decodeMs, i.rttMs, (unsigned long long)i.shown, (unsigned long long)i.dropped,
              (unsigned long long)i.uneven);
-    return std::string(b) + "|" + i.source + "|" + i.serverName;
+    char d[64];
+    snprintf(d, sizeof d, "|%.0f|%.0f|%d|%.0f|%.0f", i.fisheyeFov, i.domeTilt, i.domeSeat, i.domeDiameter, i.domeFov);
+    return std::string(b) + "|" + i.source + "|" + i.serverName + d;
 }
 
 static std::string pointerKey(const UiState& s, PanelId id) {

@@ -694,7 +694,8 @@ void drawViewTab(Chrome& ch, float y) {
     cols(3, 0, x, w);
     ch.chip(HudButton::Layout, 0, x, y, w, ch_h, std::string("Layout: ") + (in.layoutAuto ? "Auto" : in.layout), !in.layoutAuto);
     cols(3, 1, x, w);
-    ch.chip(HudButton::Projection, 0, x, y, w, ch_h, std::string("Projection: ") + (in.projectionAuto ? "Auto" : in.projection), !in.projectionAuto);
+    std::string projName = in.projection == "fisheye" ? "Fisheye 180\xC2\xB0" : in.projection == "dome" ? "Dome" : in.projection;
+    ch.chip(HudButton::Projection, 0, x, y, w, ch_h, std::string("Projection: ") + (in.projectionAuto ? "Auto" : projName), !in.projectionAuto);
     cols(3, 2, x, w);
     ch.chip(HudButton::SwapEyes, 0, x, y, w, ch_h, "Swap eyes", in.swapEyes);
     y += ch_h + gap;
@@ -717,6 +718,36 @@ void drawViewTab(Chrome& ch, float y) {
             snprintf(b, sizeof b, "Lens field of view %.0f\xC2\xB0  \xC2\xB7  circle inscribed per eye", in.fisheyeFov);
             ch.chip3(HudButton::None, 0, pad + small + gap, y, mid, ch_h, ChipState::Flat, b);
             ch.chip3(HudButton::FovUp, 0, pad + small + gap + mid + gap, y, small, ch_h, ChipState::Rest, "5\xC2\xB0", (int)Icon::Plus);
+            y += ch_h + gap;
+        }
+        if (in.projection == "dome") {
+            // the theatre: tilt presets (how far the dome's front edge sits below level)
+            static const int tilts[] = {0, 10, 15, 20, 25, 30};
+            float tw = (inner - gap * 5) / 6;
+            for (int i = 0; i < 6; i++) {
+                snprintf(b, sizeof b, i == 0 ? "Level" : "%d\xC2\xB0", tilts[i]);
+                ch.chip3(HudButton::DomeTilt, tilts[i], pad + i * (tw + gap), y, tw, ch_h, std::lround(in.domeTilt) == tilts[i] ? ChipState::On : ChipState::Rest, b);
+            }
+            y += ch_h + gap;
+            // one row: 1 degree trim around the readout, then seat, dome size and master angle (each steps on a tap)
+            static const char* seats[] = {"centre", "front", "rear", "left", "right"};
+            float tr = 96, rest = inner - 2 * tr - 5 * gap, x0 = pad;
+            float ws[4] = {rest * 0.18f, rest * 0.28f, rest * 0.26f, rest * 0.28f};
+            ch.chip3(HudButton::DomeTiltDown, 0, x0, y, tr, ch_h, ChipState::Rest, "1\xC2\xB0", (int)Icon::Minus);
+            x0 += tr + gap;
+            snprintf(b, sizeof b, "Tilt %.0f\xC2\xB0", in.domeTilt);
+            ch.chip3(HudButton::None, 0, x0, y, ws[0], ch_h, ChipState::Flat, b);
+            x0 += ws[0] + gap;
+            ch.chip3(HudButton::DomeTiltUp, 0, x0, y, tr, ch_h, ChipState::Rest, "1\xC2\xB0", (int)Icon::Plus);
+            x0 += tr + gap;
+            int seat = std::max(0, std::min(4, in.domeSeat));
+            ch.chip3(HudButton::DomeSeat, (seat + 1) % 5, x0, y, ws[1], ch_h, seat ? ChipState::On : ChipState::Rest, std::string("Seat: ") + seats[seat]);
+            x0 += ws[1] + gap;
+            snprintf(b, sizeof b, "Dome %.0f m", in.domeDiameter);
+            ch.chip3(HudButton::DomeSize, 0, x0, y, ws[2], ch_h, ChipState::Rest, b);
+            x0 += ws[2] + gap;
+            snprintf(b, sizeof b, "Master %.0f\xC2\xB0", in.domeFov);
+            ch.chip3(HudButton::DomeFov, 0, x0, y, ws[3], ch_h, in.domeFov > 181 ? ChipState::On : ChipState::Rest, b);
             y += ch_h + gap;
         }
         y += 8;

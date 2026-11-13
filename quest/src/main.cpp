@@ -62,6 +62,11 @@ struct Settings {
     bool grid = false;     // horizon / level grid over the picture
     bool outline = true;   // thin outline on the selected / pointed-at card
     float fisheyeFov = 190; // lens field of view for the dual-fisheye projection (Canon RF 5.2: 190)
+    // Dome preview: the theatre the domemaster is judged in
+    float domeTilt = 0;        // degrees the dome's front edge drops below level (0 = classic level dome, up to 30)
+    int domeSeat = 0;          // 0 centre, 1 front, 2 rear, 3 left, 4 right (kDomeSeatFrac of the radius off centre)
+    float domeDiameter = 16;   // metres; sets the distance to the screen (parallax and vergence), not the picture
+    float domeFov = 180;       // field of view the master's circle covers; the dome shows its inner 180
     bool panelOn[kPanelCount] = {true, true, true, true, false};   // dock: which panels exist at all (Instance strip always); Scopes off until asked
     int scopesView = 0;
     std::string source = "auto";   // auto | resolve | ndi (which Mac-side server to follow)
@@ -89,6 +94,10 @@ struct Settings {
             else if (k == "grid") grid = v == "1";
             else if (k == "outline") outline = v == "1";
             else if (k == "fisheyeFov") fisheyeFov = (float)atof(v.c_str());
+            else if (k == "domeTilt") domeTilt = std::max(0.0f, std::min(30.0f, (float)atof(v.c_str())));
+            else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
+            else if (k == "domeDiameter") domeDiameter = std::max(4.0f, std::min(40.0f, (float)atof(v.c_str())));
+            else if (k == "domeFov") domeFov = std::max(180.0f, std::min(220.0f, (float)atof(v.c_str())));
             else if (k == "panelOn" && v.size() >= 7) {
                 for (int i = 0; i < kPanelCount; i++) if ((size_t)(i * 2) < v.size()) panelOn[i] = v[i * 2] == '1';
                 panelOn[0] = true;
@@ -118,6 +127,7 @@ struct Settings {
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
           << "\noutline " << (outline ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
+          << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeDiameter " << domeDiameter << "\ndomeFov " << domeFov
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
           << "\nyawDeg " << yawDeg
@@ -233,6 +243,10 @@ struct App {
     XrVector3f cockpitPos{};
     float cockpitYaw = 0;
     bool cockpitValid = false;
+    // Dome preview: where the viewer's head was when they took their seat (set on entering the dome projection,
+    // on recentre and on a seat or size change); the dome hangs in the room relative to this.
+    XrVector3f domeAnchor{};
+    bool domeAnchorValid = false;
     struct Panel {
         Swapchain sc;
         XrPosef pose{};              // this frame (hit tests and the layer)
@@ -339,11 +353,30 @@ static XrPosef placeQuad(const XrVector3f& eye, float yaw, float pitch, float di
     return {o, vAdd(eye, vScale(fwd, dist))};
 }
 
-static Layout effectiveLayout() {
-    return g.settings.layout >= 0 ? (Layout)g.settings.layout : (Layout)g.cfg.msg.layout;
-}
 static Projection effectiveProjection() {
     return g.settings.projection >= 0 ? (Projection)g.settings.projection : (Projection)g.cfg.msg.projection;
+}
+static Layout effectiveLayout() {
+    if (effectiveProjection() == Projection::Dome) return Layout::Mono;   // a domemaster is one circle, always mono
+    return g.settings.layout >= 0 ? (Layout)g.settings.layout : (Layout)g.cfg.msg.layout;
+}
+// Dome preview geometry. The dome's own frame has +Y through its zenith and -Z at its front; tilting the theatre
+// by t drops the front edge t below level, which is a pitch of -t. The domemaster is a fisheye looking along the
+// zenith with the frame's bottom at the front, i.e. the 180 layer pitched up 90 degrees inside that frame.
+constexpr float kDomeSeatFrac = 0.5f;   // off-centre seats sit half a radius from the centre, in the springline plane
+static XrQuaternionf domeFrame() {
+    const float deg = (float)M_PI / 180;
+    return qMul(qYaw(g.settings.yawDeg * deg), qPitch(-g.settings.domeTilt * deg));
+}
+// Where the dome's centre is in the room: the seat is where the viewer sat down (the anchor), so the centre is
+// the anchor minus the seat's offset. Leaning or standing then moves the viewer inside the dome, as in the room.
+static XrPosef domeLayerPose() {
+    static const float seat[5][2] = {{0, 0}, {0, -1}, {0, 1}, {-1, 0}, {1, 0}};   // x (right), z (back) in the dome frame
+    float r = g.settings.domeDiameter * 0.5f * kDomeSeatFrac;
+    const float* s = seat[std::max(0, std::min(4, g.settings.domeSeat))];
+    XrQuaternionf f = domeFrame();
+    XrVector3f centre = vSub(g.domeAnchor, qRotate(f, {s[0] * r, 0, s[1] * r}));
+    return {qMul(f, qPitch((float)M_PI / 2)), centre};
 }
 
 static bool createSwapchain(Swapchain& sc, int w, int h) {
@@ -644,8 +677,9 @@ static void setLayout(int v) {
 }
 static void setProjection(int v) {
     g.settings.projection = v;
-    const char* proj[] = {"Flat", "180\xC2\xB0", "360\xC2\xB0", "Fisheye 180\xC2\xB0"};
-    showNotice(v < 0 ? "Projection: auto" : std::string("Projection: ") + proj[v % 4]);
+    const char* proj[] = {"Flat", "180\xC2\xB0", "360\xC2\xB0", "Fisheye 180\xC2\xB0", "Dome"};
+    if (v == (int)Projection::Dome) g.domeAnchorValid = false;   // sit down where the viewer is now
+    showNotice(v < 0 ? "Projection: auto" : std::string("Projection: ") + proj[v % 5]);
 }
 static void nudgeDelay(int deltaMs) {
     int cur = g.settings.delayMs >= 0 ? g.settings.delayMs : (int)(g.autoDelayNs / 1000000);
@@ -657,6 +691,7 @@ static void nudgeDelay(int deltaMs) {
 static void recentreView() {
     if (!g.headValid) return;
     g.settings.yawDeg = g.headYaw * 180.0f / (float)M_PI;
+    g.domeAnchorValid = false;   // dome preview: this is the seat now
     showNotice("View recentred");
 }
 // Panel layout persistence: poses are stored relative to the cockpit anchor so they come back in the same place
@@ -929,7 +964,42 @@ static void activate(HudButton b, int arg = 0) {
             showNotice(g.settings.swapEyes ? "Eyes swapped" : "Eyes normal");
             break;
         case HudButton::Layout: setLayout(g.settings.layout >= 2 ? -1 : g.settings.layout + 1); break;
-        case HudButton::Projection: setProjection(g.settings.projection >= 3 ? -1 : g.settings.projection + 1); break;
+        case HudButton::Projection: setProjection(g.settings.projection >= 4 ? -1 : g.settings.projection + 1); break;
+        case HudButton::DomeTilt:
+        case HudButton::DomeTiltDown:
+        case HudButton::DomeTiltUp: {
+            float t = b == HudButton::DomeTilt ? (float)arg : g.settings.domeTilt + (b == HudButton::DomeTiltUp ? 1 : -1);
+            g.settings.domeTilt = std::max(0.0f, std::min(30.0f, t));
+            char m[64];
+            snprintf(m, sizeof m, "Dome tilt %.0f\xC2\xB0", g.settings.domeTilt);
+            showNotice(m);
+            break;
+        }
+        case HudButton::DomeSeat: {
+            static const char* seats[] = {"centre", "front", "rear", "left", "right"};
+            g.settings.domeSeat = std::max(0, std::min(4, arg));
+            g.domeAnchorValid = false;
+            showNotice(std::string("Seat: ") + seats[g.settings.domeSeat]);
+            break;
+        }
+        case HudButton::DomeSize: {
+            static const float sizes[] = {8, 12, 16, 20, 24};   // small portable to large fixed theatre, metres
+            int i = 0;
+            while (i < 5 && sizes[i] <= g.settings.domeDiameter + 0.01f) i++;
+            g.settings.domeDiameter = sizes[i % 5];
+            g.domeAnchorValid = false;
+            char m[64];
+            snprintf(m, sizeof m, "Dome diameter %.0f m", g.settings.domeDiameter);
+            showNotice(m);
+            break;
+        }
+        case HudButton::DomeFov: {
+            g.settings.domeFov = g.settings.domeFov < 199 ? 200.0f : g.settings.domeFov < 219 ? 220.0f : 180.0f;
+            char m[80];
+            snprintf(m, sizeof m, "Master field of view %.0f\xC2\xB0", g.settings.domeFov);
+            showNotice(m);
+            break;
+        }
         case HudButton::DelayDown: nudgeDelay(-10); break;
         case HudButton::DelayUp: nudgeDelay(+10); break;
         case HudButton::DelayAuto:
@@ -1357,7 +1427,7 @@ static bool monitorMode() {
 }
 
 static int pickCard(const XrPosef& ray) {
-    if (monitorMode()) return -1;
+    if (monitorMode() || effectiveProjection() == Projection::Dome) return -1;
     XrVector3f d = qRotate(ray.orientation, {0, 0, -1});
     int best = -1;
     float bestAng = 1e9f;
@@ -1783,9 +1853,10 @@ static void chooseFrame(int64_t displayMono) {
         AHardwareBuffer* ahb = nullptr;
         if (AImage_getHardwareBuffer(next.image, &ahb) == AMEDIA_OK && ahb && g.video.handle) {
             Gfx::Fisheye fe;
-            fe.layout = (int)effectiveLayout();
-            fe.fovDeg = g.settings.fisheyeFov;
-            const Gfx::Fisheye* fep = effectiveProjection() == Projection::Fisheye180 ? &fe : nullptr;
+            Projection proj = effectiveProjection();
+            fe.layout = (int)effectiveLayout();   // mono for a domemaster
+            fe.fovDeg = proj == Projection::Dome ? g.settings.domeFov : g.settings.fisheyeFov;
+            const Gfx::Fisheye* fep = proj == Projection::Fisheye180 || proj == Projection::Dome ? &fe : nullptr;
             renderInto(g.video, [&](GLuint tex) { g.gfx.blitVideo(ahb, tex, g.video.width, g.video.height, fep); });
         }
         for (int i = 0; i < idx; i++) retire(g.held[(size_t)i].image);   // superseded before display
@@ -1843,9 +1914,10 @@ static void updateHud(int64_t now, bool playing) {
     in.width = (int)g.cfg.msg.width;
     in.height = (int)g.cfg.msg.height;
     const char* lay[] = {"mono", "SBS", "TB"};
-    const char* proj[] = {"flat", "180\xC2\xB0", "360\xC2\xB0"};
+    // "fisheye" and "dome" are the words the View tab keys its lens and theatre rows on
+    const char* proj[] = {"flat", "180\xC2\xB0", "360\xC2\xB0", "fisheye", "dome"};
     in.layout = lay[(int)effectiveLayout() % 3];
-    in.projection = proj[(int)effectiveProjection() % 3];
+    in.projection = proj[(int)effectiveProjection() % 5];
     in.layoutAuto = g.settings.layout < 0;
     in.projectionAuto = g.settings.projection < 0;
     in.fps = g.cfg.msg.fpsDen ? (double)g.cfg.msg.fpsNum / g.cfg.msg.fpsDen : 0.0;
@@ -1870,6 +1942,10 @@ static void updateHud(int64_t now, bool playing) {
     in.source = g.settings.source;
     in.serverName = g.net.serverName();
     in.fisheyeFov = g.settings.fisheyeFov;
+    in.domeTilt = g.settings.domeTilt;
+    in.domeSeat = g.settings.domeSeat;
+    in.domeDiameter = g.settings.domeDiameter;
+    in.domeFov = g.settings.domeFov;
     // Resolve setup preflight: what the bridge found in the project settings, then what only this end can see
     // (the raster and frame rate the driver is actually fed, and whether a picture arrives at all)
     {
@@ -2060,7 +2136,8 @@ static void pollDebugCommands(int64_t now) {
         {"PageUp", HudButton::PageUp}, {"PageDown", HudButton::PageDown}, {"Toggle", HudButton::Toggle},
         {"NudgeDown", HudButton::NudgeDown}, {"NudgeUp", HudButton::NudgeUp}, {"Key", HudButton::Key},
         {"Zoom", HudButton::Zoom}, {"Copy", HudButton::Copy}, {"Paste", HudButton::Paste}, {"PasteAll", HudButton::PasteAll},
-        {"Dial", HudButton::Dial}, {"Grid", HudButton::Grid}, {"Outline", HudButton::Outline}, {"Source", HudButton::Source}, {"FovDown", HudButton::FovDown}, {"FovUp", HudButton::FovUp}, {"PanelToggle", HudButton::PanelToggle}, {"Layer", HudButton::Layer}, {"Lock", HudButton::Lock}, {"GroupPick", HudButton::GroupPick}, {"ScopesView", HudButton::ScopesView}, {"Jump", HudButton::Jump}, {"FovPreset", HudButton::FovPreset}};
+        {"Dial", HudButton::Dial}, {"Grid", HudButton::Grid}, {"Outline", HudButton::Outline}, {"Source", HudButton::Source}, {"FovDown", HudButton::FovDown}, {"FovUp", HudButton::FovUp}, {"PanelToggle", HudButton::PanelToggle}, {"Layer", HudButton::Layer}, {"Lock", HudButton::Lock}, {"GroupPick", HudButton::GroupPick}, {"ScopesView", HudButton::ScopesView}, {"Jump", HudButton::Jump}, {"FovPreset", HudButton::FovPreset},
+        {"DomeTilt", HudButton::DomeTilt}, {"DomeTiltDown", HudButton::DomeTiltDown}, {"DomeTiltUp", HudButton::DomeTiltUp}, {"DomeSeat", HudButton::DomeSeat}, {"DomeSize", HudButton::DomeSize}, {"DomeFov", HudButton::DomeFov}};
     for (auto& l : lines) {
         std::istringstream ss(l);
         std::string cmd, a, b;
@@ -2232,6 +2309,15 @@ static void renderFrame() {
             vHalf = (float)(std::atan(std::tan(hAngle / 2) / eyeAspect));
         }
         bool stereo = L != Layout::Mono;
+        bool dome = P == Projection::Dome;
+        XrPosef domePose{};
+        if (dome) {
+            if (!g.domeAnchorValid && g.headValid) {
+                g.domeAnchor = g.head.position;
+                g.domeAnchorValid = true;
+            }
+            domePose = domeLayerPose();
+        }
         for (int e = 0; e < (stereo ? 2 : 1); e++) {
             eq[e] = {XR_TYPE_COMPOSITION_LAYER_EQUIRECT2_KHR};
             eq[e].layerFlags = 0;
@@ -2242,6 +2328,10 @@ static void renderFrame() {
             eq[e].subImage.imageArrayIndex = 0;
             eq[e].pose.orientation = qYaw(g.settings.yawDeg * deg);   // recentre offset
             eq[e].radius = 0;   // infinite sphere: no parallax from head translation
+            if (dome && g.domeAnchorValid) {   // a real-sized hemisphere around the seat; until the head is tracked, level and infinite
+                eq[e].pose = domePose;
+                eq[e].radius = g.settings.domeDiameter * 0.5f;
+            }
             eq[e].centralHorizontalAngle = hAngle;
             eq[e].upperVerticalAngle = vHalf;
             eq[e].lowerVerticalAngle = -vHalf;
@@ -2271,7 +2361,8 @@ static void renderFrame() {
     // float in front of everything (+50; it used to be drawn last and cut across the panels).
     XrCompositionLayerQuad cardQuad[2];
     int ncq = 0;
-    if (fs.shouldRender && g.video.hasContent && g.headValid && g.settings.outline && g.outline.hasContent) {
+    // Not in the dome preview: card angles there are in the dome's frame and nothing maps them yet (pickCard agrees).
+    if (fs.shouldRender && g.video.hasContent && g.headValid && g.settings.outline && g.outline.hasContent && effectiveProjection() != Projection::Dome) {
         int show[2] = {g.edit.group, -1};
         for (auto& p : g.pointers)
             if (p.valid && p.sceneHover >= 0 && p.sceneHover != g.edit.group) show[1] = p.sceneHover;

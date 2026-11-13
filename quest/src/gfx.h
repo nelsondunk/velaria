@@ -21,7 +21,8 @@ public:
     EGLConfig config() const { return m_config; }
     EGLContext context() const { return m_context; }
 
-    // Dual-fisheye unwrap parameters (nullptr = plain copy).
+    // Fisheye unwrap parameters (nullptr = plain copy). Dual fisheye uses the stream layout; a domemaster is the
+    // same lens model with one circle (layout 0), its axis pointed at the dome zenith by the layer pose.
     struct Fisheye {
         int layout = 1;        // 0 mono, 1 side by side, 2 top/bottom (which half holds which eye)
         float fovDeg = 190;    // lens field of view (Canon RF 5.2 dual fisheye: 190)
