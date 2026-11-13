@@ -4,6 +4,9 @@
 #
 #   sudo ./install.sh                       install / update
 #   sudo ./install.sh --replace-blackmagic  install, setting Blackmagic Desktop Video aside (--uninstall restores it)
+#   sudo ./install.sh --coexist             UNTESTED, not for customers yet: install beside Blackmagic Desktop Video, so
+#                                           Resolve lists "Velaria (Quest)" and the Blackmagic card (--uninstall restores)
+#   ./install.sh --status                   show which driver is where (no sudo, changes nothing)
 #   sudo ./install.sh --headset             install / update the headset app only
 #   sudo ./install.sh --ndi                 also start the experimental Premiere / After Effects (NDI) source
 #   sudo ./install.sh --uninstall
@@ -12,6 +15,10 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 FW_SRC="$HERE/DeckLinkAPI.framework"
 FW_DST="/Library/Frameworks/DeckLinkAPI.framework"
 BACKUP="/Library/Frameworks/DeckLinkAPI.framework.blackmagic-backup"
+# Coexistence (--coexist): Blackmagic's own framework lives here while Velaria is installed, and Velaria's driver loads
+# it from here. The path is compiled into the driver (mac/driver/src/Coexist.h): change both or neither.
+COEXIST_DIR="/Library/Application Support/Velaria/Blackmagic"
+UNDER="$COEXIST_DIR/DeckLinkAPI.framework"
 USER_NAME="${SUDO_USER:-$(id -un)}"
 USER_HOME=$(eval echo "~$USER_NAME")
 AGENT_ID="ca.skylightproductions.velaria.usb"
@@ -23,6 +30,32 @@ BRIDGE="$USER_HOME/Library/Application Support/Velaria/vrlink_bridge.py"
 NDI_ID="ca.skylightproductions.velaria.ndi"
 NDI_PLIST="$USER_HOME/Library/LaunchAgents/$NDI_ID.plist"
 NDI_BIN="$USER_HOME/Library/Application Support/Velaria/vrlink_ndi"
+
+# What is at a framework path: "velaria", "blackmagic" (anything that is not ours), or "absent".
+fw_kind() {
+  if [ -L "$1" ]; then echo velaria; return; fi   # a symlink there is a development install of ours
+  if [ ! -d "$1" ]; then echo absent; return; fi
+  if grep -q 'skylightproductions' "$1/Resources/Info.plist" 2>/dev/null; then echo velaria; else echo blackmagic; fi
+}
+fw_version() { defaults read "$1/Resources/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "version unknown"; }
+
+if [ "${1:-}" = "--status" ]; then
+  k=$(fw_kind "$FW_DST")
+  case "$k" in
+    velaria)    echo "Active driver ($FW_DST): Velaria, build $(defaults read "$FW_DST/Resources/Info.plist" VRLinkBuild 2>/dev/null || echo unknown)";;
+    blackmagic) echo "Active driver ($FW_DST): Blackmagic Desktop Video $(fw_version "$FW_DST")";;
+    absent)     echo "Active driver ($FW_DST): none";;
+  esac
+  if [ -d "$UNDER" ]; then echo "Set aside for coexistence ($UNDER): $(fw_kind "$UNDER") $(fw_version "$UNDER"), owner $(stat -f '%Su:%Sg %Sp' "$UNDER" 2>/dev/null || echo unknown)"; else echo "Set aside for coexistence: nothing"; fi
+  if [ -d "$UNDER.previous" ]; then echo "Older set-aside copy ($UNDER.previous): $(fw_version "$UNDER.previous")"; fi
+  if [ -d "$BACKUP" ]; then echo "Set aside by --replace-blackmagic ($BACKUP): $(fw_version "$BACKUP")"; else echo "Set aside by --replace-blackmagic: nothing"; fi
+  if [ "$k" = velaria ] && [ -d "$UNDER" ]; then echo "Mode: coexistence. Resolve should list Velaria (Quest) and any Blackmagic device."
+  elif [ "$k" = velaria ]; then echo "Mode: Velaria only."
+  elif [ "$k" = blackmagic ] && { [ -d "$UNDER" ] || [ -d "$BACKUP" ]; }; then echo "Mode: Blackmagic only. Desktop Video was installed or updated after Velaria; run the Velaria installer again to put Velaria back."
+  elif [ "$k" = blackmagic ]; then echo "Mode: Blackmagic only. Velaria's driver is not installed."
+  else echo "Mode: no DeckLink driver installed."; fi
+  exit 0
+fi
 
 if [ "$(id -u)" != "0" ]; then echo "Run with sudo: sudo $0 $*"; exit 1; fi
 
@@ -47,10 +80,22 @@ legacy_cleanup() {
 
 if [ "${1:-}" = "--uninstall" ]; then
   legacy_cleanup
-  if [ -L "$FW_DST" ] || [ -d "$FW_DST" ]; then
-    if grep -q 'skylightproductions' "$FW_DST/Resources/Info.plist" 2>/dev/null || [ -L "$FW_DST" ]; then rm -rf "$FW_DST"; echo "Removed Velaria driver."; fi
-  fi
-  if [ -d "$BACKUP" ]; then mv "$BACKUP" "$FW_DST"; echo "Restored Blackmagic Desktop Video framework."; fi
+  if [ "$(fw_kind "$FW_DST")" = velaria ]; then rm -rf "$FW_DST"; echo "Removed Velaria driver."; fi
+  # Put Blackmagic's framework back from wherever an install set it aside. If a framework is already in place here
+  # (Desktop Video was installed or updated after Velaria), that newer one stays and nothing is moved onto it:
+  # `mv` onto an existing folder would put the old copy inside the new one.
+  for aside in "$BACKUP" "$UNDER"; do
+    [ -d "$aside" ] || continue
+    if [ ! -e "$FW_DST" ]; then
+      mv "$aside" "$FW_DST"; echo "Restored Blackmagic Desktop Video framework (from $aside)."
+    elif [ "$aside" = "$UNDER" ]; then
+      rm -rf "$UNDER"; echo "Blackmagic Desktop Video is already in place (installed or updated after Velaria); removed the older copy Velaria had set aside."
+    else
+      echo "Blackmagic Desktop Video is already in place, and an older copy is still at $aside. Left both alone; delete the older copy by hand if you do not need it."
+    fi
+  done
+  rm -rf "$UNDER.previous"
+  rmdir "$COEXIST_DIR" "/Library/Application Support/Velaria" 2>/dev/null || true
   sudo -u "$USER_NAME" launchctl bootout "gui/$(id -u "$USER_NAME")/$AGENT_ID" 2>/dev/null || true
   sudo -u "$USER_NAME" launchctl bootout "gui/$(id -u "$USER_NAME")/$BRIDGE_ID" 2>/dev/null || true
   sudo -u "$USER_NAME" launchctl bootout "gui/$(id -u "$USER_NAME")/$NDI_ID" 2>/dev/null || true
@@ -98,11 +143,53 @@ if pgrep -qf "DaVinci Resolve.app/Contents/MacOS/Resolve"; then
   echo "Note: DaVinci Resolve is running. Quit and relaunch it after installing."
 fi
 
-# 1. Driver. If Blackmagic's real Desktop Video is installed, keep it safe (the two can't be active together) --
-#    and only with the owner's say-so: a DeckLink / UltraStudio stops working in Resolve while Velaria is installed.
-if [ -d "$FW_DST" ] && ! [ -L "$FW_DST" ] && ! grep -q 'skylightproductions' "$FW_DST/Resources/Info.plist" 2>/dev/null; then
+# 1. Driver. What happens to Blackmagic's real Desktop Video framework, if there is one:
+#    (default)             refuse, so nobody loses a DeckLink / UltraStudio by surprise;
+#    --replace-blackmagic  set it aside at $BACKUP; only Velaria appears in Resolve until --uninstall;
+#    --coexist             UNTESTED: set it aside at $UNDER, where Velaria's driver loads it underneath, so Resolve
+#                          lists both. Nothing here has run on a Mac with Desktop Video installed.
+MODE="${1:-}"
+KIND=$(fw_kind "$FW_DST")
+if [ -d "$BACKUP" ] && [ -d "$UNDER" ]; then
+  echo "Two set-aside copies of Blackmagic's framework exist ($BACKUP and $UNDER). Refusing to guess which is current."
+  echo "Run: sudo ./install.sh --uninstall   then install again."; exit 1
+fi
+if [ "$MODE" = "--coexist" ]; then
+  echo "Coexistence with Blackmagic Desktop Video is UNTESTED. If Resolve stops listing devices: sudo ./install.sh --uninstall"
+  if [ "$KIND" = blackmagic ]; then
+    if [ -d "$BACKUP" ]; then echo "A Blackmagic backup already exists at $BACKUP; refusing to overwrite it. Run: sudo ./install.sh --uninstall   then install again."; exit 1; fi
+    mkdir -p "$COEXIST_DIR"
+    if [ -d "$UNDER" ]; then
+      # Desktop Video was updated or reinstalled over Velaria: the framework in place is the newer one and matches the
+      # Blackmagic driver now on this Mac. Keep the older copy once, for rollback, and use the newer.
+      rm -rf "$UNDER.previous"; mv "$UNDER" "$UNDER.previous"
+      echo "Desktop Video was installed again after Velaria: kept the older copy at $UNDER.previous and using the new one."
+    fi
+    mv "$FW_DST" "$UNDER"
+    echo "Moved Blackmagic Desktop Video framework ($(fw_version "$UNDER")) to $UNDER (restored by --uninstall)."
+  elif [ -d "$BACKUP" ]; then
+    # an earlier --replace-blackmagic install: move its backup to where the driver looks
+    mkdir -p "$COEXIST_DIR"; mv "$BACKUP" "$UNDER"
+    echo "Moved the Blackmagic framework set aside earlier ($(fw_version "$UNDER")) to $UNDER."
+  elif [ ! -d "$UNDER" ]; then
+    echo "Blackmagic Desktop Video is not installed, so there is nothing to coexist with: installing Velaria on its own."
+    echo "If you install Desktop Video later, it replaces Velaria's driver; run this again afterwards: sudo ./install.sh --coexist"
+  fi
+  if [ -d "$UNDER" ]; then
+    # The driver refuses to load a set-aside framework that is not root-owned or that others can write to.
+    chown root:wheel "/Library/Application Support/Velaria" "$COEXIST_DIR"; chmod 755 "/Library/Application Support/Velaria" "$COEXIST_DIR"
+    chown -R root:wheel "$UNDER"; chmod -R go-w "$UNDER"
+    if [ "$(fw_kind "$UNDER")" != blackmagic ]; then echo "ERROR: $UNDER is not Blackmagic's framework. Run: sudo ./install.sh --uninstall"; exit 1; fi
+    codesign --verify "$UNDER" 2>/dev/null || echo "Warning: Blackmagic's framework at $UNDER does not pass a signature check. If Resolve lists no Blackmagic device, run --uninstall and reinstall Desktop Video."
+  fi
+elif [ "$KIND" = blackmagic ]; then
   if [ -d "$BACKUP" ]; then echo "A Blackmagic backup already exists at $BACKUP; refusing to overwrite it."; exit 1; fi
-  if [ "${1:-}" != "--replace-blackmagic" ]; then
+  if [ -d "$UNDER" ]; then
+    echo "Blackmagic Desktop Video was installed again after a Velaria coexistence install."
+    echo "To put Velaria back beside it:  sudo ./install.sh --coexist"
+    exit 1
+  fi
+  if [ "$MODE" != "--replace-blackmagic" ]; then
     echo "Blackmagic Desktop Video is installed. Velaria replaces it while installed (your DeckLink / UltraStudio"
     echo "will not appear in Resolve until you uninstall Velaria, which puts it back)."
     echo "If that is fine:  sudo ./install.sh --replace-blackmagic"
@@ -110,6 +197,9 @@ if [ -d "$FW_DST" ] && ! [ -L "$FW_DST" ] && ! grep -q 'skylightproductions' "$F
   fi
   mv "$FW_DST" "$BACKUP"
   echo "Moved Blackmagic Desktop Video framework to $BACKUP (restored by --uninstall)."
+elif [ -d "$UNDER" ]; then
+  # an update of a coexistence install without the flag: stay in coexistence rather than silently dropping the card
+  echo "Keeping coexistence with Blackmagic Desktop Video ($(fw_version "$UNDER") at $UNDER)."
 fi
 rm -rf "$FW_DST"
 ditto "$FW_SRC" "$FW_DST"

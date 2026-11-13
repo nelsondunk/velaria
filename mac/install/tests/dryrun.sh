@@ -11,7 +11,7 @@ set -euo pipefail
   echo "dryrun.sh: Linux container only, as root, with VELARIA_DRYRUN_OK=1. Never on a Mac." >&2; exit 2; }
 REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
 W=$(mktemp -d /tmp/velaria-dryrun.XXXX)
-trap 'rm -rf "$W" /Library/Frameworks/DeckLinkAPI.framework /Library/Frameworks/DeckLinkAPI.framework.blackmagic-backup' EXIT
+trap 'rm -rf "$W" /Library/Frameworks/DeckLinkAPI.framework /Library/Frameworks/DeckLinkAPI.framework.blackmagic-backup "/Library/Application Support/Velaria"' EXIT
 mkdir -p "$W/bin" "$W/home/VRLink/xfer" "$W/home/VRLink/vendor/platform-tools"
 cp -R "$REPO" "$W/repo" && rm -rf "$W/repo/.git"
 stub() { printf '#!/bin/bash\n%s\n' "$2" > "$W/bin/$1"; chmod +x "$W/bin/$1"; }
@@ -39,7 +39,8 @@ export PATH="$W/bin:$PATH"
 UH=$(eval echo "~$(id -un)")
 FW=/Library/Frameworks/DeckLinkAPI.framework
 n=0; ok() { n=$((n + 1)); echo "  ok   $*"; }; die() { echo "  FAIL $*" >&2; exit 1; }
-rm -rf "$FW" "$FW.blackmagic-backup" "$UH/Library/Application Support/Velaria" "$UH/Library/LaunchAgents"/ca.skylightproductions.velaria.*
+UNDER="/Library/Application Support/Velaria/Blackmagic/DeckLinkAPI.framework"
+rm -rf "$FW" "$FW.blackmagic-backup" "/Library/Application Support/Velaria" "$UH/Library/Application Support/Velaria" "$UH/Library/LaunchAgents"/ca.skylightproductions.velaria.*
 mkdir -p /Library/Frameworks "$UH/Library/Application Support/Blackmagic Design/DaVinci Resolve"
 
 echo "package"
@@ -79,4 +80,42 @@ if grep -q blackmagic "$FW/Resources/Info.plist"; then ok "Blackmagic driver unt
 if bash ./install.sh --replace-blackmagic >/dev/null 2>&1 && [ -d "$FW.blackmagic-backup" ]; then ok "set aside with the flag"; else die "set aside with the flag"; fi
 bash ./install.sh --uninstall >/dev/null 2>&1
 if grep -q blackmagic "$FW/Resources/Info.plist" && [ ! -e "$FW.blackmagic-backup" ]; then ok "uninstall restores it"; else die "uninstall restores it"; fi
+
+# Coexistence (--coexist). Stubs only: this proves where the installer moves things, not that the driver can load
+# Blackmagic's framework from there.
+echo "coexistence"
+bm() { rm -rf "$FW"; mkdir -p "$FW/Resources"; echo "<plist>blackmagic $1</plist>" > "$FW/Resources/Info.plist"; }
+is() { grep -q "$2" "$1/Resources/Info.plist" 2>/dev/null; }
+if bash ./install.sh --status 2>&1 | grep -q "Mode: Blackmagic only. Velaria's driver is not installed."; then ok "--status before installing"; else die "--status before installing"; fi
+if bash ./install.sh --coexist >"$W/c1.out" 2>&1 && is "$FW" skylightproductions && is "$UNDER" "blackmagic"; then ok "--coexist: Velaria in place, Blackmagic set aside for the driver"; else cat "$W/c1.out"; die "--coexist install"; fi
+if [ ! -e "$FW.blackmagic-backup" ]; then ok "--coexist does not use the --replace-blackmagic backup path"; else die "--coexist left a backup at the old path"; fi
+if bash ./install.sh --status 2>&1 | grep -q "Mode: coexistence"; then ok "--status reports coexistence"; else die "--status reports coexistence"; fi
+if bash ./install.sh >"$W/c2.out" 2>&1 && is "$UNDER" blackmagic && grep -q "Keeping coexistence" "$W/c2.out"; then ok "plain update keeps coexistence"; else cat "$W/c2.out"; die "plain update keeps coexistence"; fi
+bm v2   # Desktop Video updated: its installer overwrote Velaria's driver
+if bash ./install.sh --status 2>&1 | grep -q "run the Velaria installer again"; then ok "--status after a Desktop Video update"; else die "--status after a Desktop Video update"; fi
+if bash ./install.sh >/dev/null 2>&1; then die "plain install ran over an updated Desktop Video"; else ok "plain install refuses after a Desktop Video update and names --coexist"; fi
+if is "$FW" "blackmagic v2"; then ok "updated Blackmagic driver untouched after the refusal"; else die "updated Blackmagic driver untouched after the refusal"; fi
+if bash ./install.sh --replace-blackmagic >/dev/null 2>&1; then die "--replace-blackmagic ran over a coexistence install"; else ok "--replace-blackmagic refuses on a coexistence install"; fi
+if bash ./install.sh --coexist >/dev/null 2>&1 && is "$UNDER" "blackmagic v2" && [ -d "$UNDER.previous" ] && ! is "$UNDER.previous" v2; then ok "--coexist again adopts the updated framework and keeps the older one as .previous"; else die "--coexist after a Desktop Video update"; fi
+bash ./install.sh --uninstall >/dev/null 2>&1
+if is "$FW" "blackmagic v2" && [ ! -e "/Library/Application Support/Velaria" ]; then ok "uninstall restores the current Blackmagic framework and leaves nothing behind"; else die "uninstall after coexistence"; fi
+# uninstall when Desktop Video was updated and Velaria never put back: the new one stays, the stale copy goes
+bash ./install.sh --coexist >/dev/null 2>&1; bm v3
+bash ./install.sh --uninstall >/dev/null 2>&1
+if is "$FW" "blackmagic v3" && [ ! -e "$FW/DeckLinkAPI.framework" ] && [ ! -e "$UNDER" ]; then ok "uninstall leaves an updated Desktop Video alone and drops the stale copy"; else die "uninstall over an updated Desktop Video"; fi
+# the same situation on the old --replace-blackmagic path used to move the backup inside the new framework
+rm -rf "$FW"; bm v1; bash ./install.sh --replace-blackmagic >/dev/null 2>&1; bm v4
+bash ./install.sh --uninstall >/dev/null 2>&1
+if is "$FW" "blackmagic v4" && [ ! -e "$FW/DeckLinkAPI.framework.blackmagic-backup" ] && [ -d "$FW.blackmagic-backup" ]; then ok "uninstall no longer moves an old backup inside a newer Blackmagic framework"; else die "uninstall with backup and newer framework"; fi
+rm -rf "$FW.blackmagic-backup"
+# migration from --replace-blackmagic to --coexist
+bm v1; bash ./install.sh --replace-blackmagic >/dev/null 2>&1
+if bash ./install.sh --coexist >/dev/null 2>&1 && is "$UNDER" "blackmagic v1" && [ ! -e "$FW.blackmagic-backup" ] && is "$FW" skylightproductions; then ok "--coexist takes over a --replace-blackmagic install"; else die "--replace-blackmagic to --coexist"; fi
+bash ./install.sh --uninstall >/dev/null 2>&1
+if is "$FW" "blackmagic v1"; then ok "and uninstall restores it"; else die "restore after migration"; fi
+# no Desktop Video at all
+rm -rf "$FW"
+if bash ./install.sh --coexist >"$W/c3.out" 2>&1 && is "$FW" skylightproductions && [ ! -e "$UNDER" ] && grep -q "nothing to coexist with" "$W/c3.out"; then ok "--coexist without Desktop Video installs Velaria alone"; else cat "$W/c3.out"; die "--coexist without Desktop Video"; fi
+bash ./install.sh --uninstall >/dev/null 2>&1
+if [ ! -e "$FW" ]; then ok "clean after the last uninstall"; else die "clean after the last uninstall"; fi
 echo; echo "$n checks passed"

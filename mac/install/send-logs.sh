@@ -14,6 +14,7 @@ tail -n 2000 "$HOME/Library/Application Support/Blackmagic Design/DaVinci Resolv
   echo "macOS: $(sw_vers -productVersion) $(uname -m)"
   echo "driver: $(defaults read /Library/Frameworks/DeckLinkAPI.framework/Resources/Info.plist VRLinkBuild 2>/dev/null || echo 'not installed')"
   echo "blackmagic backup: $([ -d /Library/Frameworks/DeckLinkAPI.framework.blackmagic-backup ] && echo present || echo none)"
+  echo "--- install.sh --status ---"; "$(dirname "$0")/install.sh" --status 2>&1 || true
   echo "bridge: $(grep -m1 -o 'VERSION = .*' "$HOME/Library/Application Support/Velaria/vrlink_bridge.py" 2>/dev/null || echo '?')"
   echo "resolve: $(defaults read '/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Info.plist' CFBundleShortVersionString 2>/dev/null || echo 'not found')"
   echo "python3: $(python3 --version 2>&1)"
