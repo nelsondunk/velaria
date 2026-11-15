@@ -2114,6 +2114,9 @@ static void sendStats(int64_t now) {
 
 // Test hook: `adb shell "echo 'press TabEdit' > /sdcard/Android/data/ca.skylightproductions.velaria/files/cmd.txt"`
 // drives the UI without hands. Commands: press <Button> [arg], slider <row> <0..1>, scrub <0..1>, page edit|preview.
+// Anything that can write that file (adb, a computer the headset's storage is shared with) can press every button,
+// including the ones that change the timeline. NO_DEBUG_HOOK=1 ./build.sh leaves it out of a build.
+#ifndef VELARIA_NO_DEBUG_HOOK
 static void pollDebugCommands(int64_t now) {
     if (now - g.lastDebugPollNs < 500000000LL || !g.android->activity->externalDataPath) return;
     g.lastDebugPollNs = now;
@@ -2212,6 +2215,8 @@ static void pollDebugCommands(int64_t now) {
     }
 }
 
+#endif   // VELARIA_NO_DEBUG_HOOK
+
 static void renderFrame() {
     XrFrameWaitInfo fwi{XR_TYPE_FRAME_WAIT_INFO};
     XrFrameState fs{XR_TYPE_FRAME_STATE};
@@ -2272,7 +2277,9 @@ static void renderFrame() {
     flushPendingParam();   // timeout path: a render that never showed up must not hold a drag hostage
     chooseFrame(displayMono);
     int64_t now = monoNs();
+#ifndef VELARIA_NO_DEBUG_HOOK
     pollDebugCommands(now);
+#endif
     PlaybackState pb = g.net.playback();
     updateHud(now, pb.playing);
     sendStats(now);
