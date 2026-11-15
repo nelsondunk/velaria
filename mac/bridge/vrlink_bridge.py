@@ -24,6 +24,7 @@ Bridge -> headset:
 import json
 import re
 import os
+import select
 import socket
 import sys
 import threading
@@ -39,6 +40,28 @@ sys.path.append(RESOLVE_API + "/Modules")
 BRIDGE_VERSION = "1.0.9"
 PORT = int(os.environ.get("VRLINK_BRIDGE_PORT", "47812"))
 LOG = os.path.expanduser("~/Library/Logs/Velaria/bridge.log")
+CONFIG = os.path.expanduser("~/Library/Application Support/Velaria/config.plist")
+LOG_MAX_BYTES = 5 * 1024 * 1024    # bridge.log is moved to bridge.old.log past this size
+MAX_LINE = 1024 * 1024             # a command line longer than this is not from a headset: drop the connection
+SET_GATHER_S = 0.002               # how long to wait for the rest of a multi-input change (pan + tilt, R + G + B)
+DRAG_QUIET_S = 1.0                 # the periodic timeline re-scan waits until no change has been applied for this long
+
+
+def bind_address():
+    """Which interface the bridge listens on. Default: all of them (Wi-Fi and USB). `Network` = `usb` in
+    config.plist (the same key the driver reads) or VRLINK_BRIDGE_BIND=127.0.0.1 keeps it to this Mac, which is all
+    the USB cable needs: `adb reverse` connects from localhost."""
+    env = os.environ.get("VRLINK_BRIDGE_BIND")
+    if env:
+        return env
+    try:
+        import plistlib
+        with open(CONFIG, "rb") as f:
+            if str(plistlib.load(f).get("Network", "")).strip().lower() == "usb":
+                return "127.0.0.1"
+    except Exception:
+        pass
+    return "0.0.0.0"
 
 # Macro inputs worth showing. Everything else (connections, nests, comments, layer selectors) stays hidden.
 HIDDEN_IDS = {"HideInputs", "CommentsNest", "Comments", "OutputWidth", "Blend", "ProcessRed", "ProcessGreen",
@@ -67,13 +90,27 @@ def preflight(fmt):
     return out
 
 
-def log(msg):
+_logf = {"path": None, "f": None, "n": 0}
+
+
+def log(msg, echo=True):
+    """One line to bridge.log, and to stderr (bridge.out under launchd) unless echo is False. The file stays open
+    between lines (a drag logs every change) and is moved aside once it passes LOG_MAX_BYTES."""
     line = "%s %s\n" % (time.strftime("%H:%M:%S"), msg)
-    sys.stderr.write(line)
+    if echo:
+        sys.stderr.write(line)
     try:
-        os.makedirs(os.path.dirname(LOG), exist_ok=True)
-        with open(LOG, "a") as f:
-            f.write(line)
+        st = _logf
+        if st["f"] is None or st["path"] != LOG or st["n"] >= 500:
+            if st["f"] is not None:
+                st["f"].close()
+                st["f"] = None
+            os.makedirs(os.path.dirname(LOG), exist_ok=True)
+            if os.path.exists(LOG) and os.path.getsize(LOG) > LOG_MAX_BYTES:
+                os.replace(LOG, LOG[:-4] + ".old.log" if LOG.endswith(".log") else LOG + ".old")
+            st["f"], st["path"], st["n"] = open(LOG, "a", buffering=1), LOG, 0
+        st["f"].write(line)
+        st["n"] += 1
     except OSError:
         pass
 
@@ -131,6 +168,8 @@ class Bridge:
         self.comp_cache = {}       # clip key -> (item, comp, {tool name: tool})
         self.clip_index = None     # [(track, item, start, end)] for the Fusion clips, see rebuild_index
         self.animated = {}         # (tool name, input id) -> bool, so a set doesn't re-read the input list
+        self.kids = {}             # id(macro tool) -> its inner tools by name, so a set doesn't re-list them
+        self.last_set = 0.0        # when a change was last applied (the periodic re-scan stays out of a drag's way)
 
     # ---------------------------------------------------------------- resolve
     def versions(self):
@@ -337,6 +376,7 @@ class Bridge:
     def macro_params(self):
         """Controls of every macro (and whitelisted stock tool) on the clips under the playhead."""
         groups = []
+        self.kids.clear()   # the tool objects below are fetched afresh, so anything remembered about the old ones goes
         for v, it in self.items_under_playhead():
             key = self.clip_key(v, it)
             try:
@@ -415,10 +455,18 @@ class Bridge:
 
     def children(self, tool):
         # Fusion renames inner tools when a comp holds several copies of a macro (Left_Window_Plane_1 ...)
+        # Listing them costs one round trip to Resolve per inner tool, and a drag on Scale or a card rotation asked
+        # for the list on every step. The answer is kept while the tool objects are (see macro_params).
+        hit = self.kids.get(id(tool))
+        if hit is not None and hit[0] is tool:
+            return hit[1]
         try:
-            return {re.sub(r"_\d+$", "", c.Name): c for c in (tool.GetChildrenList() or {}).values()}
+            kids = {re.sub(r"_\d+$", "", c.Name): c for c in (tool.GetChildrenList() or {}).values()}
         except Exception:
             return {}
+        if kids:
+            self.kids[id(tool)] = (tool, kids)
+        return kids
 
     def virtual_params(self, tool, published):
         out = []
@@ -656,6 +704,8 @@ class Bridge:
     def apply_pending(self):
         with self.lock:
             batch, self.pending = self.pending, {}
+        if batch:
+            self.last_set = time.time()
         # several inputs of one comp (pan + tilt from a grab) go in under a comp lock so Resolve renders once
         locked = set()
         try:
@@ -680,7 +730,7 @@ class Bridge:
                         self.history.append(k)
                     t0 = time.time()
                     self.set_input(it, comp, tool, pid, value)
-                    log("set %s.%s = %r (%.0f ms)" % (toolname, pid, value, (time.time() - t0) * 1000))
+                    log("set %s.%s = %r (%.0f ms)" % (toolname, pid, value, (time.time() - t0) * 1000), echo=False)
                 except Exception as e:
                     log("set %s.%s: %s" % (toolname, pid, e))
                     self.broadcast({"type": "error", "msg": "Couldn't set %s" % pid})
@@ -851,34 +901,78 @@ class Bridge:
         except OSError:
             pass
 
+    def read_commands(self, client, buf):
+        """One recv: returns (commands parsed from complete lines, the unfinished tail, False once the peer is gone
+        or is sending something that is not this protocol)."""
+        data = client.recv(65536)
+        if not data:
+            return [], buf, False
+        buf += data
+        msgs = []
+        while b"\n" in buf:
+            line, buf = buf.split(b"\n", 1)
+            if not line.strip():
+                continue
+            try:
+                msg = json.loads(line)
+            except ValueError:
+                continue
+            if isinstance(msg, dict):
+                msgs.append(msg)
+        if len(buf) > MAX_LINE:
+            log("dropping a client that sent %d bytes without a line end" % len(buf))
+            return msgs, b"", False
+        return msgs, buf, True
+
+    def dispatch(self, client, msgs):
+        """Runs commands in order. Consecutive "set" commands are applied as one batch under a comp lock, so a
+        change the headset sends as several inputs (pan + tilt from a grab, the three channels of a colour, the
+        rows queued while Resolve was rendering) costs one Resolve render, not one per input."""
+        i = 0
+        while i < len(msgs):
+            msg = msgs[i]
+            i += 1
+            with self.lock:
+                if self.timeline is None:
+                    self.send(client, {"type": "error", "msg": "Resolve not available"})
+                    continue
+                try:
+                    if msg.get("cmd") == "set":
+                        run = [msg]
+                        while i < len(msgs) and msgs[i].get("cmd") == "set":
+                            run.append(msgs[i])
+                            i += 1
+                        for m in run:
+                            msg = m   # named in the log if this one is malformed
+                            self.pending[(m["clip"], m["tool"], m["input"])] = m["value"]
+                        self.apply_pending()
+                    else:
+                        self.handle(client, msg)
+                except Exception as e:
+                    log("command %s failed: %s\n%s" % (str(msg)[:300], e, traceback.format_exc()))
+                    self.send(client, {"type": "error", "msg": str(e)[:120]})
+
     def client_loop(self, client, peer):
         log("headset connected from %s:%d" % peer)
         buf = b""
         client.settimeout(None)
         try:
-            while True:
-                data = client.recv(65536)
-                if not data:
-                    break
-                buf += data
-                while b"\n" in buf:
-                    line, buf = buf.split(b"\n", 1)
-                    if not line.strip():
-                        continue
-                    try:
-                        msg = json.loads(line)
-                    except ValueError:
-                        continue
-                    with self.lock:
-                        if self.timeline is None:
-                            self.send(client, {"type": "error", "msg": "Resolve not available"})
-                            continue
-                        try:
-                            self.handle(client, msg)
-                        except Exception as e:
-                            log("command %s failed: %s\n%s" % (msg, e, traceback.format_exc()))
-                            self.send(client, {"type": "error", "msg": str(e)[:120]})
-        except OSError:
+            alive = True
+            while alive:
+                msgs, buf, alive = self.read_commands(client, buf)
+                # The inputs of one change leave the headset as separate lines microseconds apart and can land in
+                # separate reads. Give the rest a moment to arrive before touching Resolve: 2 ms against a render
+                # that takes hundreds.
+                tries = 0
+                while alive and msgs and msgs[-1].get("cmd") == "set" and tries < 8:
+                    tries += 1
+                    if not select.select([client], [], [], SET_GATHER_S)[0]:
+                        break
+                    more, buf, alive = self.read_commands(client, buf)
+                    msgs += more
+                if msgs:
+                    self.dispatch(client, msgs)
+        except (OSError, ValueError):
             pass
         log("headset %s:%d disconnected" % peer)
         self.drop_client(client)
@@ -886,9 +980,10 @@ class Bridge:
     def accept_loop(self):
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        srv.bind(("0.0.0.0", PORT))
+        addr = bind_address()
+        srv.bind((addr, PORT))
         srv.listen(4)
-        log("bridge listening on TCP %d" % PORT)
+        log("bridge listening on TCP %d (%s)" % (PORT, "this Mac only: USB" if addr.startswith("127.") else addr))
         while True:
             c, peer = srv.accept()
             c.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -915,7 +1010,10 @@ class Bridge:
                     if self.pending:
                         self.apply_pending()
                     now = time.time()
-                    if now >= next_sig:
+                    # The re-scan below walks every clip (about 100 ms on a 180-clip timeline) with the lock held,
+                    # and a change from the headset waits for that lock. While changes are arriving, hold it off.
+                    dragging = now - self.last_set < DRAG_QUIET_S
+                    if now >= next_sig and not dragging:
                         next_sig = now + 2.0
                         self.refresh_timeline()
                         sig = self.signature()
@@ -924,6 +1022,7 @@ class Bridge:
                             self.tl_signature = sig
                             self.comp_cache.clear()
                             self.animated.clear()
+                            self.kids.clear()
                             if self.clients:
                                 self.broadcast(self.timeline_snapshot())
                     frame = self.current_frame()
@@ -932,7 +1031,7 @@ class Bridge:
                         if self.clients:
                             self.broadcast(self.state())
                     # when the playhead lands on a different set of clips, push their controls (at most 4x/s)
-                    if self.clients and now >= next_params:
+                    if self.clients and now >= next_params and not dragging:
                         next_params = now + 0.25
                         keys = tuple(self.clip_key(v, it) for v, it in self.items_under_playhead())
                         if keys != self.last_keys:

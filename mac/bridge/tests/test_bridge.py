@@ -6,7 +6,6 @@ playhead's comp time, the Fusion-page playhead fallback and the transient-None g
 """
 import os
 import sys
-import types
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -333,6 +332,158 @@ def test_timeline_message_carries_format_and_warnings():
     assert "format" in msg and "warnings" in msg and isinstance(msg["warnings"], list)
 
 
+def test_macro_kind_accepts_both_velaria_and_legacy_kalyx_prefixes():
+    # timelines built before the rename keep their Kalyx_* instances until the upgrade script runs; the headset
+    # must still put them on the right layer
+    mk = vb.Bridge.macro_kind
+    assert mk("Velaria_Trim") == "trim" and mk("Kalyx_Trim") == "trim" and mk("Kalyx_Trim_2") == "trim"
+    assert mk("Velaria_Orient360") == "orient" and mk("Kalyx_Orient360") == "orient"
+    assert mk("Velaria_CanvasControl") == "card" and mk("Kalyx_CanvasControl") == "card" and mk("Skylight_FactWindow") == "card"
+
+
+# ---- the wire path: what a headset (or anything else that connects) can send ----
+
+def wire_bridge():
+    """A bridge with one connected client on a socket pair, its client loop running as it does in production."""
+    import socket
+    import threading
+    b = vb.Bridge()
+    assert b.connect()
+    b.macro_params()   # what the periodic loop does once a headset is connected: fills the comp cache
+    ours, theirs = socket.socketpair()
+    b.clients.append(theirs)
+    t = threading.Thread(target=b.client_loop, args=(theirs, ("test", 0)), daemon=True)
+    t.start()
+    return b, ours, t
+
+
+def wait_for(cond, seconds=2.0):
+    import time
+    end = time.time() + seconds
+    while time.time() < end:
+        if cond():
+            return True
+        time.sleep(0.005)
+    return False
+
+
+def test_sets_sent_back_to_back_cost_one_comp_lock():
+    # A grab moves pan and tilt, a colour moves three channels: the headset sends one "set" line per input, back to
+    # back. They must reach Resolve as one locked batch (one render), whether they share a read or not.
+    import json
+    b, ours, _ = wire_bridge()
+    comp, macro = b.timeline.comp, b.timeline.macro
+    locks = []
+    orig_lock = comp.Lock
+    comp.Lock = lambda: (locks.append("L"), orig_lock())
+    line = lambda pid, v: (json.dumps({"cmd": "set", "clip": "V2:108300", "tool": "Skylight_FactWindow",
+                                       "input": pid, "value": v}) + "\n").encode()
+    ours.sendall(line("Yaw", 5.0) + line("Pitch", -7.0))          # one segment
+    assert wait_for(lambda: macro.values["Pitch"] == -7.0)
+    assert macro.values["Yaw"] == 5.0 and locks == ["L"] and comp.locks == 0
+    ours.sendall(line("FrameColour", 0.1))                          # three segments, as TCP_NODELAY sends them
+    ours.sendall(line("FrameColourG", 0.2))
+    ours.sendall(line("FrameColourB", 0.3))
+    assert wait_for(lambda: macro.values["FrameColourB"] == 0.3)
+    assert (macro.values["FrameColour"], macro.values["FrameColourG"]) == (0.1, 0.2)
+    assert locks == ["L", "L"] and comp.locks == 0
+    ours.sendall(line("GlowAmount", 0.4))                           # a single input needs no lock
+    assert wait_for(lambda: macro.values["GlowAmount"] == 0.4)
+    assert locks == ["L", "L"]
+    ours.close()
+
+
+def test_garbage_on_the_wire_is_survived():
+    import json
+    b, ours, t = wire_bridge()
+    macro = b.timeline.macro
+    ours.sendall(b"not json\n[1,2,3]\n42\n\"text\"\n{\"cmd\":\"set\"}\n{\"cmd\":\"seek\"}\n")
+    ours.sendall((json.dumps({"cmd": "set", "clip": "V2:108300", "tool": "Skylight_FactWindow", "input": "Roll",
+                              "value": 9.0}) + "\n").encode())
+    assert wait_for(lambda: macro.values["Roll"] == 9.0)   # still serving after the nonsense
+    assert t.is_alive()
+    ours.close()
+
+
+def test_a_line_that_never_ends_drops_the_client():
+    b, ours, t = wire_bridge()
+    old = vb.MAX_LINE
+    vb.MAX_LINE = 4096
+    try:
+        try:
+            ours.sendall(b"x" * 20000)
+        except OSError:
+            pass
+        assert wait_for(lambda: not t.is_alive())
+        assert b.clients == []
+    finally:
+        vb.MAX_LINE = old
+        ours.close()
+
+
+def test_inner_tools_are_listed_once_per_drag_not_once_per_step():
+    b, _ = make_bridge()
+    g = params_of(b)
+    macro = b.timeline.macro
+    calls = []
+    orig = macro.GetChildrenList
+    macro.GetChildrenList = lambda: (calls.append(1), orig())[1]
+    b.macro_params()
+    base = len(calls)
+    for v in (10.0, 11.0, 12.0, 13.0):
+        b.handle(None, {"cmd": "set", "clip": g["clip"], "tool": g["tool"], "input": "@turn", "value": v})
+    assert len(calls) == base and b.timeline.macro.children[0].values["Transform3DOp.Rotate.Y"] == 13.0
+    b.macro_params()                      # fresh tool objects: the list is read again
+    assert len(calls) > base
+
+
+def test_log_rotates_and_set_lines_stay_out_of_stderr():
+    import io
+    import tempfile
+    d = tempfile.mkdtemp()
+    old_log, old_max, old_err = vb.LOG, vb.LOG_MAX_BYTES, sys.stderr
+    vb.LOG, vb.LOG_MAX_BYTES = os.path.join(d, "bridge.log"), 200
+    sys.stderr = io.StringIO()
+    try:
+        with open(vb.LOG, "w") as f:
+            f.write("x" * 500)
+        vb.log("first")
+        vb.log("quiet", echo=False)
+        assert os.path.getsize(os.path.join(d, "bridge.old.log")) == 500
+        text = open(vb.LOG).read()
+        assert "first" in text and "quiet" in text and "xxx" not in text
+        assert "first" in sys.stderr.getvalue() and "quiet" not in sys.stderr.getvalue()
+    finally:
+        sys.stderr = old_err
+        vb.LOG, vb.LOG_MAX_BYTES = old_log, old_max
+        vb.log("back")   # reopen on the test log
+
+
+def test_network_usb_binds_loopback_only():
+    import plistlib
+    import tempfile
+    d = tempfile.mkdtemp()
+    old_cfg, old_env = vb.CONFIG, os.environ.pop("VRLINK_BRIDGE_BIND", None)
+    try:
+        vb.CONFIG = os.path.join(d, "missing.plist")
+        assert vb.bind_address() == "0.0.0.0"                       # no settings file: unchanged behaviour
+        vb.CONFIG = os.path.join(d, "config.plist")
+        with open(vb.CONFIG, "wb") as f:
+            plistlib.dump({"Layout": "auto"}, f)
+        assert vb.bind_address() == "0.0.0.0"                       # key absent: unchanged behaviour
+        with open(vb.CONFIG, "wb") as f:
+            plistlib.dump({"Network": "USB"}, f)
+        assert vb.bind_address() == "127.0.0.1"
+        os.environ["VRLINK_BRIDGE_BIND"] = "127.0.0.1"
+        vb.CONFIG = os.path.join(d, "missing.plist")
+        assert vb.bind_address() == "127.0.0.1"
+    finally:
+        vb.CONFIG = old_cfg
+        os.environ.pop("VRLINK_BRIDGE_BIND", None)
+        if old_env is not None:
+            os.environ["VRLINK_BRIDGE_BIND"] = old_env
+
+
 if __name__ == "__main__":
     failed = 0
     for name, fn in sorted(globals().items()):
@@ -347,12 +498,3 @@ if __name__ == "__main__":
                 traceback.print_exc()
     print("FAILED" if failed else "PASSED", failed, "failure(s)")
     sys.exit(1 if failed else 0)
-
-
-def test_macro_kind_accepts_both_velaria_and_legacy_kalyx_prefixes():
-    # timelines built before the rename keep their Kalyx_* instances until the upgrade script runs; the headset
-    # must still put them on the right layer
-    mk = vb.Bridge.macro_kind
-    assert mk("Velaria_Trim") == "trim" and mk("Kalyx_Trim") == "trim" and mk("Kalyx_Trim_2") == "trim"
-    assert mk("Velaria_Orient360") == "orient" and mk("Kalyx_Orient360") == "orient"
-    assert mk("Velaria_CanvasControl") == "card" and mk("Kalyx_CanvasControl") == "card" and mk("Skylight_FactWindow") == "card"
