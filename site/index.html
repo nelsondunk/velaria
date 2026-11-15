@@ -16,10 +16,10 @@
 -->
 <script>
 /* ONE PLACE TO CHANGE PRICES, THE BUY LINK AND THE SUPPORT ADDRESS.
-   Working assumption, Nelson to confirm: Core 149 USD one-time. The Dome add-on (199) is not shown on the page yet. */
+   Working assumption, Nelson to confirm: Core 149 USD one-time. The Dome add-on's price is not on this page or in
+   its source: add it here only when it is public. */
 window.VELARIA = {
   priceCore: 149,
-  priceDome: 199,
   currency: 'USD',
   buyUrl: '#BUY-URL',
   supportEmail: 'SUPPORT-EMAIL',
@@ -738,7 +738,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
 
   /* Prices, buy link, support address: all from VELARIA at the top of the file */
   const money = (n) => '$' + n + (V.currency === 'USD' ? '' : ' ' + V.currency);
-  document.querySelectorAll('[data-price]').forEach((el) => { el.textContent = money(el.dataset.price === 'dome' ? V.priceDome : V.priceCore) + (el.closest('.price') ? '' : ' ' + V.currency); });
+  document.querySelectorAll('[data-price]').forEach((el) => { el.textContent = money(V.priceCore) + (el.closest('.price') ? '' : ' ' + V.currency); });
   document.querySelectorAll('[data-v]').forEach((el) => { el.textContent = V[el.dataset.v]; });
   document.querySelectorAll('[data-buy]').forEach((el) => { el.href = V.buyUrl; });
   document.querySelectorAll('[data-mail]').forEach((el) => { el.href = 'mailto:' + V.supportEmail + '?subject=' + encodeURIComponent(el.dataset.mail); });
