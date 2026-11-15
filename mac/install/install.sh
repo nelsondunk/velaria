@@ -20,6 +20,8 @@ BACKUP="/Library/Frameworks/DeckLinkAPI.framework.blackmagic-backup"
 COEXIST_DIR="/Library/Application Support/Velaria/Blackmagic"
 UNDER="$COEXIST_DIR/DeckLinkAPI.framework"
 USER_NAME="${SUDO_USER:-$(id -un)}"
+# The name goes through eval on the next line and into paths this script writes as root: accept account names only.
+case "$USER_NAME" in ""|*[!A-Za-z0-9._-]*) echo "install.sh: unexpected user name '$USER_NAME'" >&2; exit 1;; esac
 USER_HOME=$(eval echo "~$USER_NAME")
 AGENT_ID="ca.skylightproductions.velaria.usb"
 AGENT_PLIST="$USER_HOME/Library/LaunchAgents/$AGENT_ID.plist"
@@ -204,6 +206,7 @@ fi
 rm -rf "$FW_DST"
 ditto "$FW_SRC" "$FW_DST"
 chown -R root:wheel "$FW_DST"
+chmod -R go-w "$FW_DST"   # Resolve loads this: nobody but root may change it, whatever modes the unzipped copy had
 xattr -dr com.apple.quarantine "$FW_DST" 2>/dev/null || true
 if codesign --verify "$FW_DST"; then
   echo "Installed driver: $FW_DST ($(defaults read "$FW_DST/Resources/Info.plist" VRLinkBuild 2>/dev/null || echo 'build unknown'))"
@@ -227,7 +230,9 @@ if [ -f "$HERE/VERSION" ]; then sudo -u "$USER_NAME" cp "$HERE/VERSION" "$CFG_DI
 xattr -d com.apple.quarantine "$CFG_DIR/VERSION" "$CFG_DIR/config.plist" 2>/dev/null || true
 xattr -d com.apple.quarantine "$BRIDGE" 2>/dev/null || true   # a downloaded zip leaves every file quarantined
 sudo -u "$USER_NAME" mkdir -p "$USER_HOME/Library/LaunchAgents" "$USER_HOME/Library/Logs/Velaria"
-cat > "$BRIDGE_PLIST" <<PLIST
+# The launch agents live in the user's own Library, so they are written as the user. Writing them as root (and then
+# chown-ing them) would follow a symlink planted there to any file on the Mac.
+sudo -u "$USER_NAME" tee "$BRIDGE_PLIST" >/dev/null <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -239,7 +244,6 @@ cat > "$BRIDGE_PLIST" <<PLIST
   <key>StandardErrorPath</key><string>$USER_HOME/Library/Logs/Velaria/bridge.out</string>
 </dict></plist>
 PLIST
-chown "$USER_NAME" "$BRIDGE_PLIST"
 sudo -u "$USER_NAME" launchctl bootout "gui/$(id -u "$USER_NAME")/$BRIDGE_ID" 2>/dev/null || true
 sudo -u "$USER_NAME" launchctl bootstrap "gui/$(id -u "$USER_NAME")" "$BRIDGE_PLIST"
 echo "Resolve bridge running (headset edit mode)."
@@ -250,9 +254,9 @@ NDI_PRESENT=0
 ls /Library/NDI/lib/macOS/libndi.dylib /usr/local/lib/libndi*.dylib /Applications/NDI\ Tools /Applications/NDI*Monitor*.app >/dev/null 2>&1 && NDI_PRESENT=1
 if [ -f "$HERE/vrlink_ndi" ] && { [ "$NDI_PRESENT" = 1 ] || [ "${1:-}" = "--ndi" ]; }; then
   sudo -u "$USER_NAME" cp "$HERE/vrlink_ndi" "$NDI_BIN"
-  chmod +x "$NDI_BIN"
+  sudo -u "$USER_NAME" chmod +x "$NDI_BIN"
   xattr -d com.apple.quarantine "$NDI_BIN" 2>/dev/null || true   # launchd would otherwise trip Gatekeeper on every retry
-  cat > "$NDI_PLIST" <<PLIST
+  sudo -u "$USER_NAME" tee "$NDI_PLIST" >/dev/null <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -265,7 +269,6 @@ if [ -f "$HERE/vrlink_ndi" ] && { [ "$NDI_PRESENT" = 1 ] || [ "${1:-}" = "--ndi"
   <key>StandardErrorPath</key><string>$USER_HOME/Library/Logs/Velaria/ndi.out</string>
 </dict></plist>
 PLIST
-  chown "$USER_NAME" "$NDI_PLIST"
   sudo -u "$USER_NAME" launchctl bootout "gui/$(id -u "$USER_NAME")/$NDI_ID" 2>/dev/null || true
   sudo -u "$USER_NAME" launchctl bootstrap "gui/$(id -u "$USER_NAME")" "$NDI_PLIST"
   echo "NDI source running (Premiere / After Effects: Settings > Playback > Enable Mercury Transmit + NDI)."
@@ -279,17 +282,17 @@ fi
 if ! command -v adb >/dev/null 2>&1 && [ ! -x /opt/homebrew/bin/adb ] && [ -x "$HERE/platform-tools/adb" ]; then
   sudo -u "$USER_NAME" mkdir -p "$CFG_DIR/platform-tools"
   sudo -u "$USER_NAME" cp "$HERE/platform-tools/adb" "$HERE/platform-tools/NOTICE.txt" "$HERE/platform-tools/source.properties" "$CFG_DIR/platform-tools/" 2>/dev/null || true
-  chmod +x "$CFG_DIR/platform-tools/adb"
+  sudo -u "$USER_NAME" chmod +x "$CFG_DIR/platform-tools/adb"
   xattr -dr com.apple.quarantine "$CFG_DIR/platform-tools" 2>/dev/null || true
   echo "Installed adb (Android platform tools $(sed -n 's/^Pkg.Revision=//p' "$HERE/platform-tools/source.properties" 2>/dev/null)) for the headset link."
 fi
 find_adb
 if [ -n "$ADB" ]; then
   sudo -u "$USER_NAME" cp "$HERE/usb-tether.sh" "$HELPER"
-  chmod +x "$HELPER"
+  sudo -u "$USER_NAME" chmod +x "$HELPER"
   xattr -d com.apple.quarantine "$HELPER" 2>/dev/null || true
   sudo -u "$USER_NAME" mkdir -p "$USER_HOME/Library/LaunchAgents"
-  cat > "$AGENT_PLIST" <<EOF
+  sudo -u "$USER_NAME" tee "$AGENT_PLIST" >/dev/null <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -301,7 +304,6 @@ if [ -n "$ADB" ]; then
   <key>StandardErrorPath</key><string>$USER_HOME/Library/Logs/Velaria/usb-tether.log</string>
 </dict></plist>
 EOF
-  chown "$USER_NAME" "$AGENT_PLIST"
   sudo -u "$USER_NAME" mkdir -p "$USER_HOME/Library/Logs/Velaria"
   sudo -u "$USER_NAME" launchctl bootout "gui/$(id -u "$USER_NAME")/$AGENT_ID" 2>/dev/null || true
   sudo -u "$USER_NAME" launchctl bootstrap "gui/$(id -u "$USER_NAME")" "$AGENT_PLIST"

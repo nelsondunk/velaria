@@ -59,6 +59,9 @@ cd "$R"
 bash ./install.sh >"$W/i1.out" 2>&1 || { cat "$W/i1.out"; die "install failed"; }
 if grep -q skylightproductions "$FW/Resources/Info.plist"; then ok "driver in place"; else die "driver in place"; fi
 if [ -f "$UH/Library/Application Support/Velaria/vrlink_bridge.py" ] && [ -f "$UH/Library/LaunchAgents/ca.skylightproductions.velaria.bridge.plist" ]; then ok "bridge and its launch agent"; else die "bridge and its launch agent"; fi
+if grep -q '<string>ca.skylightproductions.velaria.bridge</string>' "$UH/Library/LaunchAgents/ca.skylightproductions.velaria.bridge.plist" && grep -q "<string>$UH/Library/Application Support/Velaria/vrlink_bridge.py</string>" "$UH/Library/LaunchAgents/ca.skylightproductions.velaria.bridge.plist"; then ok "launch agent names the bridge and its path"; else die "launch agent names the bridge and its path"; fi
+# shellcheck disable=SC2016
+if SUDO_USER='x$(touch /tmp/velaria-dryrun-pwned)' bash ./install.sh >/dev/null 2>&1 || [ -e /tmp/velaria-dryrun-pwned ]; then rm -f /tmp/velaria-dryrun-pwned; die "odd user name refused"; else ok "odd user name refused"; fi
 if [ -f "$UH/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates/Edit/Effects/Velaria/Velaria Trim.setting" ]; then ok "effects on the Edit page"; else die "effects on the Edit page"; fi
 if bash ./install.sh >/dev/null 2>&1; then ok "second run (update) succeeds"; else die "second run (update) succeeds"; fi
 if ADB_STATE=0 bash ./install.sh --headset >/dev/null 2>&1; then ok "--headset with a headset"; else die "--headset with a headset"; fi
