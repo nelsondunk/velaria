@@ -164,7 +164,7 @@ public:
     void onOutputEnabled(const ModeInfo* mode) override {
         // Keep the server up once started: Resolve toggles the output while settings change, and the headset
         // should not drop for that.
-        m_server.start(m_cfg.port, m_cfg.name, m_serverCb);
+        m_server.start(m_cfg.port, m_cfg.name, m_serverCb, m_cfg.usbOnly());
         std::lock_guard<std::mutex> lk(m_mutex);
         m_mode = mode;
         m_resetArea = true;

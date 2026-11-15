@@ -27,7 +27,9 @@ public:
     };
 
     ~StreamServer() { stop(); }
-    void start(int port, const std::string& name, Callbacks cb);
+    // loopbackOnly: listen on 127.0.0.1 and do not answer discovery. That is all the USB cable needs (adb reverse
+    // connects from localhost) and leaves nothing for other devices on the network to reach.
+    void start(int port, const std::string& name, Callbacks cb, bool loopbackOnly = false);
     void stop();
     void broadcastVideo(const MsgPtr& msg, bool keyframe, int64_t bitrateBps);
     void broadcastControl(const MsgPtr& msg);
@@ -41,6 +43,8 @@ private:
     void reap();
 
     int m_port = 0;
+    bool m_loopbackOnly = false;
+    int64_t m_lastFullWarnNs = 0;
     std::string m_name;
     Callbacks m_cb;
     std::atomic<bool> m_running{false};

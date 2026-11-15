@@ -191,7 +191,7 @@ public:
         // Discovery name: "NDI · <source>", so the headset's source list reads naturally next to "Resolve".
         std::string label = "NDI \xC2\xB7 " + m_sourceName;
         if (label.size() > 46) label.resize(46);
-        m_server.start(m_port, label, cb);
+        m_server.start(m_port, label, cb, Config::get().usbOnly());
     }
     ~NdiPipeline() { m_server.stop(); }
 

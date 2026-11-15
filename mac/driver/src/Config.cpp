@@ -50,6 +50,7 @@ Config load() {
             str("Projection", c.projection);
             str("Crop", c.crop);
             str("Name", c.name);
+            str("Network", c.network);
             num("MaxEncodeWidth", c.maxEncodeWidth);
             num("MaxEncodePixels", c.maxEncodePixels);
             num("BitrateMbps", c.bitrateMbps);
@@ -83,8 +84,10 @@ Config load() {
     }
     if (c.maxEncodeWidth < 640) c.maxEncodeWidth = 640;
     if (c.keyframeIntervalSec < 1) c.keyframeIntervalSec = 1;
-    VLOGI("config: layout=%s projection=%s crop=%s maxW=%d bitrate=%d port=%d name=%s trace=%d coexist=%d", c.layout.c_str(),
-          c.projection.c_str(), c.crop.c_str(), c.maxEncodeWidth, c.bitrateMbps, c.port, c.name.c_str(), c.trace, c.coexist);
+    if (c.port < 1 || c.port > 65535) c.port = 47810;
+    VLOGI("config: layout=%s projection=%s crop=%s maxW=%d bitrate=%d port=%d network=%s name=%s trace=%d coexist=%d",
+          c.layout.c_str(), c.projection.c_str(), c.crop.c_str(), c.maxEncodeWidth, c.bitrateMbps, c.port,
+          c.network.c_str(), c.name.c_str(), c.trace, c.coexist);
     return c;
 }
 }  // namespace

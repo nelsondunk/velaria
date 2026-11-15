@@ -42,6 +42,11 @@ $CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk
   tests/chain_test.cpp src/Chain.cpp -framework CoreFoundation -o $B/chain_test \
   && $B/chain_test && echo "Built build/chain_test" \
   || echo "WARNING: chain_test did not build or did not pass (the driver itself is unaffected; see the output above)"
+# headset server socket handling (connect, oversize, silent peer, connection limit, churn, USB-only): needs no Resolve
+$CXX -std=c++17 -O1 -g -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk -Isrc -I../../common -Wall -Wno-unused-parameter \
+  tests/server_test.cpp -framework CoreFoundation -o $B/server_test \
+  && $B/server_test >/dev/null && echo "Built build/server_test (passed)" \
+  || echo "WARNING: server_test did not build or did not pass (run build.tmp/server_test or tests/server_test.sh to see why)"
 # test tools: Resolve-like source and reference receiver
 $CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk ../tools/e2e_source.cpp \
   -framework CoreFoundation -o $B/e2e_source

@@ -13,10 +13,13 @@ struct Config {
     int bitrateMbps = 0;               // 0 = automatic from resolution and frame rate
     int keyframeIntervalSec = 2;
     int port = 47810;
+    std::string network = "all";       // all (Wi-Fi and USB) | usb (listen on this Mac only; no Wi-Fi, no discovery)
     std::string name;                  // shown in the headset; defaults to the Mac's name
     bool trace = false;                // log-only probe mode (no streaming)
     bool streamWhenNoClient = false;   // encode even when no headset is connected (benchmarks)
     bool coexist = true;               // load Blackmagic's framework underneath when install.sh --coexist set it aside
+
+    bool usbOnly() const { return network == "usb" || network == "USB"; }
 
     static const Config& get();        // loaded once per process
 };

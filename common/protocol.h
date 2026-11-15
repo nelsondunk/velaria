@@ -214,10 +214,15 @@ public:
         MsgType type;
         std::vector<uint8_t> payload;
     };
-    // Returns false on protocol error (oversized message).
+    // maxPayload: the largest message this side accepts. The headset needs the full kMaxPayload (video); the Mac
+    // only ever receives small control messages and passes a small limit, so a stranger on the network cannot make
+    // it buffer 64 MB per connection.
+    explicit StreamParser(uint32_t maxPayload = kMaxPayload) : m_max(maxPayload) {}
+    // Returns false on protocol error (oversized message). After an error nothing more is buffered.
     bool feed(const uint8_t* data, size_t len) {
+        if (m_error) return false;
         m_buf.insert(m_buf.end(), data, data + len);
-        return !m_error;
+        return true;
     }
     // Pops one message if complete. Returns false if none available (or on error; check error()).
     bool next(Message& msg) {
@@ -229,8 +234,11 @@ public:
         }
         MsgHeader h;
         std::memcpy(&h, m_buf.data() + m_pos, sizeof h);
-        if (h.length > kMaxPayload) {
+        if (h.length > m_max) {
             m_error = true;
+            m_buf.clear();
+            m_buf.shrink_to_fit();
+            m_pos = 0;
             return false;
         }
         if (avail < sizeof h + h.length) {
@@ -254,6 +262,7 @@ private:
     }
     std::vector<uint8_t> m_buf;
     size_t m_pos = 0;
+    uint32_t m_max;
     bool m_error = false;
 };
 

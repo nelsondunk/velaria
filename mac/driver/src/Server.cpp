@@ -16,15 +16,37 @@ namespace vrl {
 
 using namespace vrlproto;
 
+namespace {
+// Everything a headset sends is a small control message (the largest, HELLO, is 52 bytes). Anything bigger is not a
+// headset, and the Mac side must not buffer it: this code runs inside Resolve.
+constexpr uint32_t kMaxInboundPayload = 64 * 1024;
+constexpr size_t kMaxQueuedPongs = 64;          // a peer that pings without reading its answers
+constexpr size_t kMaxClients = 8;               // each connection costs two threads inside Resolve
+#ifndef VRL_HELLO_DEADLINE_NS
+#define VRL_HELLO_DEADLINE_NS (10LL * 1000000000LL)   // the tests shorten it
+#endif
+constexpr int64_t kHelloDeadlineNs = VRL_HELLO_DEADLINE_NS;   // a connection that never says HELLO is closed
+}  // namespace
+
 // ------------------------------------------------------------------------------------------------ Client
 
 class StreamServer::Client : public std::enable_shared_from_this<Client> {
 public:
-    Client(int fd, std::string peer, StreamServer* server) : m_fd(fd), m_peer(std::move(peer)), m_server(server) {}
+    Client(int fd, std::string peer, StreamServer* server)
+        : m_fd(fd), m_peer(std::move(peer)), m_server(server), m_connectedNs(nowNs()) {}
     ~Client() {
         close();
-        if (m_reader.joinable()) m_reader.join();
-        if (m_writer.joinable()) m_writer.join();
+        // Both threads hold a reference to this object, so the last one can be dropped by a thread that is just
+        // finishing (the server lets go in reap() while the thread is still returning). A thread cannot join
+        // itself: std::thread::join throws, and a throw from a destructor ends the process, which here is Resolve.
+        auto finish = [](std::thread& t) {
+            if (!t.joinable()) return;
+            if (t.get_id() == std::this_thread::get_id()) t.detach();
+            else t.join();
+        };
+        finish(m_reader);
+        finish(m_writer);
+        if (m_fd >= 0) ::close(m_fd);
     }
 
     void start() {
@@ -43,6 +65,7 @@ public:
 
     bool alive() const { return m_alive.load(); }
     bool ready() const { return m_helloDone.load(); }
+    bool overdue(int64_t now) const { return !m_helloDone.load() && now - m_connectedNs > kHelloDeadlineNs; }
 
     void sendControl(const MsgPtr& m) {
         if (!m) return;
@@ -146,8 +169,8 @@ private:
 
     void readLoop() {
         pthread_setname_np("VRLink.recv");
-        StreamParser parser;
-        std::vector<uint8_t> buf(64 * 1024);
+        StreamParser parser(kMaxInboundPayload);
+        std::vector<uint8_t> buf(16 * 1024);
         while (m_alive) {
             ssize_t r = ::recv(m_fd, buf.data(), buf.size(), 0);
             int64_t rxNs = nowNs();
@@ -163,8 +186,13 @@ private:
                 break;
             }
         }
-        VLOGI("client %s disconnected (sent %.1f MB, %llu queue drops)", m_peer.c_str(), m_bytesSent / 1e6,
-              (unsigned long long)m_dropEvents);
+        uint64_t drops;
+        {
+            std::lock_guard<std::mutex> lk(m_mutex);
+            drops = m_dropEvents;
+        }
+        VLOGI("client %s disconnected (sent %.1f MB, %llu queue drops)", m_peer.c_str(), m_bytesSent.load() / 1e6,
+              (unsigned long long)drops);
         close();
     }
 
@@ -198,6 +226,7 @@ private:
                 pong.t1 = p.t1;
                 pong.t2 = rxNs;
                 std::lock_guard<std::mutex> lk(m_mutex);
+                if (m_pongs.size() >= kMaxQueuedPongs) m_pongs.pop_front();   // stale answers are worthless anyway
                 m_pongs.push_back(pong);
                 m_cv.notify_one();
                 break;
@@ -240,6 +269,7 @@ private:
     int m_fd;
     std::string m_peer;
     StreamServer* m_server;
+    int64_t m_connectedNs;
     std::atomic<bool> m_alive{true};
     std::atomic<bool> m_helloDone{false};
     std::thread m_reader, m_writer;
@@ -251,20 +281,22 @@ private:
     size_t m_videoBytes = 0;
     bool m_needKey = true;
     uint64_t m_dropEvents = 0;
-    uint64_t m_bytesSent = 0;
+    std::atomic<uint64_t> m_bytesSent{0};   // written by the send thread, read by the receive thread's last log line
     int64_t m_lastStatsLog = 0;
 };
 
 // ------------------------------------------------------------------------------------------------ server
 
-void StreamServer::start(int port, const std::string& name, Callbacks cb) {
+void StreamServer::start(int port, const std::string& name, Callbacks cb, bool loopbackOnly) {
     if (m_running) return;
     m_port = port;
+    m_loopbackOnly = loopbackOnly;
     m_name = name;
     m_cb = std::move(cb);
     m_running = true;
     m_acceptThread = std::thread([this] { acceptLoop(); });
-    m_discoveryThread = std::thread([this] { discoveryLoop(); });
+    // USB only: nothing to discover, the headset reaches the Mac through adb's localhost tunnel.
+    if (!loopbackOnly) m_discoveryThread = std::thread([this] { discoveryLoop(); });
 }
 
 void StreamServer::stop() {
@@ -286,13 +318,17 @@ void StreamServer::acceptLoop() {
     while (m_running) {
         if (m_listenFd < 0) {
             int fd = ::socket(AF_INET, SOCK_STREAM, 0);
+            if (fd < 0) {   // out of descriptors: wait, don't spin
+                for (int i = 0; i < 20 && m_running; i++) usleep(100000);
+                continue;
+            }
             fcntl(fd, F_SETFD, FD_CLOEXEC);   // don't leak into Resolve's helper processes (fuscript)
             int one = 1;
             setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);
             sockaddr_in a{};
             a.sin_family = AF_INET;
             a.sin_port = htons((uint16_t)m_port);
-            a.sin_addr.s_addr = htonl(INADDR_ANY);
+            a.sin_addr.s_addr = htonl(m_loopbackOnly ? INADDR_LOOPBACK : INADDR_ANY);
             if (::bind(fd, (sockaddr*)&a, sizeof a) != 0 || ::listen(fd, 8) != 0) {
                 int err = errno;
                 int64_t now = nowNs();
@@ -307,7 +343,7 @@ void StreamServer::acceptLoop() {
             }
             m_listenFd = fd;
             m_lastBindWarnNs = 0;
-            VLOGI("listening for headsets on TCP %d", m_port);
+            VLOGI("listening for headsets on TCP %d%s", m_port, m_loopbackOnly ? " (this Mac only: USB)" : "");
         }
         pollfd p{m_listenFd, POLLIN, 0};
         int pr = ::poll(&p, 1, 250);
@@ -317,6 +353,22 @@ void StreamServer::acceptLoop() {
         socklen_t len = sizeof peer;
         int cfd = ::accept(m_listenFd, (sockaddr*)&peer, &len);
         if (cfd < 0) continue;
+        {
+            size_t have;
+            {
+                std::lock_guard<std::mutex> lk(m_mutex);
+                have = m_clients.size();
+            }
+            if (have >= kMaxClients) {
+                ::close(cfd);
+                int64_t now = nowNs();
+                if (!m_lastFullWarnNs || now - m_lastFullWarnNs > 30LL * 1000000000LL) {
+                    m_lastFullWarnNs = now;
+                    VLOGW("refusing a connection: %zu already open", have);
+                }
+                continue;
+            }
+        }
         fcntl(cfd, F_SETFD, FD_CLOEXEC);
         int one = 1;
         setsockopt(cfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof one);
@@ -346,8 +398,14 @@ void StreamServer::acceptLoop() {
 void StreamServer::reap() {
     std::vector<std::shared_ptr<Client>> dead;
     int n;
+    int64_t now = nowNs();
     {
         std::lock_guard<std::mutex> lk(m_mutex);
+        for (auto& c : m_clients)
+            if (c->alive() && c->overdue(now)) {
+                VLOGI("client %s said nothing for 10 s: closing", c->peer().c_str());
+                c->close();
+            }
         for (auto it = m_clients.begin(); it != m_clients.end();) {
             if (!(*it)->alive()) {
                 dead.push_back(*it);

@@ -15,5 +15,9 @@
 	<key>BitrateMbps</key><integer>0</integer>
 	<key>KeyframeIntervalSec</key><integer>2</integer>
 	<key>Port</key><integer>47810</integer>
+	<!-- all = Wi-Fi and USB | usb = listen on this Mac only (cable required; nothing on the network can connect).
+	     Read by the driver, the bridge and the NDI source. Restart Resolve, then:
+	     launchctl kickstart -k gui/$(id -u)/ca.skylightproductions.velaria.bridge -->
+	<key>Network</key><string>all</string>
 </dict>
 </plist>
