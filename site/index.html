@@ -275,7 +275,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "Which Mac, which Resolve and which headset do I need?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "A Mac with Apple silicon running macOS 13 or newer, DaVinci Resolve Studio 19, 20 or 21, and a Meta Quest 3. Quest 2 and Quest Pro run the app, but Quest 3 is the headset we test on. You also need a USB-C data cable for the install. After that you can work over the cable or over Wi-Fi."
+    "text": "A Mac with Apple silicon running macOS 13 or newer, DaVinci Resolve Studio 19, 20 or 21, and a Meta Quest 3. Quest 3S, Quest 2 and Quest Pro run the app, but Quest 3 is the headset we test on. You also need a USB-C data cable for the install. After that you can work over the cable or over Wi-Fi."
    }
   },
   {
@@ -331,7 +331,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "Which formats and resolutions can I preview?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "360 in mono or over/under stereo, and 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees. VR180 and anything up to 7680 x 4320 reaches the headset at full size. Resolve cannot send a square frame taller than that, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed."
+    "text": "360 in mono or over/under stereo, and 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees. Pictures up to 5760 pixels wide reach the headset at full size (a 5760 x 2880 VR180 timeline, for example); wider pictures are scaled down to 5760. Resolve's monitoring picture is no taller than 4320 pixels, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed."
    }
   },
   {
@@ -596,7 +596,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
         <ul>
           <li>Mono, or stereo over/under</li>
           <li>Level grid, re-level and re-orient</li>
-          <li>Up to 7680 x 4320 at full size</li>
+          <li>Up to 5760 pixels wide at full size</li>
           <li>Square stereo timelines monitor at 3840 x 3840</li>
         </ul>
       </article>
@@ -671,7 +671,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
         <h3 class="sub">Check these five things first</h3>
         <ol>
           <li><b>A Mac with Apple silicon, and DaVinci Resolve Studio.</b><span>macOS 13 or newer, and Resolve Studio 19, 20 or 21. The free version of Resolve will not work.</span></li>
-          <li><b>A Meta Quest 3 with developer mode on.</b><span>Developer mode needs a free Meta developer account, and Meta may take a few days to verify it. Quest 2 and Quest Pro run the app, but we test on Quest 3.</span></li>
+          <li><b>A Meta Quest 3 with developer mode on.</b><span>Developer mode needs a free Meta developer account, and Meta may take a few days to verify it. Quest 3S, Quest 2 and Quest Pro run the app, but we test on Quest 3.</span></li>
           <li><b>Velaria is not signed by Apple.</b><span>You install it from Terminal with one command, and on most Macs it runs without a warning. If macOS says <q>Apple could not verify [file name] is free of malware that may harm your Mac or compromise your privacy</q> (macOS 15 and newer) or <q>[file name] cannot be opened because the developer cannot be verified</q> (macOS 13 and 14), click Done, open System Settings, go to Privacy &amp; Security, scroll to Security and click Open Anyway. Then run the installer again.</span></li>
           <li><b>It takes the place of Blackmagic Desktop Video while installed.</b><span>If you use a DeckLink or UltraStudio, you can have that or Velaria active, not both at once. The installer will not set Blackmagic's driver aside unless you tell it to, and the uninstaller puts it back. Showing both in Resolve is planned as a free update.</span></li>
           <li><b>Support is by email, and updates come when they're ready.</b><span>There is no phone support and no guaranteed response time. If it doesn't work on your setup, you get your money back.</span></li>
@@ -691,14 +691,14 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
     </div>
     <div class="faq__list">
       <details open><summary>What do I get when I buy Velaria?</summary><div><p>One download for your Mac. It contains the Velaria output that DaVinci Resolve Studio plays to, the Velaria View app for your Quest, the Velaria effects for Resolve (Canvas Control, Orient 360 and Trim), an installer and uninstaller, and the setup guide.</p><p>It is a one-time purchase with no subscription and no licence key.</p></div></details>
-      <details><summary>Which Mac, which Resolve and which headset do I need?</summary><div><p>A Mac with Apple silicon running macOS 13 or newer, DaVinci Resolve Studio 19, 20 or 21, and a Meta Quest 3. Quest 2 and Quest Pro run the app, but Quest 3 is the headset we test on.</p><p>You also need a USB-C data cable for the install. After that you can work over the cable or over Wi-Fi.</p></div></details>
+      <details><summary>Which Mac, which Resolve and which headset do I need?</summary><div><p>A Mac with Apple silicon running macOS 13 or newer, DaVinci Resolve Studio 19, 20 or 21, and a Meta Quest 3. Quest 3S, Quest 2 and Quest Pro run the app, but Quest 3 is the headset we test on.</p><p>You also need a USB-C data cable for the install. After that you can work over the cable or over Wi-Fi.</p></div></details>
       <details><summary>Does it work with the free version of DaVinci Resolve?</summary><div><p>No. The free version has no video output for Velaria to connect to, so Velaria needs DaVinci Resolve Studio.</p></div></details>
       <details><summary>Why does my Quest need developer mode?</summary><div><p>Velaria View is not in the Meta Horizon Store yet, so the installer loads it onto your headset over the cable. Meta only allows that when developer mode is on. Turning it on means creating a free Meta developer account, and Meta may take a few days to verify the account.</p><p>If you are not comfortable doing that, please wait for a store version before you buy.</p></div></details>
       <details><summary>macOS says it can't verify the developer. Is that expected?</summary><div><p>Yes. Velaria 1.0 is not signed or notarized by Apple. On most Macs the installer runs from Terminal without a warning. If macOS does stop it, the requirements box above gives the exact message and the fix: System Settings, Privacy &amp; Security, Open Anyway, then run the installer again.</p></div></details>
       <details><summary>I own a DeckLink or UltraStudio. Can I keep using it?</summary><div><p>Yes, but not at the same moment in version 1.0. Resolve sees Velaria as a Blackmagic video device, so while Velaria is installed it takes the place of Blackmagic Desktop Video. The installer will not set Blackmagic's driver aside unless you tell it to, and the uninstaller puts it back.</p><p>Having both listed side by side in Resolve is in the works and will be a free update.</p></div></details>
       <details><summary>Does it work with Premiere Pro, Final Cut Pro or on Windows?</summary><div><p>No. Velaria 1.0 is for DaVinci Resolve Studio on a Mac.</p></div></details>
       <details><summary>Does it work with Apple Vision Pro, Pico or other headsets?</summary><div><p>No. Velaria 1.0 is for Meta Quest. If you work on Apple Vision Pro, DaVinci Resolve Studio has its own monitoring for that headset.</p></div></details>
-      <details><summary>Which formats and resolutions can I preview?</summary><div><p>360 in mono or over/under stereo, and 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees.</p><p>VR180 and anything up to 7680 x 4320 reaches the headset at full size. Resolve cannot send a square frame taller than that, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed.</p></div></details>
+      <details><summary>Which formats and resolutions can I preview?</summary><div><p>360 in mono or over/under stereo, and 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees.</p><p>Pictures up to 5760 pixels wide reach the headset at full size (a 5760 x 2880 VR180 timeline, for example); wider pictures are scaled down to 5760. Resolve's monitoring picture is no taller than 4320 pixels, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed.</p></div></details>
       <details><summary>Can I finish a colour grade in the headset?</summary><div><p>No. A Quest is not a reference display. Velaria gives you scopes measured on the Mac and a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor.</p></div></details>
       <details><summary>Cable or Wi-Fi?</summary><div><p>Both work, and the app finds your Mac on its own. The USB-C cable is the steadier choice. Over Wi-Fi, the Mac and the headset need to be on the same network, and a fast, uncrowded one.</p></div></details>
       <details><summary>How is this different from a headset app that shows a video stream from my Mac?</summary><div><p>Those apps show you a picture. Velaria also stays in step with Resolve's own viewer, frame for frame, and it lets you change the project from inside the shot: move an overlay, set its depth, level the horizon, set a keyframe. Every change is a real change in your Resolve project, with undo.</p></div></details>
