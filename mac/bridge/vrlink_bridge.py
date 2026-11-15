@@ -44,6 +44,7 @@ CONFIG = os.path.expanduser("~/Library/Application Support/Velaria/config.plist"
 LOG_MAX_BYTES = 5 * 1024 * 1024    # bridge.log is moved to bridge.old.log past this size
 MAX_LINE = 1024 * 1024             # a command line longer than this is not from a headset: drop the connection
 SET_GATHER_S = 0.002               # how long to wait for the rest of a multi-input change (pan + tilt, R + G + B)
+MAX_CLIENTS = 8                    # connections kept at once; further ones are closed on arrival
 DRAG_QUIET_S = 1.0                 # the periodic timeline re-scan waits until no change has been applied for this long
 
 
@@ -981,14 +982,36 @@ class Bridge:
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         addr = bind_address()
-        srv.bind((addr, PORT))
+        # The port can be taken (an older bridge still exiting, another copy started by hand). This runs on a
+        # daemon thread: an exception here used to end the thread and leave a bridge that ran but never listened,
+        # which launchd does not restart. Keep trying instead.
+        warned = 0.0
+        while True:
+            try:
+                srv.bind((addr, PORT))
+                break
+            except OSError as e:
+                if time.time() - warned > 30:
+                    warned = time.time()
+                    log("cannot listen on TCP %d (%s); retrying every 2 s" % (PORT, e))
+                time.sleep(2)
         srv.listen(4)
         log("bridge listening on TCP %d (%s)" % (PORT, "this Mac only: USB" if addr.startswith("127.") else addr))
         while True:
-            c, peer = srv.accept()
-            c.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            try:
+                c, peer = srv.accept()
+            except OSError as e:
+                log("accept failed: %s" % e)
+                time.sleep(1)
+                continue
             with self.lock:
-                self.clients.append(c)
+                full = len(self.clients) >= MAX_CLIENTS
+                if not full:
+                    self.clients.append(c)
+            if full:   # every connection is a thread that can drive Resolve; a headset needs one
+                c.close()
+                continue
+            c.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             threading.Thread(target=self.client_loop, args=(c, peer), daemon=True).start()
 
     # ---------------------------------------------------------------- main loop

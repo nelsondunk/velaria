@@ -437,6 +437,47 @@ def test_inner_tools_are_listed_once_per_drag_not_once_per_step():
     assert len(calls) > base
 
 
+def test_listener_waits_for_a_busy_port_and_caps_connections():
+    import socket
+    import threading
+    import time
+    blocker = socket.socket()
+    blocker.bind(("127.0.0.1", 0))
+    blocker.listen(1)
+    port = blocker.getsockname()[1]
+    old_port, old_env, old_sleep = vb.PORT, os.environ.get("VRLINK_BRIDGE_BIND"), vb.time.sleep
+    vb.PORT, os.environ["VRLINK_BRIDGE_BIND"] = port, "127.0.0.1"
+    vb.time.sleep = lambda s: old_sleep(min(s, 0.05))
+    try:
+        b = vb.Bridge()
+        assert b.connect()
+        t = threading.Thread(target=b.accept_loop, daemon=True)
+        t.start()
+        time.sleep(0.2)
+        assert t.is_alive()                 # the port is taken: still trying, not dead
+        blocker.close()
+        conns = []
+        deadline = time.time() + 3
+        while time.time() < deadline and len(conns) < vb.MAX_CLIENTS + 4:
+            try:
+                conns.append(socket.create_connection(("127.0.0.1", port), timeout=0.5))
+            except OSError:
+                time.sleep(0.05)
+        assert len(conns) == vb.MAX_CLIENTS + 4
+        assert wait_for(lambda: len(b.clients) == vb.MAX_CLIENTS)
+        time.sleep(0.2)
+        assert len(b.clients) == vb.MAX_CLIENTS
+        for c in conns:
+            c.close()
+        assert wait_for(lambda: len(b.clients) == 0)
+    finally:
+        vb.time.sleep = old_sleep
+        vb.PORT = old_port
+        os.environ.pop("VRLINK_BRIDGE_BIND", None)
+        if old_env is not None:
+            os.environ["VRLINK_BRIDGE_BIND"] = old_env
+
+
 def test_log_rotates_and_set_lines_stay_out_of_stderr():
     import io
     import tempfile
