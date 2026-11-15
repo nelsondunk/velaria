@@ -421,6 +421,33 @@ def test_a_line_that_never_ends_drops_the_client():
         ours.close()
 
 
+def test_deeply_nested_line_does_not_kill_the_thread_or_leak_its_slot():
+    # json.loads raises RecursionError (not ValueError) on a line of "[" characters. It used to end the client's
+    # thread with the client still listed, so eight such lines filled every slot until the bridge was restarted.
+    import json
+    b, ours, t = wire_bridge()
+    macro = b.timeline.macro
+    ours.sendall(b"[" * 200000 + b"\n")
+    ours.sendall((json.dumps({"cmd": "set", "clip": "V2:108300", "tool": "Skylight_FactWindow", "input": "Roll",
+                              "value": 4.0}) + "\n").encode())
+    assert wait_for(lambda: macro.values["Roll"] == 4.0)   # still serving this client
+    assert t.is_alive()
+    ours.close()
+    assert wait_for(lambda: not t.is_alive())
+    assert b.clients == []                                 # and the slot comes back when it leaves
+
+
+def test_a_client_thread_that_dies_gives_its_slot_back():
+    b, ours, t = wire_bridge()
+    def boom(client, buf):
+        raise RuntimeError("anything unexpected")
+    b.read_commands = boom
+    ours.sendall(b"{}\n")
+    t.join(2.0)
+    assert not t.is_alive() and b.clients == []
+    ours.close()
+
+
 def test_inner_tools_are_listed_once_per_drag_not_once_per_step():
     b, _ = make_bridge()
     g = params_of(b)

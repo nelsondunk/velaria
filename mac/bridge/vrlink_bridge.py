@@ -916,7 +916,7 @@ class Bridge:
                 continue
             try:
                 msg = json.loads(line)
-            except ValueError:
+            except (ValueError, RecursionError):   # RecursionError: a line of 100,000 "[" is not a ValueError
                 continue
             if isinstance(msg, dict):
                 msgs.append(msg)
@@ -975,8 +975,11 @@ class Bridge:
                     self.dispatch(client, msgs)
         except (OSError, ValueError):
             pass
-        log("headset %s:%d disconnected" % peer)
-        self.drop_client(client)
+        finally:
+            # whatever ended this thread, give the connection's slot back: a thread that died without doing so left
+            # its client in the list for good, and MAX_CLIENTS of those shut every headset out until a restart
+            log("headset %s:%d disconnected" % peer)
+            self.drop_client(client)
 
     def accept_loop(self):
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
