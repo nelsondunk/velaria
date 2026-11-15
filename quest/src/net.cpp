@@ -514,9 +514,12 @@ void NetClient::handle(const StreamParser::Message& m, int64_t rx) {
             // These numbers size the decoder, an image reader and a swapchain. Take them only from a sane sender:
             // the Mac never encodes wider or taller than 8192 (it is what HELLO advertises) or odd sizes.
             if (c.msg.width < 16 || c.msg.height < 16 || c.msg.width > 8192 || c.msg.height > 8192 ||
-                (c.msg.width & 1) || (c.msg.height & 1) || c.msg.csdLength > len || c.msg.csdLength > 65536) {
-                LOGW("ignoring stream config %u: %ux%u, %u bytes of parameter sets in %zu", c.msg.configId, c.msg.width,
-                     c.msg.height, c.msg.csdLength, len);
+                (c.msg.width & 1) || (c.msg.height & 1) || c.msg.csdLength > len || c.msg.csdLength > 65536 ||
+                c.msg.layout > 255 || c.msg.projection > 255) {
+                // layout and projection index small name tables after a cast to int (main.cpp, updateHud): a value
+                // past 2^31 becomes a negative index and reads outside the table. No sender uses more than a handful.
+                LOGW("ignoring stream config %u: %ux%u, layout %u, projection %u, %u bytes of parameter sets in %zu",
+                     c.msg.configId, c.msg.width, c.msg.height, c.msg.layout, c.msg.projection, c.msg.csdLength, len);
                 return;
             }
             c.csd.assign(extra, extra + std::min<size_t>(len, c.msg.csdLength));
