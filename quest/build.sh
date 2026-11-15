@@ -32,6 +32,11 @@ wait
 $CXX -shared -o $OUT/apk/lib/arm64-v8a/libvrlink.so $OUT/obj/*.o \
   -L$OXR/jni/arm64-v8a -lopenxr_loader -landroid -llog -lEGL -lGLESv3 -lmediandk -lnativewindow \
   -u ANativeActivity_onCreate -static-libstdc++ -Wl,--no-undefined -Wl,-z,max-page-size=16384
+# The library is built with -g: 8.1 MB, with every symbol and the build machine's source paths inside. Ship it
+# stripped (1.9 MB) and keep the full one beside the APK for reading crash dumps (ndk-stack / addr2line want it;
+# $OUT is wiped by the next build, so file it with the release). KEEP_SYMBOLS=1 ships it unstripped as before.
+cp $OUT/apk/lib/arm64-v8a/libvrlink.so $OUT/libvrlink.unstripped.so
+if [ -z "${KEEP_SYMBOLS:-}" ]; then $TC/llvm-strip --strip-unneeded $OUT/apk/lib/arm64-v8a/libvrlink.so; fi
 cp $OXR/jni/arm64-v8a/libopenxr_loader.so $OUT/apk/lib/arm64-v8a/
 $BT/aapt2 link -o $OUT/unsigned.apk --manifest AndroidManifest.xml -I $JAR \
   --min-sdk-version $API --target-sdk-version $API --version-code $BUILD --version-name "$VER+$BUILD"
