@@ -18,6 +18,9 @@
 namespace vrq {
 
 static const int kBridgePort = 47812;
+// The longest real message is the params list of a busy comp (tens of KB). Whatever is on the other end of this
+// socket must not be able to grow the buffer without limit.
+static const size_t kMaxLine = 4 * 1024 * 1024;
 
 void BridgeClient::start() {
     m_running = true;
@@ -138,6 +141,10 @@ bool BridgeClient::session(const std::string& host) {
             LOGI("bridge connected (%s)", host.c_str());
         }
         buf.append(chunk, (size_t)n);
+        if (buf.size() > kMaxLine && buf.find('\n') == std::string::npos) {
+            LOGW("bridge: %zu bytes without a line end; dropping the connection", buf.size());
+            break;
+        }
         size_t pos;
         while ((pos = buf.find('\n')) != std::string::npos) {
             std::string line = buf.substr(0, pos);

@@ -108,10 +108,14 @@ struct Json {
         out += '"';
     }
 
-    // Parses `s`; returns false on malformed input (result then undefined).
+    // Parses `s`; returns false on malformed input (result then undefined). The text comes off the network, so the
+    // parser must hold whatever it is fed: nesting is limited (the recursion would otherwise run the stack out on a
+    // line of '[' characters) and numbers must be plain finite JSON numbers (strtod alone also takes "nan", "inf"
+    // and hex, which then reach llround and the sliders).
+    static constexpr int kMaxDepth = 32;
     static bool parse(const std::string& s, Json& out) {
         size_t i = 0;
-        if (!parseValue(s, i, out)) return false;
+        if (!parseValue(s, i, out, 0)) return false;
         skipWs(s, i);
         return i == s.size();
     }
@@ -173,7 +177,8 @@ private:
             o += (char)(0x80 | (cp & 0x3F));
         }
     }
-    static bool parseValue(const std::string& s, size_t& i, Json& out) {
+    static bool parseValue(const std::string& s, size_t& i, Json& out, int depth) {
+        if (depth > kMaxDepth) return false;
         skipWs(s, i);
         if (i >= s.size()) return false;
         char c = s[i];
@@ -193,7 +198,7 @@ private:
                 if (i >= s.size() || s[i] != ':') return false;
                 i++;
                 Json v;
-                if (!parseValue(s, i, v)) return false;
+                if (!parseValue(s, i, v, depth + 1)) return false;
                 out.obj[k] = std::move(v);
                 skipWs(s, i);
                 if (i < s.size() && s[i] == ',') {
@@ -217,7 +222,7 @@ private:
             }
             while (true) {
                 Json v;
-                if (!parseValue(s, i, v)) return false;
+                if (!parseValue(s, i, v, depth + 1)) return false;
                 out.arr.push_back(std::move(v));
                 skipWs(s, i);
                 if (i < s.size() && s[i] == ',') {
@@ -250,9 +255,12 @@ private:
             i += 4;
             return true;
         }
+        if (c != '-' && (c < '0' || c > '9')) return false;
+        if (s.compare(i, 2, "0x") == 0 || s.compare(i, 2, "0X") == 0 || s.compare(i, 3, "-0x") == 0 || s.compare(i, 3, "-0X") == 0)
+            return false;
         char* end = nullptr;
         double d = strtod(s.c_str() + i, &end);
-        if (end == s.c_str() + i) return false;
+        if (end == s.c_str() + i || !std::isfinite(d)) return false;
         out = Json(d);
         i = (size_t)(end - s.c_str());
         return true;

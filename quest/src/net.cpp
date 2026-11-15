@@ -511,6 +511,14 @@ void NetClient::handle(const StreamParser::Message& m, int64_t rx) {
             const uint8_t* extra;
             size_t len;
             if (!readBody(m.payload, c.msg, &extra, &len)) return;
+            // These numbers size the decoder, an image reader and a swapchain. Take them only from a sane sender:
+            // the Mac never encodes wider or taller than 8192 (it is what HELLO advertises) or odd sizes.
+            if (c.msg.width < 16 || c.msg.height < 16 || c.msg.width > 8192 || c.msg.height > 8192 ||
+                (c.msg.width & 1) || (c.msg.height & 1) || c.msg.csdLength > len || c.msg.csdLength > 65536) {
+                LOGW("ignoring stream config %u: %ux%u, %u bytes of parameter sets in %zu", c.msg.configId, c.msg.width,
+                     c.msg.height, c.msg.csdLength, len);
+                return;
+            }
             c.csd.assign(extra, extra + std::min<size_t>(len, c.msg.csdLength));
             LOGI("stream config %u: %ux%u layout %u proj %u %.3f fps raster %ux%u", c.msg.configId, c.msg.width,
                  c.msg.height, c.msg.layout, c.msg.projection, (double)c.msg.fpsNum / c.msg.fpsDen, c.msg.rasterWidth,

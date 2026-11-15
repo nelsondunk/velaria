@@ -10,6 +10,9 @@
 #define pthread_setname_np(n) pthread_setname_np(pthread_self(), n)
 #define SO_NOSIGPIPE SO_KEEPALIVE
 #endif
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0   // macOS has none; main() ignores SIGPIPE instead
+#endif
 #ifndef VRL_HELLO_DEADLINE_NS
 #define VRL_HELLO_DEADLINE_NS 600000000LL
 #endif
