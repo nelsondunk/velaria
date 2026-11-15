@@ -190,11 +190,12 @@ inline void appendMessage(std::vector<uint8_t>& out, MsgType type, const void* b
     MsgHeader h{};
     h.length = (uint32_t)(bodyLen + extraLen);
     h.type = (uint8_t)type;
-    size_t off = out.size();
-    out.resize(off + sizeof h + bodyLen + extraLen);
-    std::memcpy(out.data() + off, &h, sizeof h);
-    if (bodyLen) std::memcpy(out.data() + off + sizeof h, body, bodyLen);
-    if (extraLen) std::memcpy(out.data() + off + sizeof h + bodyLen, extra, extraLen);
+    // insert, not resize + memcpy: resize zero-fills the whole message first, a second pass over every video frame
+    out.reserve(out.size() + sizeof h + bodyLen + extraLen);
+    const uint8_t* hp = reinterpret_cast<const uint8_t*>(&h);
+    out.insert(out.end(), hp, hp + sizeof h);
+    if (bodyLen) out.insert(out.end(), static_cast<const uint8_t*>(body), static_cast<const uint8_t*>(body) + bodyLen);
+    if (extraLen) out.insert(out.end(), static_cast<const uint8_t*>(extra), static_cast<const uint8_t*>(extra) + extraLen);
 }
 
 template <typename T>
