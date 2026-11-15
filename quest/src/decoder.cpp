@@ -170,6 +170,7 @@ void Decoder::threadMain() {
     pthread_setname_np(pthread_self(), "VRLink.decode");
     VideoUnit u;
     bool havePending = false;
+    double pendingDecodeMs = 30.0;   // decode-time estimate taken once per held frame, not once per millisecond
     auto applyConfigs = [this] {
         StreamConfig cfg;
         bool any = false;
@@ -182,6 +183,13 @@ void Decoder::threadMain() {
     while (m_running) {
         applyConfigs();
         drainOutput();
+        // A new stream config can arrive while a frame is being held for its display time. That frame belongs to
+        // the old stream, and if the new config could not be set up there is no codec at all: feeding it would
+        // call into a null codec. Drop it and wait for the new stream's keyframe.
+        if (havePending && (!m_codec || u.configId != m_cfg.msg.configId)) {
+            havePending = false;
+            m_needKey = true;
+        }
         if (!havePending) {
             if (!m_net.waitVideo(u, 4)) continue;
             if (!m_codec || u.configId != m_cfg.msg.configId) applyConfigs();   // config may have raced the frame
@@ -203,15 +211,12 @@ void Decoder::threadMain() {
                 continue;
             }
             havePending = true;
+            std::lock_guard<std::mutex> lk(m_mutex);
+            pendingDecodeMs = m_decodeMs.count() ? m_decodeMs.percentile(95) : 30.0;
         }
         // Just-in-time feed: hold the compressed frame until it is within decode time + 2 refreshes of display.
         if (!u.sync && !u.noDisplay && m_net.clockValid()) {
-            double decodeMs;
-            {
-                std::lock_guard<std::mutex> lk(m_mutex);
-                decodeMs = m_decodeMs.count() ? m_decodeMs.percentile(95) : 30.0;
-            }
-            int64_t lead = (int64_t)(decodeMs * 1e6) + 2 * m_refreshNs.load() + 25000000LL;
+            int64_t lead = (int64_t)(pendingDecodeMs * 1e6) + 2 * m_refreshNs.load() + 25000000LL;
             int64_t due = m_net.senderToLocal(u.ptsSender) + m_delayNs.load();
             if (due - monoNs() > lead) {
                 usleep(1000);
