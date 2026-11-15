@@ -53,7 +53,8 @@ if HOME="$W/home" bash "$W/repo/mac/package.sh" "../x" >/dev/null 2>&1; then die
 want=$(grep -ohE 'ref/[A-Za-z0-9_-]+\.png' "$REPO"/docs/public/*.md | sort -u | wc -l); got=$(find "$R/docs/ref" -name '*.png' | wc -l)
 if [ "$want" -gt 0 ] && [ "$got" -eq "$want" ] && [ ! -e "$R/docs/ref/look-dome.png" ]; then ok "only the $want pictures the documents show"; else die "pictures in the release: $got, documents show $want"; fi
 echo '[CONFIRM AT PUBLISH: something still open]' > "$R/docs/zz-placeholder.md"
-if bash "$W/repo/mac/check_release.sh" "$R" 2>&1 | grep -q 'zz-placeholder.md'; then ok "checker reports a [CONFIRM ...] placeholder"; else die "checker missed a [CONFIRM ...] placeholder"; fi
+chk=$(bash "$W/repo/mac/check_release.sh" "$R" 2>&1 || true)   # captured first: grep -q on a pipe can end the checker early
+if echo "$chk" | grep 'zz-placeholder.md' >/dev/null; then ok "checker reports a [CONFIRM ...] placeholder"; else die "checker missed a [CONFIRM ...] placeholder"; fi
 rm "$R/docs/zz-placeholder.md"
 cp "$REPO/macros/Velaria 3D Card - Vine.setting" "$R/macros/"
 if bash "$W/repo/mac/check_release.sh" "$R" >/dev/null 2>&1; then die "checker missed an internal macro"; else ok "checker catches an internal macro"; fi
@@ -69,6 +70,16 @@ if grep -q '<string>ca.skylightproductions.velaria.bridge</string>' "$UH/Library
 if SUDO_USER='x$(touch /tmp/velaria-dryrun-pwned)' bash ./install.sh >/dev/null 2>&1 || [ -e /tmp/velaria-dryrun-pwned ]; then rm -f /tmp/velaria-dryrun-pwned; die "odd user name refused"; else ok "odd user name refused"; fi
 if [ -f "$UH/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates/Edit/Effects/Velaria/Velaria Trim.setting" ]; then ok "effects on the Edit page"; else die "effects on the Edit page"; fi
 if bash ./install.sh >/dev/null 2>&1; then ok "second run (update) succeeds"; else die "second run (update) succeeds"; fi
+# a LaunchAgents folder the user cannot write to stops the install before the driver is touched (sudo is a stub
+# here and everything runs as root, so "test -w" is made to fail by a stub of its own)
+before=$(cat "$FW/Resources/Info.plist"); echo marker >> "$FW/Resources/Info.plist"
+# shellcheck disable=SC2016
+stub sudo 'if [ "$1" = "-u" ]; then shift 2; fi; if [ "$1" = test ] && [ "$2" = "-w" ]; then exit 1; fi; exec "$@"'
+if bash ./install.sh >"$W/la.out" 2>&1; then die "installed with an unwritable LaunchAgents folder"; fi
+if grep -q "sudo chown" "$W/la.out" && grep -q marker "$FW/Resources/Info.plist"; then ok "unwritable LaunchAgents folder: stops first, says how to fix it, driver untouched"; else cat "$W/la.out"; die "unwritable LaunchAgents folder"; fi
+# shellcheck disable=SC2016
+stub sudo 'if [ "$1" = "-u" ]; then shift 2; fi; exec "$@"'
+echo "$before" > "$FW/Resources/Info.plist"
 if ADB_STATE=0 bash ./install.sh --headset >/dev/null 2>&1; then ok "--headset with a headset"; else die "--headset with a headset"; fi
 ADB_STATE=1 bash ./install.sh --headset >/dev/null 2>&1 & pid=$!
 sleep 2; if kill "$pid" 2>/dev/null; then ok "--headset waits when there is none"; else die "--headset did not wait for a headset"; fi

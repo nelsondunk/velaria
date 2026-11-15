@@ -147,6 +147,15 @@ if pgrep -qf "DaVinci Resolve.app/Contents/MacOS/Resolve"; then
   echo "Note: DaVinci Resolve is running. Quit and relaunch it after installing."
 fi
 
+# The launch agents are written as the user (step 3 on). Some installers leave ~/Library/LaunchAgents owned by root;
+# writing there as root used to hide that, and now it would stop this installer halfway, after the driver is in.
+# Say so before anything is changed.
+if [ -e "$USER_HOME/Library/LaunchAgents" ] && ! sudo -u "$USER_NAME" test -w "$USER_HOME/Library/LaunchAgents"; then
+  echo "$USER_HOME/Library/LaunchAgents is not writable by $USER_NAME (another installer probably created it as root)."
+  echo "Fix it, then run this installer again:  sudo chown $USER_NAME \"$USER_HOME/Library/LaunchAgents\""
+  exit 1
+fi
+
 # 1. Driver. What happens to Blackmagic's real Desktop Video framework, if there is one:
 #    (default)             refuse, so nobody loses a DeckLink / UltraStudio by surprise;
 #    --replace-blackmagic  set it aside at $BACKUP; only Velaria appears in Resolve until --uninstall;
