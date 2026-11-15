@@ -10,7 +10,12 @@ BT=$SDK/build-tools/34.0.0
 JAR=$SDK/platforms/android-34/android.jar
 OXR=$ANDROID/openxr
 API=32
-TC=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin
+# the NDK names its toolchain folder after the machine it runs on: linux-x86_64 here, darwin-x86_64 on a Mac
+HOST_TAG=$(ls "$NDK/toolchains/llvm/prebuilt" 2>/dev/null | head -1)
+TC=$NDK/toolchains/llvm/prebuilt/${HOST_TAG:-linux-x86_64}/bin
+# the Khronos loader AAR changed layout: older ones unpack to jni/<abi>, 1.1.x to prefab/modules/openxr_loader/libs
+OXRLIB=$OXR/jni/arm64-v8a
+[ -f "$OXRLIB/libopenxr_loader.so" ] || OXRLIB=$OXR/prefab/modules/openxr_loader/libs/android.arm64-v8a
 CXX="$TC/aarch64-linux-android$API-clang++"
 CC="$TC/aarch64-linux-android$API-clang"
 GLUE=$NDK/sources/android/native_app_glue
@@ -30,14 +35,14 @@ for f in src/*.cpp ../common/timing.cpp; do
 done
 wait
 $CXX -shared -o $OUT/apk/lib/arm64-v8a/libvrlink.so $OUT/obj/*.o \
-  -L$OXR/jni/arm64-v8a -lopenxr_loader -landroid -llog -lEGL -lGLESv3 -lmediandk -lnativewindow \
+  -L"$OXRLIB" -lopenxr_loader -landroid -llog -lEGL -lGLESv3 -lmediandk -lnativewindow \
   -u ANativeActivity_onCreate -static-libstdc++ -Wl,--no-undefined -Wl,-z,max-page-size=16384
 # The library is built with -g: 8.1 MB, with every symbol and the build machine's source paths inside. Ship it
 # stripped (1.9 MB) and keep the full one beside the APK for reading crash dumps (ndk-stack / addr2line want it;
 # $OUT is wiped by the next build, so file it with the release). KEEP_SYMBOLS=1 ships it unstripped as before.
 cp $OUT/apk/lib/arm64-v8a/libvrlink.so $OUT/libvrlink.unstripped.so
 if [ -z "${KEEP_SYMBOLS:-}" ]; then $TC/llvm-strip --strip-unneeded $OUT/apk/lib/arm64-v8a/libvrlink.so; fi
-cp $OXR/jni/arm64-v8a/libopenxr_loader.so $OUT/apk/lib/arm64-v8a/
+cp "$OXRLIB/libopenxr_loader.so" $OUT/apk/lib/arm64-v8a/
 $BT/aapt2 link -o $OUT/unsigned.apk --manifest AndroidManifest.xml -I $JAR \
   --min-sdk-version $API --target-sdk-version $API --version-code $BUILD --version-name "$VER+$BUILD"
 (cd $OUT/apk && zip -q -r ../unsigned.apk lib)
