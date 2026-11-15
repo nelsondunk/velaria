@@ -59,6 +59,12 @@ void* lookup(CFBundleRef b, const char* name) {
 // This is what tells a first test apart: "loaded, 0 devices" (no hardware, or driver not running) from
 // "loaded, 1 device" from "did not load".
 void census(CFBundleRef b) {
+    // This runs inside the std::call_once that loads the framework. If anything Blackmagic's code does below (a
+    // creator, Next, a name lookup) asked /Library/Frameworks/DeckLinkAPI.framework, which is us, for an object on
+    // this thread, the request would re-enter that call_once and hang the host for good. Held for the whole census,
+    // the Scope makes our exports refuse such a request before they reach the loader. No client code runs in here,
+    // so the reason Next is left unscoped elsewhere (Coexist.h) does not apply.
+    Scope whole;
     if (auto mk = reinterpret_cast<IDeckLinkAPIInformation* (*)()>(lookup(b, "CreateDeckLinkAPIInformationInstance_0001"))) {
         IDeckLinkAPIInformation* info;
         {
