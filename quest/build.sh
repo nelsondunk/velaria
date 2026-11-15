@@ -19,7 +19,9 @@ OUT=build
 VER=${1:-${VER:-1.0.7}}
 BUILD=${2:-${BUILD:-41}}
 rm -rf $OUT && mkdir -p $OUT/obj $OUT/apk/lib/arm64-v8a
-CFLAGS="-O2 -g -fPIC -Wall -Wno-unused-parameter -DXR_USE_PLATFORM_ANDROID -DXR_USE_GRAPHICS_API_OPENGL_ES -DXR_USE_TIMESPEC -DVELARIA_BUILD=\"$VER+$BUILD\""
+# -fstack-protector-strong / _FORTIFY_SOURCE: this app parses what arrives on two network sockets; the NDK's bare
+# clang turns neither on (the library had no stack canaries at all).
+CFLAGS="-O2 -g -fPIC -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -Wno-unused-parameter -DXR_USE_PLATFORM_ANDROID -DXR_USE_GRAPHICS_API_OPENGL_ES -DXR_USE_TIMESPEC -DVELARIA_BUILD=\"$VER+$BUILD\""
 # NO_DEBUG_HOOK=1 ./build.sh ... leaves out the cmd.txt test hook (src/main.cpp, pollDebugCommands): for a build that is sold
 if [ -n "${NO_DEBUG_HOOK:-}" ]; then CFLAGS="$CFLAGS -DVELARIA_NO_DEBUG_HOOK"; fi
 $CC $CFLAGS -c $GLUE/android_native_app_glue.c -o $OUT/obj/glue.o
