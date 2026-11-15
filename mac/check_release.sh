@@ -37,7 +37,7 @@ if [ -f "$DIR/CHANGELOG.md" ] && [ "$(grep -ci 'kalyx' "$DIR/CHANGELOG.md")" -gt
   fail "CHANGELOG.md names Kalyx on more than one line (only the rename note may)"
 fi
 # 5. Placeholders that must be filled before anything is sold (reported, and fatal only with STRICT=1)
-if out=$(grep -rIEn --include='*.md' '\[(SUPPORT EMAIL|LEGAL ENTITY NAME|MAILING ADDRESS|VERIFY)\]|^\*\*DRAFT|^## Open questions for' "$DIR" 2>/dev/null); then
+if out=$(grep -rIEn --include='*.md' '\[(SUPPORT EMAIL|LEGAL ENTITY NAME|MAILING ADDRESS|VERIFY|CONFIRM[^]]*)\]|^\*\*DRAFT|^## Open questions for' "$DIR" 2>/dev/null); then
   echo "check_release: WARNING, unfilled placeholders or DRAFT markers (do not sell this build):" >&2
   echo "$out" | sed "s|^$DIR/||" | cut -c1-110 >&2
   if [ "${STRICT:-0}" = 1 ]; then bad=1; fi

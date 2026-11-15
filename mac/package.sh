@@ -23,7 +23,8 @@ cp "$P/known-limits.md" "$OUT/KNOWN-LIMITS.md"
 cp "$P/changelog.md" "$OUT/CHANGELOG.md"
 mkdir -p "$OUT/docs/ref"
 cp "$P"/howto-*.md "$P/headset-reference.md" "$OUT/docs/"
-cp ../quest/host/ref/*.png "$OUT/docs/ref/"
+# only the pictures the shipped documents show: the folder also holds panels of things not in this release
+grep -ohE 'ref/[A-Za-z0-9_-]+\.png' "$P"/*.md | sort -u | while IFS= read -r pic; do cp "../quest/host/$pic" "$OUT/docs/ref/"; done
 mkdir -p "$OUT/macros"
 # the 3D Titles / 3D Cards (Vine, Salmon, Hay Bale) are internal: their model kits are client assets (Nelson, 2 Nov)
 for f in ../macros/Velaria*.setting; do case "$f" in *"3D Title"*|*"3D Card"*) ;; *) cp "$f" "$OUT/macros/";; esac; done
@@ -41,7 +42,7 @@ for f in EULA.md PRIVACY.md THIRD-PARTY-NOTICES.md; do
   cp "../legal/$f" "$OUT/$f"
 done
 mkdir -p "$OUT/licenses" && cp ../legal/licenses/* "$OUT/licenses/"
-if grep -l -E '\[(LEGAL ENTITY NAME|SUPPORT EMAIL|MAILING ADDRESS)\]|^\*\*DRAFT' "$OUT"/EULA.md "$OUT"/PRIVACY.md "$OUT"/THIRD-PARTY-NOTICES.md >/dev/null; then
+if grep -l -E '\[(LEGAL ENTITY NAME|SUPPORT EMAIL|MAILING ADDRESS|VERIFY|CONFIRM[^]]*)\]|^\*\*DRAFT' "$OUT"/EULA.md "$OUT"/PRIVACY.md "$OUT"/THIRD-PARTY-NOTICES.md >/dev/null; then
   echo "WARNING: the legal texts still contain DRAFT markers or unfilled [placeholders]. Do not sell this build." >&2
 fi
 # fonts for titles (Montserrat, SIL OFL): installed to the user's font folder by install.sh

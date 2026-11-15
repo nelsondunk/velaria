@@ -50,6 +50,11 @@ if [ -f "$R.zip" ]; then ok "zip written"; else die "zip written"; fi
 if [ ! -e "$R/README.md" ] && [ ! -d "$R/tools" ]; then ok "no repository README, no test tools"; else die "no repository README, no test tools"; fi
 if [ -z "$(find "$R" -name '*3D*')" ]; then ok "no 3D card or title macros"; else die "no 3D card or title macros"; fi
 if HOME="$W/home" bash "$W/repo/mac/package.sh" "../x" >/dev/null 2>&1; then die "bad version accepted"; else ok "bad version refused"; fi
+want=$(grep -ohE 'ref/[A-Za-z0-9_-]+\.png' "$REPO"/docs/public/*.md | sort -u | wc -l); got=$(find "$R/docs/ref" -name '*.png' | wc -l)
+if [ "$want" -gt 0 ] && [ "$got" -eq "$want" ] && [ ! -e "$R/docs/ref/look-dome.png" ]; then ok "only the $want pictures the documents show"; else die "pictures in the release: $got, documents show $want"; fi
+echo '[CONFIRM AT PUBLISH: something still open]' > "$R/docs/zz-placeholder.md"
+if bash "$W/repo/mac/check_release.sh" "$R" 2>&1 | grep -q 'zz-placeholder.md'; then ok "checker reports a [CONFIRM ...] placeholder"; else die "checker missed a [CONFIRM ...] placeholder"; fi
+rm "$R/docs/zz-placeholder.md"
 cp "$REPO/macros/Velaria 3D Card - Vine.setting" "$R/macros/"
 if bash "$W/repo/mac/check_release.sh" "$R" >/dev/null 2>&1; then die "checker missed an internal macro"; else ok "checker catches an internal macro"; fi
 rm "$R/macros/Velaria 3D Card - Vine.setting"
