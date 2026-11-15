@@ -23,19 +23,17 @@ struct YCC {
 
 inline bool readYCC(const uint8_t* row, int x, BMDPixelFormat pf, YCC& o) {
     switch (pf) {
-        case bmdFormat10BitYUV: {   // v210: 6 pixels in 16 bytes
-            const uint8_t* g = row + (x / 6) * 16;
-            uint32_t w0 = rd32(g), w1 = rd32(g + 4), w2 = rd32(g + 8), w3 = rd32(g + 12);
+        case bmdFormat10BitYUV: {   // v210: 6 pixels in 16 bytes, four 32-bit words of three 10-bit components
             // components in order: Cb0 Y0 Cr0 | Y1 Cb2 Y2 | Cr2 Y3 Cb4 | Y4 Cr4 Y5
-            int c[12] = {(int)(w0 & 1023), (int)((w0 >> 10) & 1023), (int)((w0 >> 20) & 1023),
-                         (int)(w1 & 1023), (int)((w1 >> 10) & 1023), (int)((w1 >> 20) & 1023),
-                         (int)(w2 & 1023), (int)((w2 >> 10) & 1023), (int)((w2 >> 20) & 1023),
-                         (int)(w3 & 1023), (int)((w3 >> 10) & 1023), (int)((w3 >> 20) & 1023)};
+            // Only the three this pixel needs are read (this runs half a million times per scopes update, on the
+            // thread that feeds the encoder).
+            const uint8_t* g = row + (x / 6) * 16;
+            static const uint8_t yIdx[6] = {1, 3, 5, 7, 9, 11};
+            static const uint8_t cbIdx[6] = {0, 0, 4, 4, 8, 8};
+            static const uint8_t crIdx[6] = {2, 2, 6, 6, 10, 10};
             int i = x % 6;
-            static const int yIdx[6] = {1, 3, 5, 7, 9, 11};
-            static const int cbIdx[6] = {0, 0, 4, 4, 8, 8};
-            static const int crIdx[6] = {2, 2, 6, 6, 10, 10};
-            o = {c[yIdx[i]], c[cbIdx[i]], c[crIdx[i]]};
+            auto comp = [g](int c) { return (int)((rd32(g + (c / 3) * 4) >> ((c % 3) * 10)) & 1023); };
+            o = {comp(yIdx[i]), comp(cbIdx[i]), comp(crIdx[i])};
             return true;
         }
         case bmdFormat8BitYUV: {   // UYVY: Cb Y0 Cr Y1
@@ -85,18 +83,31 @@ bool computeScopes(const uint8_t* base, int width, int height, long rowBytes, BM
 
     int step = std::max(1, (int)std::ceil(std::sqrt((double)crop.w * crop.h / std::max(1, targetSamples))));
     uint32_t samples = 0;
-    auto row128 = [](double v) {   // 0..1023 -> row 127 (black) .. 0 (white), clamped
-        int r = 127 - (int)std::floor(v * 128.0 / 1024.0);
-        return std::max(0, std::min(127, r));
+    // 0..1023 -> row 127 (black) .. 0 (white), clamped: 127 - floor(v / 8). floor(v / 8) == floor(floor(v) / 8), so
+    // this is an integer floor and a shift instead of a libm floor() per component.
+    auto row128 = [](double v) {
+        int f = (int)v;
+        if ((double)f > v) f--;                       // (int) truncates toward zero; make it a floor for negatives
+        int q = f >= 0 ? f >> 3 : -((7 - f) >> 3);    // floor(f / 8)
+        return std::max(0, std::min(127, 127 - q));
     };
+    // Which scope column each sampled picture column lands in is the same on every row: work it out once.
+    struct Col {
+        int x, c256, c128;
+    };
+    std::vector<Col> cols;
+    cols.reserve((size_t)crop.w / step + 1);
+    for (int x = crop.x; x < crop.x + crop.w; x += step) {
+        double fx = (double)(x - crop.x) / crop.w;   // 0..1 across the picture
+        cols.push_back({x, std::min(255, (int)(fx * 256)), std::min(127, (int)(fx * 128))});
+    }
     for (int y = crop.y; y < crop.y + crop.h; y += step) {
         const uint8_t* row = base + (long)y * rowBytes;
-        for (int x = crop.x; x < crop.x + crop.w; x += step) {
+        for (const Col& col : cols) {
+            const int x = col.x, c256 = col.c256, c128 = col.c128;
             YCC p;
             if (!readYCC(row, x, pf, p)) return false;
             samples++;
-            double fx = (double)(x - crop.x) / crop.w;   // 0..1 across the picture
-            int c256 = std::min(255, (int)(fx * 256)), c128 = std::min(127, (int)(fx * 128));
             wave[row128(p.y) * 256 + c256]++;
             double r, g, b;
             toRGB(p, r, g, b);
