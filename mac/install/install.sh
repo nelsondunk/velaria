@@ -133,7 +133,9 @@ if [ "${1:-}" = "--headset" ]; then
   find_adb
   [ -n "$ADB" ] || { echo "adb not found: this package should contain platform-tools/adb (Google's Android platform tools)."; exit 1; }
   [ -f "$HERE/Velaria.apk" ] || { echo "Velaria.apk not found next to this script. Run this from inside the unzipped Velaria folder."; exit 1; }
-  xattr -dr com.apple.quarantine "$(dirname "$ADB")" 2>/dev/null || true
+  # only the adb this package brought: with the system's own adb this used to strip the download quarantine from
+  # every file in its folder (all of /opt/homebrew/bin), as root
+  case "$ADB" in "$HERE"/*|"$USER_HOME/Library/Application Support/Velaria"/*) xattr -dr com.apple.quarantine "$(dirname "$ADB")" 2>/dev/null || true;; esac
   echo "Waiting for the Quest (plug it in, put it on, allow USB debugging)..."
   for _ in $(seq 1 60); do sudo -u "$USER_NAME" "$ADB" get-state >/dev/null 2>&1 && break; sleep 1; done
   sudo -u "$USER_NAME" "$ADB" get-state >/dev/null 2>&1 || { echo "No headset seen in 60 s."; exit 1; }
