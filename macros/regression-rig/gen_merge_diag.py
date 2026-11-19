@@ -74,3 +74,14 @@ emit("mg_cc_asbg", comp([(n, m), ("M", merge(out_of(m)[0], out_of(m)[1], "MediaI
      "Merge(CC as BG, chart as FG at 50%)", "card centred in both eyes under a half-transparent chart")
 json.dump(variants, open(os.path.join(OUT, "variants.json"), "w"), indent=1)
 print(len(variants), "comps in", OUT)
+
+# --- size probe by cropping (added 21:05): a Crop at a fixed 3840x3840 window shows what the stack really is
+if __name__ == "__main__" and os.environ.get("SIZEPROBE") == "1":
+    variants.clear()
+    for vid, yoff, desc in (("sz_crop_bottom", 0, "Crop 3840x3840 at (0,0) of the stack"), ("sz_crop_top", 3840, "Crop 3840x3840 at (0,3840) of the stack")):
+        n, m = cc()
+        crop = {"__type": "Crop", "Inputs": {"XOffset": I(0), "YOffset": I(yoff), "XSize": I(3840), "YSize": I(3840), "Input": link(*out_of(m))}, "ViewInfo": pos(400, 0)}
+        emit(vid, comp([(n, m), ("Cr", crop)], "Cr", "Output", W, H), desc,
+             "if the stack is 3840x3840: bottom = whole stack, top = empty; if 3840x7680: bottom = one eye stretched tall, top = the other")
+    json.dump(variants, open(os.path.join(OUT, "variants.json"), "w"), indent=1)
+    print(len(variants), "size-probe comps in", OUT)

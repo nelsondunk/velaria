@@ -1,0 +1,16 @@
+[
+ {
+  "id": "sz_crop_bottom",
+  "timeline": "13 Chart 360 TB",
+  "file": "sz_crop_bottom.comp",
+  "desc": "Crop 3840x3840 at (0,0) of the stack",
+  "expect": "if the stack is 3840x3840: bottom = whole stack, top = empty; if 3840x7680: bottom = one eye stretched tall, top = the other"
+ },
+ {
+  "id": "sz_crop_top",
+  "timeline": "13 Chart 360 TB",
+  "file": "sz_crop_top.comp",
+  "desc": "Crop 3840x3840 at (0,3840) of the stack",
+  "expect": "if the stack is 3840x3840: bottom = whole stack, top = empty; if 3840x7680: bottom = one eye stretched tall, top = the other"
+ }
+]
