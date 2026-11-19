@@ -70,6 +70,7 @@ std::string timecodeString(uint32_t bcd) {
 // ------------------------------------------------------------------------------------------------ canvas
 
 void Canvas::reset(int w, int h) {
+    inWell = false;
     m_w = w;
     m_h = h;
     m_px.assign((size_t)w * h * 4, 0.0f);
@@ -102,6 +103,19 @@ void Canvas::fillRoundRect(float x, float y, float w, float h, float r, Colour c
     r = std::min(r, std::min(w, h) / 2);
     shade((int)std::floor(x), (int)std::floor(y), (int)std::ceil(x + w), (int)std::ceil(y + h), c, [&](float px, float py) {
         return std::min(1.0f, std::max(0.0f, 0.5f - sdRoundRect(px, py, cx, cy, w / 2, h / 2, r)));
+    });
+}
+
+void Canvas::fillRoundRectBand(float x, float y, float w, float h, float r, float bandY0, float bandY1, Colour c) {
+    float cx = x + w / 2, cy = y + h / 2;
+    r = std::min(r, std::min(w, h) / 2);
+    float y0 = std::max(y, bandY0), y1 = std::min(y + h, bandY1);
+    if (y1 <= y0) return;
+    shade((int)std::floor(x), (int)std::floor(y0), (int)std::ceil(x + w), (int)std::ceil(y1), c, [&](float px, float py) {
+        float cov = std::min(1.0f, std::max(0.0f, 0.5f - sdRoundRect(px, py, cx, cy, w / 2, h / 2, r)));
+        // soft band edges so a 1 px line at a fractional y does not alias
+        float top = std::min(1.0f, std::max(0.0f, py + 0.5f - y0)), bot = std::min(1.0f, std::max(0.0f, y1 - (py - 0.5f)));
+        return cov * top * bot;
     });
 }
 
@@ -326,9 +340,8 @@ void Canvas::copper(float x, float y, float w, float h, float r, bool polished) 
     static const std::vector<GradStop> polish = {{0.0f, hex(0xfbe3c8)}, {0.20f, hex(0xeab389)}, {0.44f, hex(0xcf8d5e)},
                                                  {0.56f, hex(0xb97448)}, {0.76f, hex(0xd99c6c)}, {1.0f, hex(0xf3c79d)}};
     fillRoundRectGrad(x, y, w, h, r, polished ? polish : satin, true);
-    float rr = std::min(r, std::min(w, h) / 2);
-    fillRoundRect(x + rr / 2, y, w - rr, 1, 0.5f, Colour{1, 1, 1, polished ? 0.7f : 0.6f});
-    fillRoundRect(x + rr / 2, y + h - 1, w - rr, 1, 0.5f, Colour{kCopperEdgeDark.r, kCopperEdgeDark.g, kCopperEdgeDark.b, polished ? 0.6f : 0.5f});
+    fillRoundRectBand(x, y, w, h, r, y, y + 1, Colour{1, 1, 1, polished ? 0.7f : 0.6f});
+    fillRoundRectBand(x, y, w, h, r, y + h - 1, y + h, Colour{kCopperEdgeDark.r, kCopperEdgeDark.g, kCopperEdgeDark.b, polished ? 0.6f : 0.5f});
 }
 
 void Canvas::chipBody(float x, float y, float w, float h, float r, ChipState st) {
@@ -340,25 +353,25 @@ void Canvas::chipBody(float x, float y, float w, float h, float r, ChipState st)
             return;
         case ChipState::Pressed:
             fillRoundRect(x, y, w, h, r, hex(0x20252d));
-            fillRoundRect(x + 1, y + 1, w - 2, 5, std::min(r, 3.0f), Colour{0, 0, 0, 0.30f});
-            fillRoundRect(x + 1, y + 1, w - 2, 2.5f, std::min(r, 1.5f), Colour{0, 0, 0, 0.40f});
+            fillRoundRectBand(x + 1, y + 1, w - 2, h - 2, std::max(0.0f, r - 1), y + 1, y + 6, Colour{0, 0, 0, 0.30f});
+            fillRoundRectBand(x + 1, y + 1, w - 2, h - 2, std::max(0.0f, r - 1), y + 1, y + 3.5f, Colour{0, 0, 0, 0.40f});
             return;
         case ChipState::On:
-            shadow(x, y, w, h, r, 6, 10, 0.45f);
+            if (!inWell) shadow(x, y, w, h, r, 6, 10, 0.45f);
             copper(x, y, w, h, r, false);
             return;
         case ChipState::Hover:
-            shadow(x, y, w, h, r, 10, 14, 0.50f);
+            if (!inWell) shadow(x, y, w, h, r, 10, 14, 0.50f);
             fillRoundRectGrad(x, y, w, h, r, {{0, hex(0x434b59)}, {1, hex(0x2c323c)}});
-            fillRoundRect(x + r / 2, y, w - r, 1, 0.5f, Colour{1, 1, 1, 0.32f});
-            fillRoundRect(x + r / 2, y + h - 2, w - r, 2, 1, Colour{0, 0, 0, 0.35f});
+            fillRoundRectBand(x, y, w, h, r, y, y + 1, Colour{1, 1, 1, 0.32f});
+            fillRoundRectBand(x, y, w, h, r, y + h - 2, y + h, Colour{0, 0, 0, 0.35f});
             return;
         case ChipState::Rest:
         default:
-            shadow(x, y, w, h, r, 6, 10, 0.45f);
+            if (!inWell) shadow(x, y, w, h, r, 6, 10, 0.45f);
             fillRoundRectGrad(x, y, w, h, r, {{0, hex(0x363d49)}, {1, hex(0x262c35)}});
-            fillRoundRect(x + r / 2, y, w - r, 1, 0.5f, Colour{1, 1, 1, 0.14f});
-            fillRoundRect(x + r / 2, y + h - 2, w - r, 2, 1, Colour{0, 0, 0, 0.35f});
+            fillRoundRectBand(x, y, w, h, r, y, y + 1, Colour{1, 1, 1, 0.14f});
+            fillRoundRectBand(x, y, w, h, r, y + h - 2, y + h, Colour{0, 0, 0, 0.35f});
             return;
     }
 }
@@ -377,10 +390,12 @@ void Canvas::wellV3(float x, float y, float w, float h, float r) {
     fillRoundRect(x, y, w, h, r, Colour{0, 0, 0, 0.45f});
     float rr = std::min(r, std::min(w, h) / 2);
     // inset 0 3px 10px #000000bf: a few bands from the top edge
-    fillRoundRect(x + 1, y + 1, w - 2, std::min(h - 2, 10.0f), std::min(rr, 5.0f), Colour{0, 0, 0, 0.18f});
-    fillRoundRect(x + 1, y + 1, w - 2, std::min(h - 2, 6.0f), std::min(rr, 3.0f), Colour{0, 0, 0, 0.22f});
-    fillRoundRect(x + 1, y + 1, w - 2, std::min(h - 2, 3.0f), std::min(rr, 1.5f), Colour{0, 0, 0, 0.30f});
-    fillRoundRect(x + rr, y + h - 1, w - 2 * rr, 1, 0.5f, Colour{1, 1, 1, 0.07f});
+    // the inset shadow follows the well's own corners (it used to be a smaller-radius box that showed as square corners)
+    float ir = std::max(0.0f, rr - 1);
+    fillRoundRectBand(x + 1, y + 1, w - 2, h - 2, ir, y + 1, y + 1 + std::min(h - 2, 10.0f), Colour{0, 0, 0, 0.18f});
+    fillRoundRectBand(x + 1, y + 1, w - 2, h - 2, ir, y + 1, y + 1 + std::min(h - 2, 6.0f), Colour{0, 0, 0, 0.22f});
+    fillRoundRectBand(x + 1, y + 1, w - 2, h - 2, ir, y + 1, y + 1 + std::min(h - 2, 3.0f), Colour{0, 0, 0, 0.30f});
+    fillRoundRectBand(x, y, w, h, rr, y + h - 1, y + h, Colour{1, 1, 1, 0.07f});
 }
 
 void Canvas::glassV3(float r, bool focused, float h) {
@@ -389,8 +404,8 @@ void Canvas::glassV3(float r, bool focused, float h) {
     float a = focused ? 0.92f : 0.85f;
     fillRoundRectGrad(0, 0, w, h, r, {{0, hex(0x262c35, a)}, {1, hex(0x1d222a, a)}});
     // lit top edge, dark base line
-    fillRoundRect(r, 0, w - 2 * r, 1, 0.5f, Colour{1, 1, 1, focused ? 0.16f : 0.12f});
-    fillRoundRect(r, h - 1, w - 2 * r, 1, 0.5f, Colour{0, 0, 0, 0.6f});
+    fillRoundRectBand(0, 0, w, h, r, 0, 1, Colour{1, 1, 1, focused ? 0.16f : 0.12f});
+    fillRoundRectBand(0, 0, w, h, r, h - 1, h, Colour{0, 0, 0, 0.6f});
     strokeRoundRect(0.5f, 0.5f, w - 1, h - 1, r, 1, Colour{1, 1, 1, focused ? 0.06f : 0.09f});
     if (focused) {
         // the copper hairline: "your hand is in this panel"

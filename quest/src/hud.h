@@ -66,6 +66,10 @@ public:
     int width() const { return m_w; }
     int height() const { return m_h; }
     void fillRoundRect(float x, float y, float w, float h, float r, Colour c);
+    bool inWell = false;   // chips drawn inside a well (tabs, the layer control) cast no shadow: the well is already dark
+    // A horizontal band (rows bandY0..bandY1) of a rounded rect, clipped to the rect's own curve: edge highlights and
+// inset shadows that follow the corners instead of poking past them (Nelson, 18 Nov: "hanging off the rounded square").
+void fillRoundRectBand(float x, float y, float w, float h, float r, float bandY0, float bandY1, Colour c);
     void strokeRoundRect(float x, float y, float w, float h, float r, float t, Colour c);
     void fillCircle(float cx, float cy, float r, Colour c);
     void strokeCircle(float cx, float cy, float r, float t, Colour c);

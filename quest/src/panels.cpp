@@ -366,11 +366,13 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         }
         c.wellV3(segX, barCy - 30, segW, 60, 18);
         x = segX + 4;
+        c.inWell = true;
         for (int l = 0; l < 3; l++) {
             int n = m ? m->countOnLayer(l) : 0;
             ch.chip3(HudButton::Layer, l, x, barCy - 26, ws[l], 52, layer == l ? ChipState::On : ChipState::Flat, ls[l].label, (int)ls[l].icon, std::to_string(n));
             x += ws[l] + 4;
         }
+        c.inWell = false;
         // panel toggles: raised = shown, flat = hidden; then the roll-up chevron
         struct Dock { PanelId id; Icon icon; const char* tip; };
         static const Dock dock[4] = {{PanelId::Placement, Icon::Placement, "Placement"}, {PanelId::Look, Icon::Look, "Look"}, {PanelId::Deck, Icon::Timeline, "Timeline"}, {PanelId::Scopes, Icon::Scopes, "Scopes"}};
@@ -846,10 +848,12 @@ std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
         segW += w + (i ? 4 : 0);
     }
     c.wellV3(pad, y - 4, segW, th + 8, 18);
+    c.inWell = true;
     for (size_t i = 0; i < tw.size(); i++) {
         ch.chip3(HudButton::Tab, (int)i, tx, y, tw[i], th, (int)i == tab ? ChipState::On : ChipState::Flat, tabs[i]);
         tx += tw[i] + 4;
     }
+    c.inWell = false;
     y += th + 28;
     c.fillRoundRect(pad, y - 12, sp.w - 2 * pad, 1, 0.5f, Colour{1, 1, 1, 0.08f});
     if (tab == 0 || !m || !m->current()) {
