@@ -31,7 +31,7 @@ CFLAGS="-O2 -g -fPIC -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -Wno-unu
 if [ -n "${NO_DEBUG_HOOK:-}" ]; then CFLAGS="$CFLAGS -DVELARIA_NO_DEBUG_HOOK"; fi
 $CC $CFLAGS -c $GLUE/android_native_app_glue.c -o $OUT/obj/glue.o
 for f in src/*.cpp ../common/timing.cpp; do
-  $CXX -std=c++17 $CFLAGS -I../common -Isrc -I$GLUE -I$OXR/prefab/modules/headers/include -c $f -o $OUT/obj/$(basename $f .cpp).o &
+  $CXX -std=c++17 $CFLAGS -I../common -Isrc -Ithird_party -I$GLUE -I$OXR/prefab/modules/headers/include -c $f -o $OUT/obj/$(basename $f .cpp).o &
 done
 wait
 $CXX -shared -o $OUT/apk/lib/arm64-v8a/libvrlink.so $OUT/obj/*.o \
@@ -45,7 +45,9 @@ if [ -z "${KEEP_SYMBOLS:-}" ]; then $TC/llvm-strip --strip-unneeded $OUT/apk/lib
 cp "$OXRLIB/libopenxr_loader.so" $OUT/apk/lib/arm64-v8a/
 $BT/aapt2 link -o $OUT/unsigned.apk --manifest AndroidManifest.xml -I $JAR \
   --min-sdk-version $API --target-sdk-version $API --version-code $BUILD --version-name "$VER+$BUILD"
-(cd $OUT/apk && zip -q -r ../unsigned.apk lib)
+# assets: the dome theatre backgrounds (quest/assets/theatre/seat0..4.jpg)
+if [ -d assets ]; then cp -R assets $OUT/apk/assets; fi
+(cd $OUT/apk && zip -q -r ../unsigned.apk lib $( [ -d assets ] && echo assets ))
 $BT/zipalign -p -f 4 $OUT/unsigned.apk $OUT/aligned.apk
 KS=${KEYSTORE:-$HOME/.vrlink-debug.keystore}
 [ -f "$KS" ] || keytool -genkeypair -keystore "$KS" -storepass android -alias vrlink -keypass android \

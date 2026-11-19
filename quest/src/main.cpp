@@ -34,6 +34,7 @@
 #include "gfx.h"
 #include "hud.h"
 #include "net.h"
+#include "theatre.h"
 #include "protocol.h"
 #include "timing.h"
 
@@ -68,6 +69,7 @@ struct Settings {
     int domeSeat = 0;          // 0 centre, 1 front, 2 rear, 3 left, 4 right (kDomeSeatFrac of the radius off centre)
     float domeDiameter = 16;   // metres; sets the distance to the screen (parallax and vergence), not the picture
     float domeRim = 1.8f;      // metres the springline (the dome's rim) sits above seated eye level (Nelson, 18 Nov: "I'd be below that line")
+    bool domeTheatre = true;   // show the rendered theatre interior behind the dome picture
     float domeFov = 180;       // field of view the master's circle covers; the dome shows its inner 180
     bool panelOn[kPanelCount] = {true, true, true, true, false};   // dock: which panels exist at all (Instance strip always); Scopes off until asked
     int scopesView = 0;
@@ -101,6 +103,7 @@ struct Settings {
             else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
             else if (k == "domeDiameter") domeDiameter = std::max(4.0f, std::min(40.0f, (float)atof(v.c_str())));
             else if (k == "domeRim") domeRim = std::max(0.0f, std::min(4.0f, (float)atof(v.c_str())));
+            else if (k == "domeTheatre") domeTheatre = v == "1";
             else if (k == "domeFov") domeFov = std::max(180.0f, std::min(220.0f, (float)atof(v.c_str())));
             else if (k == "panelOn" && v.size() >= 7) {
                 for (int i = 0; i < kPanelCount; i++) if ((size_t)(i * 2) < v.size()) panelOn[i] = v[i * 2] == '1';
@@ -131,7 +134,7 @@ struct Settings {
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
           << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
-          << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeDiameter " << domeDiameter << "\ndomeFov " << domeFov << "\ndomeRim " << domeRim
+          << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeDiameter " << domeDiameter << "\ndomeFov " << domeFov << "\ndomeRim " << domeRim << "\ndomeTheatre " << (domeTheatre ? 1 : 0)
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
           << "\nyawDeg " << yawDeg
@@ -217,6 +220,10 @@ struct App {
     XrPosef debugAim{};
     Swapchain grid;                         // horizon / level grid, an equirect layer over the picture
     Swapchain outline;                      // thin card outline (quiet cousin of the lift halo)
+    Swapchain theatre;                      // dome theatre background: top/bottom stereo equirect for the current seat (+68)
+    int theatreSeat = -1;                   // which seat's picture is in the swapchain; -1 none
+    bool theatreMissing[5] = {false, false, false, false, false};   // asset absent or undecodable: don't retry every frame
+    XrCompositionLayerEquirect2KHR theatreLayer[2];
     bool extRefresh = false, extTimespec = false, extColorSpace = false, extPerf = false, extHands = false, extAim = false;
     bool extLayerSettings = false;   // XR_FB_composition_layer_settings: supersample + sharpen the UI quads (+65, no more jaggies)
     PFN_xrEnumerateDisplayRefreshRatesFB enumRates = nullptr;
@@ -2459,6 +2466,41 @@ static void renderFrame() {
                 g.domeAnchorValid = true;
             }
             domePose = domeLayerPose();
+        }
+        // the theatre behind the dome: the seat's stereo render as an infinite sphere, level, front at the dome's front
+        if (dome && g.settings.domeTheatre && g.domeAnchorValid) {
+            int seat = std::max(0, std::min(4, g.settings.domeSeat));
+            if (g.theatreSeat != seat && !g.theatreMissing[seat]) {
+                std::vector<uint8_t> px;
+                int tw = 0, th = 0;
+                if (loadTheatreSeat(g.android->activity->assetManager, seat, px, tw, th) && tw > 0 && th == tw) {
+                    if (g.theatre.handle == XR_NULL_HANDLE || g.theatre.width != tw) createSwapchain(g.theatre, tw, th);
+                    renderInto(g.theatre, [&](GLuint tex) { g.gfx.upload(tex, px.data(), tw, th); });
+                    g.theatreSeat = seat;
+                } else {
+                    g.theatreMissing[seat] = true;
+                }
+            }
+            if (g.theatreSeat == seat && g.theatre.hasContent) {
+                int half = g.theatre.height / 2;
+                for (int e = 0; e < 2; e++) {
+                    XrCompositionLayerEquirect2KHR& t = g.theatreLayer[e];
+                    t = {XR_TYPE_COMPOSITION_LAYER_EQUIRECT2_KHR};
+                    t.layerFlags = 0;
+                    t.space = g.localSpace;
+                    t.eyeVisibility = e == 0 ? XR_EYE_VISIBILITY_LEFT : XR_EYE_VISIBILITY_RIGHT;
+                    t.subImage.swapchain = g.theatre.handle;
+                    // GL rows are bottom-up: the left eye (top of the image) is the upper half of the texture rows
+                    t.subImage.imageRect = {{0, e == 0 ? half : 0}, {g.theatre.width, half}};
+                    t.subImage.imageArrayIndex = 0;
+                    t.pose.orientation = qYaw(g.settings.yawDeg * deg);   // level room; its front is the dome's front
+                    t.radius = 0;
+                    t.centralHorizontalAngle = 2.0f * (float)M_PI;
+                    t.upperVerticalAngle = (float)M_PI / 2;
+                    t.lowerVerticalAngle = -(float)M_PI / 2;
+                    layers.push_back((XrCompositionLayerBaseHeader*)&t);
+                }
+            }
         }
         for (int e = 0; e < (stereo ? 2 : 1); e++) {
             eq[e] = {XR_TYPE_COMPOSITION_LAYER_EQUIRECT2_KHR};

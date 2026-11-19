@@ -76,3 +76,8 @@ Velaria includes or was built with the following software and fonts from other a
 3. **GSAP on a commercial page.** GreenSock's older "no charge" licence had conditions for commercial use; in 2025 GSAP was announced as free for all uses. The page pins 3.12.5. Either confirm the terms for 3.12.5 or move to a current release.
 4. **Icons.** The headset's line icons were drawn on the Velaria design canvas (`quest/tools/mkicons.py`). No icon library was found in the repository, though a few shapes (for example the eye) are close to common open-source line icons. Low risk; confirm that none were pasted from a library that needs a notice.
 5. **Not in the package, so no notice needed:** the internal 3D title and card templates and their model kits are excluded by `package.sh` and must stay excluded.
+
+
+## stb_image (headset app)
+
+`quest/third_party/stb_image.h` (Sean Barrett and contributors, v2.32) decodes the dome theatre background JPEGs in Velaria View. Public domain (Unlicense) or MIT, at the user's choice, per the file's own notice. Unmodified.
