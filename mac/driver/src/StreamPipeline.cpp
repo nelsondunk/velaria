@@ -301,10 +301,39 @@ public:
     // Resolve's monitoring mix, as handed to the card (16 channels x 32-bit at 48 kHz, 1602-frame blocks at
     // 29.97). The first two channels go to headsets that asked for audio, as s16, stamped with the host time the
     // block is due, from the same stream-to-host mapping the video uses. UNTESTED against a real mix (18 Nov).
+    // Per-channel level meter (19 Nov, the ambisonic spike): every two seconds, the RMS of each of Resolve's channels
+    // in dBFS, so the log says which channels a Fairlight bus actually lands on. Runs whether or not a headset listens.
+    void meterLocked(const void* samples, uint32_t frames, uint32_t channels, uint32_t bits) {
+        uint32_t ch = std::min<uint32_t>(channels, 16);
+        if (m_meterCh != ch) { m_meterCh = ch; std::fill(std::begin(m_meterSq), std::end(m_meterSq), 0.0); m_meterFrames = 0; }
+        if (bits == 32) {
+            const int32_t* in = static_cast<const int32_t*>(samples);
+            for (uint32_t i = 0; i < frames; i++)
+                for (uint32_t c = 0; c < ch; c++) { double v = in[i * channels + c] / 2147483648.0; m_meterSq[c] += v * v; }
+        } else {
+            const int16_t* in = static_cast<const int16_t*>(samples);
+            for (uint32_t i = 0; i < frames; i++)
+                for (uint32_t c = 0; c < ch; c++) { double v = in[i * channels + c] / 32768.0; m_meterSq[c] += v * v; }
+        }
+        m_meterFrames += frames;
+        if (m_meterFrames < 96000) return;
+        std::string line = "audio meter (" + std::to_string(channels) + " ch, " + std::to_string(bits) + "-bit):";
+        for (uint32_t c = 0; c < ch; c++) {
+            double rms = std::sqrt(m_meterSq[c] / m_meterFrames);
+            char b[32];
+            if (rms > 1e-6) snprintf(b, sizeof b, " %u:%.0f", c + 1, 20.0 * std::log10(rms)); else snprintf(b, sizeof b, " %u:-", c + 1);
+            line += b;
+            m_meterSq[c] = 0.0;
+        }
+        m_meterFrames = 0;
+        VLOGI("%s", line.c_str());
+    }
+
     void onAudio(const void* samples, uint32_t frames, uint32_t channels, uint32_t bits, int64_t streamNs) override {
         if (!m_cfg.audio || !samples || frames == 0 || channels == 0) return;
-        if (!m_server.anyAudioClient()) { m_audioNextStreamNs = -1; return; }
         if (bits != 16 && bits != 32) return;
+        meterLocked(samples, frames, channels, bits);
+        if (!m_server.anyAudioClient()) { m_audioNextStreamNs = -1; return; }
         AudioMsg a{};
         a.sampleRate = 48000;
         a.channels = 2;
@@ -670,6 +699,8 @@ private:
     int64_t m_anchorHost = 0, m_anchorStream = 0;
     int64_t m_audioNextStreamNs = -1;   // where the next audio block should start, stream time
     uint64_t m_audioSeq = 0;
+    double m_meterSq[16] = {};          // level meter accumulators (see meterLocked)
+    uint32_t m_meterCh = 0, m_meterFrames = 0;
     double m_speed = 1.0;
     std::vector<Held> m_held;
     MsgPtr m_configMsg;
