@@ -381,10 +381,11 @@ def build(v):
     for j in range(-k, k + 1):
         a = j * span / max(1, k)
         cyl("Post", (rr * math.sin(a), v.arc_y + rr * math.cos(a), 0.46), 0.025, 0.92, near, m_rail)
-    # lectern on the open floor
-    lx, ly = 0.29 * R, -0.11 * R
-    box("Lectern", (lx, ly, 0.55), (0.8, 0.55, 1.1), near, m_console, math.radians(-15), bevel=0.02)
-    box("Screen", (lx, ly, 1.14), (0.5, 0.03, 0.3), near, m_screen, math.radians(-15), math.radians(-55))
+    # lectern on the open floor (planetarium and hybrid rooms; a tilted cinema has no presenter's spot)
+    if v.tilt <= 15:
+        lx, ly = 0.29 * R, -0.11 * R
+        box("Lectern", (lx, ly, 0.55), (0.8, 0.55, 1.1), near, m_console, math.radians(-15), bevel=0.02)
+        box("Screen", (lx, ly, 1.14), (0.5, 0.03, 0.3), near, m_screen, math.radians(-15), math.radians(-55))
 
     # ---- light: the show, as one soft cool source from the dome above-front; a whisper of ambient
     sc.world = bpy.data.worlds.new("World")
@@ -500,7 +501,7 @@ def render_preview(v, outdir):
     aisle_pos = Vector((rho * math.sin(a_cam), v.arc_y + rho * math.cos(a_cam), mid[1] + 1.7))
     shots = {
         "aisle": (aisle_pos, Vector((-0.15 * R, -0.3 * R, v.hC * 0.5)), 16),
-        "rear": (Vector((0.0, rear[0] + 0.6, rear[1] + 1.7)), Vector((0.0, -0.5 * R, v.hC + 0.15 * R)), 13),
+        "rear": (Vector((0.0, rear[0] + 0.6, rear[1] + 1.7)), Vector((0.0, v.rows[0][0] - 2.0, v.rows[0][1] + 0.9)), 14),
     }
     for name, (pos, aim, lens) in shots.items():
         bpy.ops.object.camera_add(location=pos)
