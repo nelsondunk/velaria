@@ -4,7 +4,7 @@
 
 constexpr int kVenueSizes = 3, kVenueTilts = 4, kVenueSeats = 5;
 static const char* const kVenueSizeTag[kVenueSizes] = {"S", "M", "L"};
-static const float kVenueDiameter[kVenueSizes] = {12f, 18f, 26f};
+static const float kVenueDiameter[kVenueSizes] = {12.0f, 18.0f, 26.0f};
 static const int kVenueTilt[kVenueTilts] = {0, 15, 25, 30};
 static const float kDomeSeats[kVenueSizes][kVenueTilts][kVenueSeats][3] = {
     {   // S, 12 m

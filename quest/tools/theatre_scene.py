@@ -157,7 +157,7 @@ def write_tables(path=None):
              "#pragma once", "",
              "constexpr int kVenueSizes = %d, kVenueTilts = %d, kVenueSeats = 5;" % (len(SIZES), len(TILTS)),
              "static const char* const kVenueSizeTag[kVenueSizes] = {%s};" % ", ".join('"%s"' % s for s in SIZES),
-             "static const float kVenueDiameter[kVenueSizes] = {%s};" % ", ".join("%.0ff" % (2 * r) for r in SIZES.values()),
+             "static const float kVenueDiameter[kVenueSizes] = {%s};" % ", ".join("%.1ff" % (2 * r) for r in SIZES.values()),
              "static const int kVenueTilt[kVenueTilts] = {%s};" % ", ".join(str(t) for t in TILTS),
              "static const float kDomeSeats[kVenueSizes][kVenueTilts][kVenueSeats][3] = {"]
     for s in SIZES:
