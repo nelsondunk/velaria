@@ -478,43 +478,43 @@ def build(v):
 
 def bloom():
     """A faint halation on the step lights, exit signs and the lectern screen (Nelson, 19 Nov 12:49): a compositor
-    glare pass; nothing else in the room is bright enough to bloom. Written to survive Blender's compositor API
-    changing under us (4.4 moved the glare settings to sockets)."""
+    glare pass; nothing else in the room is bright enough to bloom. Blender 5.x keeps the compositor in a node
+    group on scene.compositing_node_group with socket-style settings; 4.x used scene.node_tree."""
     sc = bpy.context.scene
-    try:
+    tree = None
+    if hasattr(sc, "compositing_node_group"):
+        tree = bpy.data.node_groups.new("VelariaBloom", 'CompositorNodeTree')
+        sc.compositing_node_group = tree
+    elif hasattr(sc, "node_tree"):
         sc.use_nodes = True
-    except Exception:
-        pass
-    tree = sc.node_tree
+        tree = sc.node_tree
+        for n in list(tree.nodes):
+            tree.nodes.remove(n)
     if tree is None:
         return
-    for n in list(tree.nodes):
-        tree.nodes.remove(n)
     rl = tree.nodes.new('CompositorNodeRLayers')
     glare = tree.nodes.new('CompositorNodeGlare')
-    for t in ('BLOOM', 'FOG_GLOW'):
-        try:
-            glare.glare_type = t
-            break
-        except Exception:
-            continue
-    for key, val in (("Threshold", 0.35), ("Strength", 0.25), ("Mix", -0.5), ("Size", 0.55), ("Saturation", 1.0)):
-        try:
-            if key in glare.inputs:
+    settings = {"Type": "BLOOM", "Quality": "HIGH", "Threshold": 0.35, "Strength": 0.22, "Size": 0.6, "Saturation": 1.0}
+    for key, val in settings.items():
+        if key in glare.inputs:
+            try:
                 glare.inputs[key].default_value = val
-        except Exception:
-            pass
-    for attr, val in (("threshold", 0.35), ("mix", -0.5), ("size", 7), ("quality", 'HIGH')):
-        try:
-            setattr(glare, attr, val)
-        except Exception:
-            pass
-    try:
-        out = tree.nodes.new('CompositorNodeComposite')
-    except Exception:
+            except Exception:
+                pass
+    for attr, val in (("glare_type", 'BLOOM'), ("threshold", 0.35), ("mix", -0.55), ("size", 7), ("quality", 'HIGH')):
+        if hasattr(glare, attr):
+            try:
+                setattr(glare, attr, val)
+            except Exception:
+                pass
+    if hasattr(sc, "compositing_node_group"):
+        tree.interface.new_socket(name="Image", in_out='OUTPUT', socket_type='NodeSocketColor')
         out = tree.nodes.new('NodeGroupOutput')
+        tree.links.new(glare.outputs['Image'], out.inputs['Image'])
+    else:
+        out = tree.nodes.new('CompositorNodeComposite')
+        tree.links.new(glare.outputs['Image'], out.inputs['Image'])
     tree.links.new(rl.outputs['Image'], glare.inputs['Image'])
-    tree.links.new(glare.outputs['Image'], out.inputs[0])
 
 
 def place_far(far, eye, base):
