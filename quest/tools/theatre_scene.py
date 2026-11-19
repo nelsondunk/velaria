@@ -494,13 +494,17 @@ def bloom():
         return
     rl = tree.nodes.new('CompositorNodeRLayers')
     glare = tree.nodes.new('CompositorNodeGlare')
-    settings = {"Type": "BLOOM", "Quality": "HIGH", "Threshold": 0.35, "Strength": 0.22, "Size": 0.6, "Saturation": 1.0}
-    for key, val in settings.items():
-        if key in glare.inputs:
+    settings = {"Type": ("Bloom", "BLOOM"), "Quality": ("High", "HIGH"), "Threshold": (0.35,), "Strength": (0.22,),
+                "Size": (0.6,), "Saturation": (1.0,)}
+    for key, vals in settings.items():
+        if key not in glare.inputs:
+            continue
+        for val in vals:   # menu sockets take the label in 5.x ("Bloom"), the identifier elsewhere
             try:
                 glare.inputs[key].default_value = val
+                break
             except Exception:
-                pass
+                continue
     for attr, val in (("glare_type", 'BLOOM'), ("threshold", 0.35), ("mix", -0.55), ("size", 7), ("quality", 'HIGH')):
         if hasattr(glare, attr):
             try:
