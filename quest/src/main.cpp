@@ -61,6 +61,7 @@ struct Settings {
     bool strip = true;     // status strip visible
     bool grid = false;     // horizon / level grid over the picture
     bool outline = true;   // thin outline on the selected / pointed-at card
+    bool audio = true;     // Resolve's monitoring mix plays in the headset (+65)
     float fisheyeFov = 190; // lens field of view for the dual-fisheye projection (Canon RF 5.2: 190)
     // Dome preview: the theatre the domemaster is judged in
     float domeTilt = 0;        // degrees the dome's front edge drops below level (0 = classic level dome, up to 30)
@@ -93,6 +94,7 @@ struct Settings {
             else if (k == "overlay" || k == "strip") strip = v == "1";
             else if (k == "grid") grid = v == "1";
             else if (k == "outline") outline = v == "1";
+            else if (k == "audio") audio = v == "1";
             else if (k == "fisheyeFov") fisheyeFov = (float)atof(v.c_str());
             else if (k == "domeTilt") domeTilt = std::max(0.0f, std::min(30.0f, (float)atof(v.c_str())));
             else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
@@ -126,7 +128,7 @@ struct Settings {
         std::ofstream f(path);
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
-          << "\noutline " << (outline ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
+          << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
           << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeDiameter " << domeDiameter << "\ndomeFov " << domeFov
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
@@ -214,6 +216,7 @@ struct App {
     Swapchain grid;                         // horizon / level grid, an equirect layer over the picture
     Swapchain outline;                      // thin card outline (quiet cousin of the lift halo)
     bool extRefresh = false, extTimespec = false, extColorSpace = false, extPerf = false, extHands = false, extAim = false;
+    bool extLayerSettings = false;   // XR_FB_composition_layer_settings: supersample + sharpen the UI quads (+65, no more jaggies)
     PFN_xrEnumerateDisplayRefreshRatesFB enumRates = nullptr;
     PFN_xrRequestDisplayRefreshRateFB requestRate = nullptr;
     PFN_xrConvertTimeToTimespecTimeKHR timeToTimespec = nullptr;
@@ -297,6 +300,7 @@ struct App {
     // media
     Gfx gfx;
     NetClient net;
+    AudioOut audio;            // +65: the mix, in step with the picture
     Decoder decoder{net};
     uint32_t readerGen = UINT32_MAX;
     std::vector<HeldFrame> held;                     // decoded, not yet shown (sorted by seq)
@@ -478,6 +482,7 @@ static bool initXr() {
     if ((g.extRefresh = has(XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME))) exts.push_back(XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME);
     if ((g.extTimespec = has(XR_KHR_CONVERT_TIMESPEC_TIME_EXTENSION_NAME))) exts.push_back(XR_KHR_CONVERT_TIMESPEC_TIME_EXTENSION_NAME);
     if ((g.extColorSpace = has(XR_FB_COLOR_SPACE_EXTENSION_NAME))) exts.push_back(XR_FB_COLOR_SPACE_EXTENSION_NAME);
+    if ((g.extLayerSettings = has(XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME))) exts.push_back(XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME);
     if ((g.extPerf = has(XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME))) exts.push_back(XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME);
     if ((g.extHands = has(XR_EXT_HAND_TRACKING_EXTENSION_NAME))) exts.push_back(XR_EXT_HAND_TRACKING_EXTENSION_NAME);
     if (g.extHands && (g.extAim = has(XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME))) exts.push_back(XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME);
@@ -1068,6 +1073,13 @@ static void activate(HudButton b, int arg = 0) {
             g.settings.outline = !g.settings.outline;
             showNotice(g.settings.outline ? "Card outline on" : "Card outline off");
             break;
+        case HudButton::Audio:
+            g.settings.audio = !g.settings.audio;
+            g.settings.save();
+            g.net.wantAudio(g.settings.audio);
+            if (!g.settings.audio) g.audio.stop();
+            showNotice(g.settings.audio ? "Sound in the headset (Resolve's Video and Audio I/O must send audio to Velaria)" : "Sound off");
+            break;
         case HudButton::PanelToggle:
             if (arg > 0 && arg < kPanelCount) {
                 g.settings.panelOn[arg] = !g.settings.panelOn[arg];
@@ -1110,6 +1122,12 @@ static void activate(HudButton b, int arg = 0) {
 // Ray vs one panel quad. Returns true when the ray hits the panel's plane in front of the hand; `t` is the distance,
 // `inside` whether it is within the panel. u/v are texture coordinates, clamped to the panel.
 // The quad the panel is shown as: full, or the title bar only when rolled (its top edge stays where it was).
+// The compositor resamples every UI quad into the eye buffers; a 1 px rule or glyph edge lands between display
+// pixels and shimmers. Meta's layer settings ask for supersampling (when the texture is finer than the display)
+// and sharpening (when it is coarser): the recommended pair for text quads. One static block, chained on each quad.
+static const XrCompositionLayerSettingsFB kUiLayerQuality{XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB, nullptr,
+    XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SUPER_SAMPLING_BIT_FB | XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB};
+
 static void panelQuadGeom(const App::Panel& pn, PanelId id, XrPosef& pose, float& hM, int& texH) {
     const PanelSpec& sp = panelSpec(id);
     texH = pn.rolled ? kRolledH : sp.h;
@@ -1893,6 +1911,9 @@ static void chooseFrame(int64_t displayMono) {
     }
     updateAutoDelay(pb.playing);
     int64_t delay = g.settings.delayMs >= 0 ? (int64_t)g.settings.delayMs * 1000000 : g.autoDelayNs;
+    g.net.setAudioDelayNs(delay);   // sound takes the same presentation delay as the picture
+    if (g.settings.audio && g.net.connected()) { if (!g.audio.running()) g.audio.start(); }
+    else if (g.audio.running()) g.audio.stop();
     g.decoder.setTiming(delay, g.scheduler.refreshPeriod());
     bool clockOk = g.net.clockValid();
     std::vector<vrltime::ScheduledItem> items;
@@ -1998,6 +2019,13 @@ static void updateHud(int64_t now, bool playing) {
     in.pinned = g.panelsPlaced;
     in.grid = g.settings.grid;
     in.outline = g.settings.outline;
+    in.audio = g.settings.audio;
+    {
+        static uint64_t lastBlocks = 0; static int64_t lastBlockNs = 0;
+        uint64_t nb = g.net.audioBlocks();
+        if (nb != lastBlocks) { lastBlocks = nb; lastBlockNs = monoNs(); }
+        in.audioLive = g.audio.running() && lastBlockNs && monoNs() - lastBlockNs < 1500000000LL;
+    }
     in.source = g.settings.source;
     in.serverName = g.net.serverName();
     in.fisheyeFov = g.settings.fisheyeFov;
@@ -2451,6 +2479,7 @@ static void renderFrame() {
             float dist = std::max(0.9f, std::min(3.5f, c.dist));
             XrCompositionLayerQuad& q = cardQuad[ncq++];
             q = {XR_TYPE_COMPOSITION_LAYER_QUAD};
+            if (g.extLayerSettings) q.next = &kUiLayerQuality;   // the outline is a thin rule: it aliases worst of all
             q.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
             q.space = g.localSpace;
             q.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
@@ -2473,6 +2502,7 @@ static void renderFrame() {
         stripQuad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
         stripQuad.subImage.swapchain = g.strip.handle;
         stripQuad.subImage.imageRect = {{0, 0}, {kStripW, kStripH}};
+        if (g.extLayerSettings) stripQuad.next = &kUiLayerQuality;
         // just below the horizon: out of the way, a glance down reads it
         stripQuad.pose = placeQuad(g.head.position, g.stripYaw, -21 * deg, 1.6f);
         stripQuad.size = {1.3f, 1.3f * kStripH / kStripW};
@@ -2496,6 +2526,7 @@ static void renderFrame() {
         q.subImage.imageRect = {{0, sp.h - texH}, {sp.w, texH}};   // GL rows are bottom-up; the canvas top is at sp.h
         q.pose = qpose;
         q.size = {pn.w, hM};
+        if (g.extLayerSettings) q.next = &kUiLayerQuality;
         layers.push_back((XrCompositionLayerBaseHeader*)&q);
         for (auto& p : g.pointers) {
             if (!p.valid || nc >= 2) continue;
@@ -2508,6 +2539,7 @@ static void renderFrame() {
                 for (auto& r : pn.buttons) {
                     if (r.id != lb || r.arg != la) continue;
                     XrCompositionLayerQuad& lq = liftQuad[nc];
+                    lq.next = g.extLayerSettings ? &kUiLayerQuality : nullptr;
                     lq.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
                     lq.space = g.localSpace;
                     lq.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
@@ -2720,6 +2752,8 @@ void android_main(android_app* app) {
         g.hud.start();
         g.bridge.start();
         g.net.setSource(g.settings.source);
+        g.net.wantAudio(g.settings.audio);
+        g.net.setAudioSink([](AudioBlock&& b) { g.audio.push(std::move(b)); });
         g.net.start(g.settings.lastHost == "-" ? "" : g.settings.lastHost, "Quest");
         g.decoder.start();
     }

@@ -66,6 +66,13 @@ std::string NetClient::serverName() {
     return m_serverName;
 }
 
+void NetClient::wantAudio(bool on) {
+    if (m_audioWanted.exchange(on) == on) return;
+    LOGI("audio %s: reconnecting so the hello says so", on ? "wanted" : "off");
+    int fd = m_fd.load();
+    if (fd >= 0) ::shutdown(fd, SHUT_RDWR);   // threadMain reconnects with the new capability
+}
+
 void NetClient::setSource(const std::string& pref) {
     {
         std::lock_guard<std::mutex> lk(m_prefMutex);
@@ -413,6 +420,7 @@ bool NetClient::session() {
     h.version = kVersion;
     h.maxWidth = 8192;
     h.maxHeight = 8192;
+    h.capabilities = m_audioWanted.load() ? kCapAudio : 0;
     strncpy(h.name, m_deviceName.c_str(), sizeof h.name - 1);
     if (!sendBytes(makeMessage(MsgType::Hello, h))) {
         m_fd = -1;
@@ -564,6 +572,29 @@ void NetClient::handle(const StreamParser::Message& m, int64_t rx) {
                 LOGW("video queue overflow; dropped backlog, requesting keyframe");
                 requestKeyframe();
             }
+            break;
+        }
+        case MsgType::Audio: {
+            AudioMsg a;
+            const uint8_t* pcm;
+            size_t len;
+            if (!readBody(m.payload, a, &pcm, &len)) return;
+            if (!m_audioWanted.load() || a.format != kAudioFormatS16 || a.channels != 2 || a.sampleRate != 48000) return;
+            if (len < (size_t)a.frames * 4 || a.frames == 0 || a.frames > 48000) return;
+            AudioBlock b;
+            b.frames = a.frames;
+            b.discontinuity = (a.flags & kAudioDiscontinuity) != 0 || (m_audioLastSeq && a.seq != m_audioLastSeq + 1);
+            m_audioLastSeq = a.seq;
+            b.pcm.resize((size_t)a.frames * 2);
+            std::memcpy(b.pcm.data(), pcm, (size_t)a.frames * 4);
+            std::function<void(AudioBlock&&)> sink;
+            {
+                std::lock_guard<std::mutex> lk(m_mutex);
+                b.dueLocalNs = m_clock.senderToReceiver(a.ptsNs, rx) + m_audioDelayNs.load();
+                sink = m_audioSink;
+            }
+            m_audioBlocks++;
+            if (sink) sink(std::move(b));
             break;
         }
         case MsgType::Scopes: {

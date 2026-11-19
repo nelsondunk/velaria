@@ -708,7 +708,11 @@ void drawViewTab(Chrome& ch, float y) {
         std::string src = in.source == "ndi" ? "Premiere / After Effects" : in.source == "resolve" ? "Resolve" : "Auto";
         std::string label = "Source: " + src;
         if (!in.serverName.empty() && in.connected) label += "  \xC2\xB7  " + in.serverName;
-        ch.chip(HudButton::Source, 0, pad, y, inner, ch_h, fitText(label, S20, inner - 30), in.source != "auto");
+        float sw = (inner - gap) * 0.64f;
+        ch.chip(HudButton::Source, 0, pad, y, sw, ch_h, fitText(label, S20, sw - 30), in.source != "auto");
+        // the mix follows the picture into the headset (+65); "live" once blocks are arriving
+        std::string snd = !in.audio ? "Sound: off" : in.audioLive ? "Sound: in headset" : "Sound: waiting";
+        ch.chip(HudButton::Audio, 0, pad + sw + gap, y, inner - sw - gap, ch_h, snd, in.audio);
         y += ch_h + gap + 8;
     }
     group("PICTURE");

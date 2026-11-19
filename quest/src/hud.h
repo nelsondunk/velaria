@@ -126,6 +126,7 @@ enum class HudButton {
     Roll,                                                 // roll a panel up to its title bar / down again
     // view tab (settings)
     Hud, SwapEyes, Layout, Projection, DelayDown, DelayAuto, DelayUp, ResetView, PinAll, Grid, Outline, Source, FovDown, FovUp,
+    Audio,          // Resolve's mix in the headset: on / off
     FovPreset,      // arg = lens field of view in degrees (View tab presets for the fisheye projection)
     // dome preview (View tab, shown with the dome projection)
     DomeTilt,       // arg = tilt preset in degrees
@@ -198,6 +199,8 @@ struct HudInfo {
     uint64_t shown = 0, dropped = 0, uneven = 0;
     bool swapEyes = false, hudOn = true, pinned = false, hands = false, grid = false, outline = true;
     std::string source;       // preference: auto | resolve | ndi
+    bool audio = true;        // the mix is wanted in the headset
+    bool audioLive = false;   // blocks are arriving and the output stream is open
     float fisheyeFov = 190;   // lens FOV used by the fisheye projection
     float domeTilt = 0, domeDiameter = 16, domeFov = 180;   // dome preview: tilt (deg), diameter (m), master FOV (deg)
     int domeSeat = 0;         // 0 centre, 1 front, 2 rear, 3 left, 4 right

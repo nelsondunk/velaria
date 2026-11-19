@@ -35,7 +35,7 @@ for f in src/*.cpp ../common/timing.cpp; do
 done
 wait
 $CXX -shared -o $OUT/apk/lib/arm64-v8a/libvrlink.so $OUT/obj/*.o \
-  -L"$OXRLIB" -lopenxr_loader -landroid -llog -lEGL -lGLESv3 -lmediandk -lnativewindow \
+  -L"$OXRLIB" -lopenxr_loader -landroid -llog -lEGL -lGLESv3 -lmediandk -lnativewindow -laaudio \
   -u ANativeActivity_onCreate -static-libstdc++ -Wl,--no-undefined -Wl,-z,max-page-size=16384
 # The library is built with -g: 8.1 MB, with every symbol and the build machine's source paths inside. Ship it
 # stripped (1.9 MB) and keep the full one beside the APK for reading crash dumps (ndk-stack / addr2line want it;

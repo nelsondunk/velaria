@@ -8,8 +8,10 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <functional>
 #include <vector>
 
+#include "audio.h"
 #include "protocol.h"
 #include "timing.h"
 
@@ -68,6 +70,15 @@ public:
     void sendStats(const vrlproto::StatsMsg& s);
     // Scopes: ask the sender to measure (sent again on every connect while wanted); read the latest raster.
     void wantScopes(bool on, int hz = 10);
+
+    // Audio (+65): ask the sender for its mix (kCapAudio in the hello; a change drops the session so the next
+    // hello carries it), hand each block to the sink with its local due time = clock mapping + the same
+    // presentation delay the frames get (set every frame by the owner).
+    void wantAudio(bool on);
+    bool audioWanted() const { return m_audioWanted.load(); }
+    void setAudioDelayNs(int64_t ns) { m_audioDelayNs.store(ns); }
+    void setAudioSink(std::function<void(AudioBlock&&)> sink) { std::lock_guard<std::mutex> lk(m_mutex); m_audioSink = std::move(sink); }
+    uint64_t audioBlocks() const { return m_audioBlocks.load(); }
     bool scopes(ScopesFrame& out, uint32_t haveSeq);   // true if newer than haveSeq
 
     // clock (any thread)
@@ -111,6 +122,11 @@ private:
     std::deque<VideoUnit> m_video;
     ScopesFrame m_scopes;
     std::atomic<bool> m_scopesWanted{false};
+    std::atomic<bool> m_audioWanted{false};
+    std::atomic<int64_t> m_audioDelayNs{0};
+    std::atomic<uint64_t> m_audioBlocks{0};
+    std::function<void(AudioBlock&&)> m_audioSink;
+    uint64_t m_audioLastSeq = 0;
     std::atomic<int> m_scopesHz{10};
     vrltime::ClockSync m_clock;
     std::string m_status = "Starting";
