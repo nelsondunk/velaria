@@ -1,99 +1,180 @@
-"""Velaria dome theatre: a modern unidirectional dome theatre rendered as stereo equirect backgrounds, one per seat.
+"""Velaria dome theatre: parametric dome theatres rendered as stereo equirect backgrounds, one per seat per venue.
 
-Run inside Blender (GUI or `blender -b -P theatre_scene.py -- <outdir> [seats...]`). Builds the room from scratch in a
-new scene, saves theatre.blend beside the output, then renders seat0..seat4 as SIZE x SIZE top/bottom stereo JPEGs
-(left eye on top), which the headset shows behind the dome picture in the Dome projection.
+Run inside Blender (`blender -b -P theatre_scene.py -- <outdir> [venues] [seats] [size=N] [samples=N]`):
+    venues   e.g. M0 L30 (size letter + tilt degrees); default: all twelve (S/M/L x 0/15/25/30)
+    seats    0..4 (default all five); `preview` renders one 1600 x 900 perspective still per venue instead
+    --tables [path]  prints (or writes) quest/src/dome_seats.h, the headset's eye-position tables; no Blender needed
 
-Layout (Nelson, 19 Nov): raked rows in the rear half of the room, everyone facing the front, open floor in front,
-side-aisle stairs, a rail along the front row, operator console on the rear platform. Nobody sits near the front
-wall: the front springline is 9 to 15 m from any seat.
+Venues (Nelson, 19 Nov, after his reference photos and the IPS / Domerama / flying-cinema figures):
+    Small 12 m (R 6)   planetarium or hybrid        Medium 18 m (R 9)        Large 26 m (R 13, MOSI class)
+    Tilt: Level (classic planetarium), 15 (hybrid), 25 and 30 (large-format museum cinema, IMAX Dome style).
+All rooms are unidirectional: raked rows in the rear half, everyone facing the front, side-aisle stairs with step
+lights, a rail ahead of row 1, open floor and a lectern in front. Tilted rooms rake steeper (17 + 0.45 x tilt
+degrees), the chairs recline further (18 + 0.4 x tilt), and the screen wall runs down to the floor ahead of the
+audience. Row pitch 1.0 m, seat pitch 0.56 m, seated eyes 1.2 m above the row floor and 12 cm behind the cushion.
 
-Depth (Nelson, 19 Nov): the dome and the drum wall are at infinity, so they never shift against the dome picture
-(which the headset also draws at infinity); only the near set (floor, tiers, seats, rails, console) carries stereo,
-with a wider than natural eye spacing (IOD) so the room reads big. Infinity is done by scaling the far set 1000x
-about each seat's eye point before its render: every direction is preserved, the disparity goes to zero.
+Depth: the dome and the skirt wall are at infinity (the far set is scaled 1000x about each seat's eye before its
+render: directions exact, disparity nil), so they never shift against the dome picture, which the headset also
+draws at infinity. Floor, tiers, seats, rail carry the stereo at a natural 64 mm.
 
-Geometry (metres): dome diameter 16, springline 3.0 above the front floor, 7 rows 0.85 apart rising 0.26 per row,
-seated eyes 1.2 above the row floor. Front is -Y in Blender. The five camera seats are real seats (their own chair is
-left out): sweet spot (row 3 centre), front row centre, rear row centre, and the end seats of row 4. The headset's
-seat table (quest/src/main.cpp kDomeSeats) is printed by this script: --table.
+Light (Nelson: "top lit as if from the screen... deep shadows"): one soft cool source from the dome above-front
+standing in for the picture, step lights and exit signs, nothing else. No cove light: it is off during a show.
+
+Frames: Blender front is -Y; the headset's room frame is (right, up, back) = (-x, z - hC, y) / R.
 """
 import math, os, sys
 try:
     import bpy, bmesh
     from mathutils import Matrix, Vector
-except ImportError:   # --table works from a plain python
+except ImportError:   # --tables works from a plain python
     bpy = None
 
-R = 8.0             # dome radius
-SPRING = 3.0        # springline height above the front floor
-EYE = 1.2           # seated eye height above the row floor
-IOD = 0.090         # eye spacing for the near set (natural 0.064; wider reads bigger)
-SIZE = 6144         # output: SIZE x SIZE top/bottom, i.e. SIZE x SIZE/2 per eye
+SIZES = {"S": 6.0, "M": 9.0, "L": 13.0}      # dome radius (m)
+TILTS = [0, 15, 25, 30]                       # degrees the dome's front edge drops below level
+SEAT_NAMES = ["sweet spot", "front row", "rear row", "left end", "right end"]
+
+EYE = 1.2            # seated eye height above the row floor
+EYE_BACK = 0.12      # eyes behind the cushion's centre
+IOD = 0.064          # natural eye spacing (90 mm read cross-eyed on the neighbour chair, 19 Nov)
+SIZE = 6144          # output: SIZE x SIZE top/bottom, i.e. SIZE x SIZE/2 per eye
 SAMPLES = 80
-FAR_SCALE = 1000.0  # the far set (dome, drum wall, cove) scaled about the eye: "at infinity"
+FAR_SCALE = 1000.0
 
-ROWS = 7
-ROW_Y0 = 0.9        # first row's centre line behind the dome centre
-ROW_PITCH = 0.85
-RISE = 0.26         # per row
-ARC_Y = -3.0        # rows curve about this point ahead of the centre
-SEAT_PITCH = 0.56   # along the row
-FAN_DEG = 34.0      # block half-angle about the arc centre
-WALL_CLEAR = 1.4    # seats stay this far from the drum wall (the side aisles live there)
-AISLE_W = 1.05      # side aisle (stairs) width, measured along the arc
+ROW_PITCH = 1.0
+SEAT_PITCH = 0.56
+FAN_DEG = 34.0       # block half-angle about the arc centre
+WALL_CLEAR = 1.4     # seats stay this far from the wall (the side aisles live there)
+AISLE_W = 1.05
+HEAD_CLEAR = 1.8     # a row is dropped when the dome comes closer than this above seated eyes
 
 
-def row_y(i):
-    return ROW_Y0 + i * ROW_PITCH
+class Venue:
+    def __init__(self, size, tilt):
+        self.size, self.tilt = size, tilt
+        self.R = SIZES[size]
+        R, t = self.R, math.radians(tilt)
+        self.t = t
+        # the dome's centre above the front floor: a drum for a level dome; a tilted dome's front edge comes down to
+        # 1.2 m above the front floor, the way an IMAX Dome's screen wall meets the floor ahead of the audience
+        drum = max(2.6, 0.37 * R)
+        self.hC = drum if tilt == 0 else max(drum * math.cos(t), 1.2 + R * math.sin(t))
+        self.arc_y = -0.375 * R                   # rows curve about this point ahead of the centre
+        self.rake = math.radians(17 + 0.45 * tilt)
+        self.rise = ROW_PITCH * math.tan(self.rake)
+        self.recline = math.radians(18 + 0.4 * tilt)
+        y0 = 0.12 * R
+        rows = []
+        i = 0
+        while True:
+            y = y0 + i * ROW_PITCH
+            z = i * self.rise
+            if y > 0.86 * R:
+                break
+            if self.dome_height_above(0.0, y) - (z + EYE) < HEAD_CLEAR:
+                break
+            rows.append((y, z))
+            i += 1
+        self.rows = rows
+
+    # ---- dome geometry: a hemisphere of radius R about C = (0, 0, hC), rotated by t about X (front edge down)
+    def to_local(self, p):
+        x, y, z = p[0], p[1], p[2] - self.hC
+        c, s = math.cos(-self.t), math.sin(-self.t)
+        return (x, y * c - z * s, y * s + z * c)
+
+    def to_world(self, p):
+        c, s = math.cos(self.t), math.sin(self.t)
+        return (p[0], p[1] * c - p[2] * s, self.hC + p[1] * s + p[2] * c)
+
+    def dome_height_above(self, x, y):
+        """World z of the dome surface straight above (x, y), or a big number if no dome is overhead."""
+        R = self.R
+        def inside(z):
+            l = self.to_local((x, y, z))
+            return l[0] ** 2 + l[1] ** 2 + l[2] ** 2 < R * R and l[2] >= 0
+        lo = None
+        for k in range(400):   # find a height that is under the dome
+            z = -2.0 + k * 0.1
+            if inside(z):
+                lo = z
+                break
+        if lo is None:
+            return 1e9
+        hi = self.hC + R + 1
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            if inside(mid):
+                lo = mid
+            else:
+                hi = mid
+        return lo
+
+    # ---- seating
+    def rho(self, i):
+        return self.rows[i][0] - self.arc_y
+
+    def seats_in_row(self, i):
+        rho = self.rho(i)
+        step = SEAT_PITCH / rho
+        k = int(math.radians(FAN_DEG) / step)
+        out = []
+        for j in range(-k, k + 1):
+            a = j * step
+            x, y = rho * math.sin(a), self.arc_y + rho * math.cos(a)
+            if math.hypot(x, y) > self.R - WALL_CLEAR:
+                continue
+            out.append((x, y, a))
+        return out
+
+    def camera_seats(self):
+        """(x, y, z_eye) in Blender space: sweet spot (row ~0.6 of the block), front, rear, left and right ends of the middle row."""
+        n = len(self.rows)
+        def eye(i, x, y, a):
+            return (x + EYE_BACK * math.sin(a), y + EYE_BACK * math.cos(a), self.rows[i][1] + EYE)
+        def centre(i):
+            return eye(i, 0.0, self.rows[i][0], 0.0)
+        mid = n // 2
+        r = self.seats_in_row(mid)
+        left = max(r, key=lambda s: s[0])     # the viewer's left, facing -Y, is +X
+        right = min(r, key=lambda s: s[0])
+        return [centre(min(n - 1, round(0.6 * (n - 1)))), centre(0), centre(n - 1), eye(mid, *left), eye(mid, *right)]
+
+    def headset_table(self):
+        return [(-x / self.R, (z - self.hC) / self.R, y / self.R) for x, y, z in self.camera_seats()]
+
+    @property
+    def tag(self):
+        return "%s%d" % (self.size, self.tilt)
 
 
-def row_z(i):
-    return i * RISE
+def all_venues():
+    return [Venue(s, t) for s in SIZES for t in TILTS]
 
 
-def row_rho(i):
-    return row_y(i) - ARC_Y
+def write_tables(path=None):
+    lines = ["// Generated by quest/tools/theatre_scene.py --tables. Eye positions from the dome's centre, (right, up,",
+             "// back) as fractions of the dome radius, for each venue size, tilt and seat. Do not edit by hand.",
+             "#pragma once", "",
+             "constexpr int kVenueSizes = %d, kVenueTilts = %d, kVenueSeats = 5;" % (len(SIZES), len(TILTS)),
+             "static const char* const kVenueSizeTag[kVenueSizes] = {%s};" % ", ".join('"%s"' % s for s in SIZES),
+             "static const float kVenueDiameter[kVenueSizes] = {%s};" % ", ".join("%.0ff" % (2 * r) for r in SIZES.values()),
+             "static const int kVenueTilt[kVenueTilts] = {%s};" % ", ".join(str(t) for t in TILTS),
+             "static const float kDomeSeats[kVenueSizes][kVenueTilts][kVenueSeats][3] = {"]
+    for s in SIZES:
+        lines.append("    {   // %s, %.0f m" % (s, 2 * SIZES[s]))
+        for t in TILTS:
+            v = Venue(s, t)
+            cells = ", ".join("{%.4ff, %.4ff, %.4ff}" % row for row in v.headset_table())
+            lines.append("        {%s},   // tilt %d, %d rows" % (cells, t, len(v.rows)))
+        lines.append("    },")
+    lines.append("};")
+    text = "\n".join(lines) + "\n"
+    if path:
+        open(path, "w").write(text)
+    return text
 
 
-def seats_in_row(i):
-    """(x, y, facing) for each seat of row i; the arc is centred on (0, ARC_Y)."""
-    rho = row_rho(i)
-    step = SEAT_PITCH / rho
-    k = int(math.radians(FAN_DEG) / step)
-    out = []
-    for j in range(-k, k + 1):
-        a = j * step
-        x, y = rho * math.sin(a), ARC_Y + rho * math.cos(a)
-        if math.hypot(x, y) > R - WALL_CLEAR:
-            continue
-        out.append((x, y, a))
-    return out
-
-
-EYE_BACK = 0.12     # a seated person's eyes sit behind the cushion's centre, towards the backrest
-
-
-def camera_seats():
-    """The five headset seats as (x, y, z_eye) in Blender space: sweet spot, front, rear, left, right."""
-    def eye(i, x, y, a):
-        return (x + EYE_BACK * math.sin(a), y + EYE_BACK * math.cos(a), row_z(i) + EYE)   # back from the facing direction
-    def centre(i):
-        return eye(i, 0.0, row_y(i), 0.0)
-    r4 = seats_in_row(3)
-    # the viewer's left, facing -Y, is +X in Blender (right = forward x up = -Y x +Z = -X)
-    left = max(r4, key=lambda s: s[0])
-    right = min(r4, key=lambda s: s[0])
-    return [centre(2), centre(0), centre(6), eye(3, *left), eye(3, *right)]
-
-
-def headset_table():
-    """Eye positions relative to the dome centre, in the headset's room frame (right, up, back), as fractions of R."""
-    rows = []
-    for x, y, z in camera_seats():
-        rows.append((-x / R, (z - SPRING) / R, y / R))
-    return rows
-
+# ------------------------------------------------------------------------------------------------ Blender
 
 def mat(name, rgb, rough=0.9, emit=0.0, emit_rgb=None, metal=0.0):
     m = bpy.data.materials.new(name)
@@ -130,8 +211,8 @@ def mesh_obj(name, verts, faces, coll, m):
     return ob
 
 
-def arc_slab(name, r0, r1, a0, a1, z0, z1, coll, m, segs=None):
-    """A closed slab between two arcs about (0, ARC_Y): radii r0..r1, angles a0..a1 (radians, 0 = -Y), heights z0..z1."""
+def arc_slab(name, cy, r0, r1, a0, a1, z0, z1, coll, m, segs=None):
+    """A closed slab between two arcs about (0, cy): radii r0..r1, angles a0..a1 (radians, 0 = -Y), heights z0..z1."""
     if segs is None:
         segs = max(2, int((a1 - a0) * r1 / 0.08))
     verts, faces = [], []
@@ -139,22 +220,21 @@ def arc_slab(name, r0, r1, a0, a1, z0, z1, coll, m, segs=None):
         for r in (r0, r1):
             for s in range(segs + 1):
                 a = a0 + (a1 - a0) * s / segs
-                verts.append((r * math.sin(a), ARC_Y + r * math.cos(a), z))
+                verts.append((r * math.sin(a), cy + r * math.cos(a), z))
     n = segs + 1
     def idx(zi, ri, s):
         return zi * 2 * n + ri * n + s
     for s in range(segs):
-        faces.append([idx(1, 0, s), idx(1, 0, s + 1), idx(1, 1, s + 1), idx(1, 1, s)])   # top
-        faces.append([idx(0, 1, s), idx(0, 1, s + 1), idx(0, 0, s + 1), idx(0, 0, s)])   # bottom
-        faces.append([idx(0, 0, s), idx(0, 0, s + 1), idx(1, 0, s + 1), idx(1, 0, s)])   # inner riser
-        faces.append([idx(0, 1, s + 1), idx(0, 1, s), idx(1, 1, s), idx(1, 1, s + 1)])   # outer
+        faces.append([idx(1, 0, s), idx(1, 0, s + 1), idx(1, 1, s + 1), idx(1, 1, s)])
+        faces.append([idx(0, 1, s), idx(0, 1, s + 1), idx(0, 0, s + 1), idx(0, 0, s)])
+        faces.append([idx(0, 0, s), idx(0, 0, s + 1), idx(1, 0, s + 1), idx(1, 0, s)])
+        faces.append([idx(0, 1, s + 1), idx(0, 1, s), idx(1, 1, s), idx(1, 1, s + 1)])
     faces.append([idx(0, 0, 0), idx(1, 0, 0), idx(1, 1, 0), idx(0, 1, 0)])
     faces.append([idx(0, 1, segs), idx(1, 1, segs), idx(1, 0, segs), idx(0, 0, segs)])
     return mesh_obj(name, verts, faces, coll, m)
 
 
 def cut_verts(ob, pred):
-    """Delete the vertices (and what they hold up) whose local coordinate satisfies pred, in place."""
     bm = bmesh.new()
     bm.from_mesh(ob.data)
     dead = [v for v in bm.verts if pred(v.co)]
@@ -185,126 +265,131 @@ def cyl(name, loc, radius, depth, coll, m, rot=(0, 0, 0), verts=24):
     return link(bpy.context.object, coll, m)
 
 
-def chair(x, y, z, a, coll, mats):
-    """One theatre chair on floor z, facing the arc centre (angle a about it). Smooth-shaded, bevelled boxes."""
-    rot = math.pi - a   # rotating local +Y by this about Z gives the facing direction below
-    fx, fy = -math.sin(a), -math.cos(a)   # facing direction (towards the arc centre)
+def chair(x, y, z, a, recline, coll, mats):
+    rot = math.pi - a
+    fx, fy = -math.sin(a), -math.cos(a)
     m_seat, m_frame, m_arm = mats
-    # pedestal, cushion, back (reclined), two armrests
     box("Ped", (x, y, z + 0.18), (0.40, 0.30, 0.36), coll, m_frame, rot)
     box("Cushion", (x, y, z + 0.44), (0.50, 0.48, 0.10), coll, m_seat, rot, bevel=0.03)
     bx, by = x - fx * 0.26, y - fy * 0.26
-    box("Back", (bx, by, z + 0.72), (0.50, 0.08, 0.60), coll, m_seat, rot, rot_x=math.radians(18), bevel=0.03)   # top ~1.0 above the row floor: the row in front never blocks the screen
+    box("Back", (bx, by, z + 0.72), (0.50, 0.08, 0.60), coll, m_seat, rot, rot_x=recline, bevel=0.03)
     for side in (-1, 1):
         ax, ay = x + side * (-fy) * 0.29, y + side * fx * 0.29
         box("Arm", (ax - fx * 0.04, ay - fy * 0.04, z + 0.64), (0.06, 0.42, 0.05), coll, m_arm, rot, bevel=0.015)
         box("ArmPost", (ax - fx * 0.18, ay - fy * 0.18, z + 0.50), (0.05, 0.06, 0.28), coll, m_frame, rot)
 
 
-def build():
+def build(v):
     bpy.ops.wm.read_homefile(use_empty=True)
     sc = bpy.context.scene
     sc.unit_settings.system = 'METRIC'
-    far = bpy.data.collections.new("Far")    # scaled to infinity per seat
-    near = bpy.data.collections.new("Near")  # carries the stereo
+    far = bpy.data.collections.new("Far")
+    near = bpy.data.collections.new("Near")
     sc.collection.children.link(far)
     sc.collection.children.link(near)
+    R, hC, t = v.R, v.hC, v.t
 
     m_floor = mat("Carpet", (0.045, 0.040, 0.050), 0.95)
     m_tier = mat("Tier", (0.055, 0.050, 0.060), 0.95)
     m_nose = mat("StepNose", (0.22, 0.20, 0.18), 0.6)
-    m_wall = mat("Wall", (0.07, 0.065, 0.065), 0.9)
+    m_wall = mat("Wall", (0.05, 0.047, 0.047), 0.9)
     m_dome = mat("Dome", (0.004, 0.004, 0.005), 1.0)
     m_seat = mat("SeatFabric", (0.07, 0.09, 0.16), 0.85)
     m_frame = mat("SeatFrame", (0.015, 0.015, 0.016), 0.5, metal=0.4)
     m_arm = mat("Armrest", (0.09, 0.07, 0.05), 0.55)
     m_rail = mat("Rail", (0.45, 0.45, 0.47), 0.3, metal=1.0)
     m_console = mat("Console", (0.035, 0.035, 0.04), 0.6)
-    m_screen = mat("Screen", (0.2, 0.3, 0.5), 0.4, emit=2.5, emit_rgb=(0.25, 0.40, 0.70))
-    m_cove = mat("Cove", (1, 0.75, 0.5), 0.5, emit=5.0, emit_rgb=(1.0, 0.70, 0.42))
-    m_step = mat("StepLight", (0.3, 0.6, 1.0), 0.5, emit=8.0, emit_rgb=(0.30, 0.50, 1.0))
-    m_exit = mat("Exit", (0.2, 1.0, 0.4), 0.5, emit=4.0, emit_rgb=(0.15, 1.0, 0.35))
+    m_screen = mat("Screen", (0.2, 0.3, 0.5), 0.4, emit=1.2, emit_rgb=(0.25, 0.40, 0.70))
+    m_step = mat("StepLight", (0.3, 0.6, 1.0), 0.5, emit=4.0, emit_rgb=(0.30, 0.50, 1.0))
+    m_exit = mat("Exit", (0.2, 1.0, 0.4), 0.5, emit=2.5, emit_rgb=(0.15, 1.0, 0.35))
     m_door = mat("Door", (0.05, 0.045, 0.04), 0.7)
 
-    # ---- far set: floor-level disc is near; the drum wall, dome and cove are far
-    bpy.ops.mesh.primitive_cylinder_add(vertices=128, radius=R + 0.05, depth=SPRING + 0.4, location=(0, 0, SPRING / 2 - 0.2), end_fill_type='NOTHING')
-    link(bpy.context.object, far, m_wall).name = "Wall"
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=128, ring_count=64, radius=R, location=(0, 0, SPRING))
+    # ---- far set: the dome (black; the headset draws the picture there) and the skirt wall under its rim
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=160, ring_count=80, radius=R, location=(0, 0, 0))
     dome = link(bpy.context.object, far, m_dome)
     dome.name = "Dome"
     cut_verts(dome, lambda co: co.z < -0.01)
-    bpy.ops.mesh.primitive_torus_add(major_segments=128, minor_segments=10, major_radius=R - 0.16, minor_radius=0.045, location=(0, 0, SPRING - 0.24))
-    link(bpy.context.object, far, m_cove).name = "Cove"
-    bpy.ops.mesh.primitive_cylinder_add(vertices=128, radius=R - 0.03, depth=0.14, location=(0, 0, SPRING - 0.11), end_fill_type='NOTHING')
-    link(bpy.context.object, far, m_wall).name = "CoveLip"
-    # exit doors low on the side walls, towards the back, with a small green sign
+    dome.rotation_euler = (t, 0, 0)
+    dome.location = (0, 0, hC)
+    segs = 192
+    rim = [v.to_world((R * math.sin(2 * math.pi * i / segs), R * math.cos(2 * math.pi * i / segs), 0.0)) for i in range(segs)]
+    verts = [(p[0], p[1], p[2] + 0.02) for p in rim] + [(p[0], p[1], -0.3) for p in rim]
+    faces = [[i, (i + 1) % segs, segs + (i + 1) % segs, segs + i] for i in range(segs)]
+    mesh_obj("Skirt", verts, faces, far, m_wall)
+    # exit doors at the rear corners (on the skirt, at the rear platform's height)
+    zr = v.rows[-1][1] if v.rows else 0.0
     for side in (-1, 1):
-        ang = math.radians(side * 62)             # from the back (+Y)
-        dx, dy = (R - 0.02) * math.sin(ang), (R - 0.02) * math.cos(ang)
-        rz = -ang
-        box("Door", (dx, dy, 0.55 + 1.05), (1.8, 0.06, 2.1), far, m_door, rz)
-        box("ExitSign", (dx * 0.995, dy * 0.995, 0.55 + 2.3), (0.36, 0.04, 0.14), far, m_exit, rz)
+        ang = math.radians(side * 38)
+        dx, dy = (R - 0.04) * math.sin(ang), (R - 0.04) * math.cos(ang)
+        box("Door", (dx, dy, zr + 1.05), (1.8, 0.06, 2.1), far, m_door, -ang)
+        box("ExitSign", (dx * 0.99, dy * 0.99, zr + 2.3), (0.36, 0.04, 0.14), far, m_exit, -ang)
 
     # ---- near set
-    bpy.ops.mesh.primitive_circle_add(vertices=128, radius=R + 0.2, fill_type='NGON', location=(0, 0, -0.002))
+    bpy.ops.mesh.primitive_circle_add(vertices=160, radius=R + 0.3, fill_type='NGON', location=(0, 0, -0.002))
     link(bpy.context.object, near, m_floor).name = "Floor"
     fan = math.radians(FAN_DEG)
-    cams = camera_seats()
+    cams = v.camera_seats()
     n = 0
-    for i in range(ROWS):
-        rho = row_rho(i)
-        z = row_z(i)
-        # the row's tier: the seat block, then (outside the stairs) a ledge; the last row keeps a short walkway behind
+    nrows = len(v.rows)
+    steps_per_row = max(2, int(math.ceil(v.rise / 0.18)))
+    for i, (ry, z) in enumerate(v.rows):
+        rho = v.rho(i)
         aisle = AISLE_W / rho
-        aa0 = fan + 0.02 / rho          # inner edge of the stairs
-        aa1 = aa0 + aisle               # outer edge of the stairs
-        a_out = aa1 + 0.30 / rho        # ledge beyond the stairs
-        r0, r1 = rho - 0.45, (rho + 0.40 if i < ROWS - 1 else rho + 0.90)
+        aa0 = fan + 0.02 / rho
+        aa1 = aa0 + aisle
+        a_out = aa1 + 0.30 / rho
+        r0, r1 = rho - 0.5, (rho + 0.5 if i < nrows - 1 else rho + 0.9)
         if i > 0:
-            arc_slab("Tier%d" % i, r0, r1, -aa0, aa0, 0.0, z, near, m_tier)
-            arc_slab("LedgeL%d" % i, r0, r1, aa1, a_out, 0.0, z, near, m_tier)
-            arc_slab("LedgeR%d" % i, r0, r1, -a_out, -aa1, 0.0, z, near, m_tier)
-            # side-aisle stairs: two steps per row, each half a tier deep, nosing strip and a light under it
+            arc_slab("Tier%d" % i, v.arc_y, r0, r1, -aa0, aa0, 0.0, z, near, m_tier)
+            arc_slab("LedgeL%d" % i, v.arc_y, r0, r1, aa1, a_out, 0.0, z, near, m_tier)
+            arc_slab("LedgeR%d" % i, v.arc_y, r0, r1, -a_out, -aa1, 0.0, z, near, m_tier)
+            zprev = v.rows[i - 1][1]
+            depth = ROW_PITCH / steps_per_row
             for side in (-1, 1):
-                for s in range(2):
-                    sr0 = r0 + s * 0.425
-                    sz = row_z(i - 1) + (s + 1) * RISE / 2
+                for s in range(steps_per_row):
+                    sr0 = r0 + s * depth
+                    sz = zprev + (s + 1) * (z - zprev) / steps_per_row
                     a0, a1 = (aa0, aa1) if side > 0 else (-aa1, -aa0)
-                    arc_slab("Step%d_%d_%d" % (i, side, s), sr0, sr0 + 0.425, a0, a1, 0.0, sz, near, m_tier)
-                    arc_slab("Nose%d_%d_%d" % (i, side, s), sr0, sr0 + 0.025, a0, a1, sz - 0.01, sz + 0.004, near, m_nose)
-                    arc_slab("StepLight%d_%d_%d" % (i, side, s), sr0 - 0.002, sr0 + 0.01, a0 + 0.03 / rho, a1 - 0.03 / rho, sz - 0.05, sz - 0.03, near, m_step)
-        for (x, y, a) in seats_in_row(i):
+                    arc_slab("Step%d_%d_%d" % (i, side, s), v.arc_y, sr0, sr0 + depth, a0, a1, 0.0, sz, near, m_tier)
+                    arc_slab("Nose%d_%d_%d" % (i, side, s), v.arc_y, sr0, sr0 + 0.025, a0, a1, sz - 0.01, sz + 0.004, near, m_nose)
+                    arc_slab("StepLight%d_%d_%d" % (i, side, s), v.arc_y, sr0 - 0.002, sr0 + 0.01, a0 + 0.03 / rho, a1 - 0.03 / rho, sz - 0.05, sz - 0.03, near, m_step)
+        for (x, y, a) in v.seats_in_row(i):
             if any((x - cx) ** 2 + (y - cy) ** 2 < 0.3 ** 2 for cx, cy, _ in cams):
-                continue   # the camera's own chair
-            chair(x, y, z, a, near, (m_seat, m_frame, m_arm))
+                continue
+            chair(x, y, z, a, v.recline, near, (m_seat, m_frame, m_arm))
             n += 1
-    # the front rail: posts and two tubes along the arc just ahead of the first row
-    rr = row_rho(0) - 0.72
+    # the front rail
+    rr = v.rho(0) - 0.75
     span = fan + AISLE_W / rr + 0.25 / rr
     for h, rad in ((0.92, 0.03), (0.55, 0.018)):
-        bpy.ops.mesh.primitive_torus_add(major_segments=160, minor_segments=10, major_radius=rr, minor_radius=rad, location=(0, ARC_Y, h))
-        t = link(bpy.context.object, near, m_rail)
-        t.name = "Rail"
-        # keep only the span in front of the block: cut by deleting far vertices
-        cut_verts(t, lambda co: abs(math.atan2(co.x, co.y)) > span)
+        bpy.ops.mesh.primitive_torus_add(major_segments=200, minor_segments=10, major_radius=rr, minor_radius=rad, location=(0, v.arc_y, h))
+        tor = link(bpy.context.object, near, m_rail)
+        tor.name = "Rail"
+        cut_verts(tor, lambda co: abs(math.atan2(co.x, co.y)) > span)
     k = int(span * rr / 1.1)
     for j in range(-k, k + 1):
         a = j * span / max(1, k)
-        cyl("Post", (rr * math.sin(a), ARC_Y + rr * math.cos(a), 0.46), 0.025, 0.92, near, m_rail)
-    # presenter's lectern on the open floor ahead of the block (reference photos), one dim screen
-    box("Lectern", (2.3, -0.9, 0.55), (0.8, 0.55, 1.1), near, m_console, math.radians(-15), bevel=0.02)
-    box("Screen", (2.3, -0.9, 1.14), (0.5, 0.03, 0.3), near, m_screen, math.radians(-15), math.radians(-55))
-    # world: black; a soft neutral fill from above so the seats read in the dark
+        cyl("Post", (rr * math.sin(a), v.arc_y + rr * math.cos(a), 0.46), 0.025, 0.92, near, m_rail)
+    # lectern on the open floor
+    lx, ly = 0.29 * R, -0.11 * R
+    box("Lectern", (lx, ly, 0.55), (0.8, 0.55, 1.1), near, m_console, math.radians(-15), bevel=0.02)
+    box("Screen", (lx, ly, 1.14), (0.5, 0.03, 0.3), near, m_screen, math.radians(-15), math.radians(-55))
+
+    # ---- light: the show, as one soft cool source from the dome above-front; a whisper of ambient
     sc.world = bpy.data.worlds.new("World")
     sc.world.use_nodes = True
-    sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0, 0, 0, 1)
-    bpy.ops.object.light_add(type='AREA', location=(0, 2.0, SPRING + 2.5))
-    fill = bpy.context.object
-    fill.data.energy = 260
-    fill.data.size = 9
-    fill.data.color = (1.0, 0.9, 0.8)
-    link(fill, near)
-    # camera: stereo equirect; image centre = -Y = the front
+    sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0.004, 0.005, 0.008, 1)
+    lpos = Vector(v.to_world((0.0, -0.35 * R, 0.75 * R)))
+    block = Vector((0.0, (v.rows[0][0] + v.rows[-1][0]) / 2, v.rows[nrows // 2][1] + 1.0))
+    bpy.ops.object.light_add(type='AREA', location=lpos)
+    show = bpy.context.object
+    show.data.energy = 2.9 * R * R
+    show.data.size = 0.25 * R
+    show.data.color = (0.60, 0.68, 0.85)
+    show.rotation_euler = (block - lpos).to_track_quat('-Z', 'Y').to_euler()
+    link(show, near)
+
+    # ---- camera: stereo equirect; image centre = -Y = the front
     bpy.ops.object.camera_add(location=(0, 0, EYE), rotation=(math.radians(90), 0, math.radians(180)))
     cam = bpy.context.object
     cam.name = "SeatCam"
@@ -322,7 +407,7 @@ def build():
     cam.data.stereo.pole_merge_angle_to = math.radians(75)
     sc.camera = cam
     link(cam, near)
-    # render settings
+
     sc.render.engine = 'CYCLES'
     sc.cycles.samples = SAMPLES
     sc.cycles.use_denoising = True
@@ -361,45 +446,71 @@ def build():
 
 
 def place_far(far, eye, base):
-    """Scale the far set FAR_SCALE times about the eye point: same directions, no disparity, no parallax."""
     e = Vector(eye)
     M = Matrix.Translation(e) @ Matrix.Scale(FAR_SCALE, 4) @ Matrix.Translation(-e)
     for ob in far.objects:
         ob.matrix_world = M @ base[ob.name]
 
 
-def render(cam, outdir, seats):
+def render_seats(v, cam, outdir, seats):
     sc = bpy.context.scene
     far = bpy.data.collections["Far"]
     base = {ob.name: ob.matrix_world.copy() for ob in far.objects}
-    cams = camera_seats()
+    cams = v.camera_seats()
     for i in seats:
         x, y, z = cams[i]
         cam.location = (x, y, z)
         place_far(far, (x, y, z), base)
-        sc.render.filepath = os.path.join(outdir, "seat%d.jpg" % i)
+        sc.render.filepath = os.path.join(outdir, "%s_seat%d.jpg" % (v.tag, i))
         bpy.ops.render.render(write_still=True)
+
+
+def render_preview(v, outdir):
+    """One perspective still per venue, from a standing spot on the left aisle, looking across the room."""
+    sc = bpy.context.scene
+    sc.render.use_multiview = False
+    sc.render.resolution_x, sc.render.resolution_y = 1600, 900
+    sc.cycles.samples = 48
+    R = v.R
+    mid = v.rows[len(v.rows) * 2 // 3]
+    pos = Vector((0.55 * R, mid[0] + 0.3, mid[1] + 1.7))
+    aim = Vector((-0.1 * R, -0.3 * R, v.hC * 0.6))
+    bpy.ops.object.camera_add(location=pos)
+    cam = bpy.context.object
+    cam.data.lens = 16
+    cam.rotation_euler = (aim - pos).to_track_quat('-Z', 'Y').to_euler()
+    sc.camera = cam
+    sc.render.filepath = os.path.join(outdir, "preview_%s.jpg" % v.tag)
+    bpy.ops.render.render(write_still=True)
 
 
 if __name__ == "__main__":
     args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-    if args and args[0] == "--table":
-        names = ["sweet spot (row 3)", "front row", "rear row", "left end of row 4", "right end of row 4"]
-        print("// seats: eye position from the dome centre (right, up, back) / R; theatre_scene.py --table")
-        for (rx, up, bk), nm in zip(headset_table(), names):
-            print("    {%.4ff, %.4ff, %.4ff},   // %s" % (rx, up, bk, nm))
+    if args and args[0] == "--tables":
+        out = args[1] if len(args) > 1 else None
+        text = write_tables(out)
+        if not out:
+            print(text)
+        for v in all_venues():
+            print("%-4s R %4.1f hC %4.2f rows %2d rise %.2f" % (v.tag, v.R, v.hC, len(v.rows), v.rise))
         sys.exit(0)
     kv = dict(a.split("=", 1) for a in args if "=" in a)
     args = [a for a in args if "=" not in a]
     SIZE = int(kv.get("size", SIZE))
     SAMPLES = int(kv.get("samples", SAMPLES))
     outdir = args[0] if args else os.path.expanduser("~/VRLink/xfer/theatre")
-    seats = [int(a) for a in args[1:]] if len(args) > 1 else [0, 1, 2, 3, 4]
+    tags = [a for a in args[1:] if a[:1] in SIZES and a[1:].isdigit()]
+    seats = [int(a) for a in args[1:] if a.isdigit()] or [0, 1, 2, 3, 4]
+    preview = "preview" in args[1:]
+    venues = [Venue(a[0], int(a[1:])) for a in tags] or all_venues()
     os.makedirs(outdir, exist_ok=True)
-    cam, n = build()
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(outdir, "theatre.blend"))
-    print("theatre: %d seats modelled" % n)
-    for (rx, up, bk) in headset_table():
-        print("seat table: %.4f %.4f %.4f" % (rx, up, bk))
-    if bpy.app.background:
-        render(cam, outdir, seats)
+    for v in venues:
+        cam, n = build(v)
+        print("theatre %s: %d rows, %d chairs, dome centre %.2f m up" % (v.tag, len(v.rows), n, v.hC))
+        if bpy.app.background:
+            if preview:
+                render_preview(v, outdir)
+            else:
+                render_seats(v, cam, outdir, seats)
+    if len(venues) == 1:
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(outdir, "theatre_%s.blend" % venues[0].tag))
