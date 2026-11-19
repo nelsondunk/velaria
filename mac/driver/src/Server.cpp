@@ -75,6 +75,7 @@ public:
     }
 
     bool wantsAudio() const { return m_wantsAudio.load(); }
+    bool wantsAudio4() const { return m_wantsAudio4.load(); }
 
     void sendAudio(const MsgPtr& m) {
         if (!m || !m_helloDone || !m_wantsAudio) return;
@@ -226,6 +227,7 @@ private:
                 char name[33] = {0};
                 std::memcpy(name, h.name, 32);
                 m_wantsAudio = (h.capabilities & kCapAudio) != 0;
+                m_wantsAudio4 = m_wantsAudio && (h.capabilities & kCapAudio4) != 0;
                 VLOGI("client %s hello: '%s' v%u max %ux%u%s", m_peer.c_str(), name, h.version, h.maxWidth, h.maxHeight,
                       m_wantsAudio ? " +audio" : "");
                 if (m_server->m_cb.currentConfig) sendControl(m_server->m_cb.currentConfig());
@@ -304,6 +306,7 @@ private:
     std::deque<MsgPtr> m_audio;       // small, time-critical: sent ahead of video
     uint64_t m_audioDrops = 0;
     std::atomic<bool> m_wantsAudio{false};
+    std::atomic<bool> m_wantsAudio4{false};
     std::atomic<uint64_t> m_bytesSent{0};   // written by the send thread, read by the receive thread's last log line
     int64_t m_lastStatsLog = 0;
 };
@@ -501,20 +504,27 @@ void StreamServer::broadcastVideo(const MsgPtr& msg, bool keyframe, int64_t bitr
     if (needKey && m_cb.keyframeNeeded) m_cb.keyframeNeeded();
 }
 
-void StreamServer::broadcastAudio(const MsgPtr& msg) {
+void StreamServer::broadcastAudio(const MsgPtr& stereo, const MsgPtr& quad) {
     std::vector<std::shared_ptr<Client>> cs;
     {
         std::lock_guard<std::mutex> lk(m_mutex);
         cs = m_clients;
     }
     for (auto& c : cs)
-        if (c->alive() && c->ready()) c->sendAudio(msg);
+        if (c->alive() && c->ready()) c->sendAudio(c->wantsAudio4() && quad ? quad : stereo);
 }
 
 bool StreamServer::anyAudioClient() const {
     std::lock_guard<std::mutex> lk(const_cast<std::mutex&>(m_mutex));
     for (auto& c : m_clients)
         if (c->alive() && c->ready() && c->wantsAudio()) return true;
+    return false;
+}
+
+bool StreamServer::anyAudioClient4() const {
+    std::lock_guard<std::mutex> lk(const_cast<std::mutex&>(m_mutex));
+    for (auto& c : m_clients)
+        if (c->alive() && c->ready() && c->wantsAudio4()) return true;
     return false;
 }
 

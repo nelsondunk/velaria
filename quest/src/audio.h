@@ -2,7 +2,10 @@
 // with the picture. Each block arrives with the local time its first sample is due (the sender clock mapping the
 // video already uses, plus the same presentation delay the frames get), and the render callback lines the FIFO up
 // with the stream's own output timestamp: silence until a block is due, a drop when sound has fallen behind.
-// Stereo only; an ambisonic bus would need head-tracked decoding on top of this (see the roadmap).
+// Stereo, or (+74) a first-order AmbiX bus (W Y Z X, ACN/SN3D) decoded to stereo in the render callback with the
+// head's current orientation: the sound field is rotated by the inverse head pose, then a pair of cardioids at
+// +-45 degrees makes the stereo pair, so a source stays put in the room as the head turns. Proper binaural (HRTF,
+// higher orders) is the next step; this one proves the routing and the tracking.
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -18,7 +21,8 @@ struct AudioBlock {
     int64_t dueLocalNs = 0;       // when the first sample should be heard, this device's monotonic clock
     bool discontinuity = false;   // does not follow the previous block (seek / stop / flush)
     uint32_t frames = 0;
-    std::vector<int16_t> pcm;     // interleaved stereo s16
+    uint16_t channels = 2;        // 2 stereo, 4 first-order AmbiX
+    std::vector<int16_t> pcm;     // interleaved s16
 };
 
 struct AudioStats {
@@ -35,6 +39,9 @@ public:
     void flush();                  // drop everything queued (stop, seek)
     AudioStats stats();
     bool running() const { return m_stream != nullptr; }
+    // The head's orientation in the room (OpenXR: x right, y up, -z forward), from the render thread each frame;
+    // used only for 4-channel blocks.
+    void setHead(float qx, float qy, float qz, float qw);
 
     // AAudio data callback entry (public for the C trampoline)
     int onRender(int16_t* out, int32_t frames);
@@ -43,13 +50,18 @@ public:
 private:
     void pullBlocksLocked();
     int64_t playTimeNs(int64_t framesAhead);
+    void decodeGains(float g[2][4]);   // stereo gains for W Y Z X at the current head orientation
 
     AAudioStreamStruct* m_stream = nullptr;
     std::mutex m_mutex;
     std::deque<AudioBlock> m_queue;        // from the network thread
     // the FIFO the callback plays from: samples are contiguous from fifoDueNs
     std::vector<int16_t> m_fifo;
+    int m_fifoChannels = 2;                // the stride of the FIFO's frames
     size_t m_fifoPos = 0;
+    float m_head[4] = {0, 0, 0, 1};
+    float m_lastGain[2][4] = {{0.5f, 0.3536f, 0, 0.3536f}, {0.5f, -0.3536f, 0, 0.3536f}};
+    bool m_lastGainValid = false;
     int64_t m_fifoDueNs = 0;
     bool m_fifoValid = false;
     AudioStats m_stats;

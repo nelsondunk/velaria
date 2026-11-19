@@ -34,8 +34,9 @@ public:
     void broadcastVideo(const MsgPtr& msg, bool keyframe, int64_t bitrateBps);
     void broadcastControl(const MsgPtr& msg);
     // audio goes only to clients whose hello asked for it (kCapAudio); a client that falls behind loses old blocks
-    void broadcastAudio(const MsgPtr& msg);
+    void broadcastAudio(const MsgPtr& stereo, const MsgPtr& quad);   // each client gets the one it asked for
     bool anyAudioClient() const;
+    bool anyAudioClient4() const;   // someone wants four channels
     int clientCount() const { return m_clientCount.load(); }
 
 private:

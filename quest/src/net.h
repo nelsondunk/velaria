@@ -74,8 +74,9 @@ public:
     // Audio (+65): ask the sender for its mix (kCapAudio in the hello; a change drops the session so the next
     // hello carries it), hand each block to the sink with its local due time = clock mapping + the same
     // presentation delay the frames get (set every frame by the owner).
-    void wantAudio(bool on);
+    void wantAudio(bool on, int channels = 2);   // channels 4 = a first-order AmbiX bus (kCapAudio4, +74)
     bool audioWanted() const { return m_audioWanted.load(); }
+    int audioChannels() const { return m_audioChannels.load(); }
     void setAudioDelayNs(int64_t ns) { m_audioDelayNs.store(ns); }
     void setAudioSink(std::function<void(AudioBlock&&)> sink) { std::lock_guard<std::mutex> lk(m_mutex); m_audioSink = std::move(sink); }
     uint64_t audioBlocks() const { return m_audioBlocks.load(); }
@@ -123,6 +124,7 @@ private:
     ScopesFrame m_scopes;
     std::atomic<bool> m_scopesWanted{false};
     std::atomic<bool> m_audioWanted{false};
+    std::atomic<int> m_audioChannels{2};
     std::atomic<int64_t> m_audioDelayNs{0};
     std::atomic<uint64_t> m_audioBlocks{0};
     std::function<void(AudioBlock&&)> m_audioSink;

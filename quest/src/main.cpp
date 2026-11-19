@@ -67,6 +67,7 @@ struct Settings {
     bool grid = false;     // horizon / level grid over the picture
     bool outline = true;   // thin outline on the selected / pointed-at card
     bool audio = true;     // Resolve's monitoring mix plays in the headset (+65)
+    bool ambisonic = false; // the mix is a first-order AmbiX bus on channels 1-4 (W Y Z X), decoded with head tracking (+74)
     float fisheyeFov = 190; // lens field of view for the dual-fisheye projection (Canon RF 5.2: 190)
     // Dome preview: the theatre the domemaster is judged in
     float domeTilt = 0;        // degrees the dome's front edge drops below level (0 = classic level dome, up to 30)
@@ -101,6 +102,7 @@ struct Settings {
             else if (k == "grid") grid = v == "1";
             else if (k == "outline") outline = v == "1";
             else if (k == "audio") audio = v == "1";
+            else if (k == "ambisonic") ambisonic = v == "1";
             else if (k == "fisheyeFov") fisheyeFov = (float)atof(v.c_str());
             else if (k == "domeTilt") domeTilt = std::max(0.0f, std::min(30.0f, (float)atof(v.c_str())));
             else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
@@ -135,7 +137,7 @@ struct Settings {
         std::ofstream f(path);
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
-          << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
+          << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nambisonic " << (ambisonic ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
           << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeVenue " << domeVenue << "\ndomeFov " << domeFov << "\ndomeTheatre " << (domeTheatre ? 1 : 0)
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
@@ -1148,11 +1150,16 @@ static void activate(HudButton b, int arg = 0) {
             showNotice(g.settings.outline ? "Card outline on" : "Card outline off");
             break;
         case HudButton::Audio:
-            g.settings.audio = !g.settings.audio;
+            // one chip, three states: stereo -> ambisonic (first order, head-tracked) -> off
+            if (!g.settings.audio) { g.settings.audio = true; g.settings.ambisonic = false; }
+            else if (!g.settings.ambisonic) g.settings.ambisonic = true;
+            else { g.settings.audio = false; g.settings.ambisonic = false; }
             g.settings.save();
-            g.net.wantAudio(g.settings.audio);
+            g.net.wantAudio(g.settings.audio, g.settings.ambisonic ? 4 : 2);
             if (!g.settings.audio) g.audio.stop();
-            showNotice(g.settings.audio ? "Sound in the headset (Resolve's Video and Audio I/O must send audio to Velaria)" : "Sound off");
+            showNotice(!g.settings.audio ? "Sound off"
+                       : g.settings.ambisonic ? "Ambisonic sound: a first-order bus on channels 1-4 (W Y Z X), head-tracked"
+                                              : "Stereo sound in the headset (channels 1-2)");
             break;
         case HudButton::PanelToggle:
             if (arg > 0 && arg < kPanelCount) {
@@ -2064,6 +2071,7 @@ static void locateHead(XrTime time) {
         (loc.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)) {
         g.head = loc.pose;
         g.headValid = true;
+        g.audio.setHead(loc.pose.orientation.x, loc.pose.orientation.y, loc.pose.orientation.z, loc.pose.orientation.w);
         XrVector3f f = qRotate(g.head.orientation, {0, 0, -1});
         g.headYaw = std::atan2(-f.x, -f.z);
         g.headPitch = std::asin(std::max(-1.0f, std::min(1.0f, f.y)));
@@ -2136,6 +2144,7 @@ static void updateHud(int64_t now, bool playing) {
     in.grid = g.settings.grid;
     in.outline = g.settings.outline;
     in.audio = g.settings.audio;
+    in.audioAmbi = g.settings.ambisonic;
     {
         static uint64_t lastBlocks = 0; static int64_t lastBlockNs = 0;
         uint64_t nb = g.net.audioBlocks();
@@ -2947,7 +2956,7 @@ void android_main(android_app* app) {
         g.hud.start();
         g.bridge.start();
         g.net.setSource(g.settings.source);
-        g.net.wantAudio(g.settings.audio);
+        g.net.wantAudio(g.settings.audio, g.settings.ambisonic ? 4 : 2);
         g.net.setAudioSink([](AudioBlock&& b) { g.audio.push(std::move(b)); });
         g.net.start(g.settings.lastHost == "-" ? "" : g.settings.lastHost, "Quest");
         g.decoder.start();

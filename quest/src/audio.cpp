@@ -107,8 +107,52 @@ void AudioOut::flush() {
     m_fifo.clear(); m_fifoPos = 0; m_fifoValid = false;
 }
 
+void AudioOut::setHead(float qx, float qy, float qz, float qw) {
+    std::unique_lock<std::mutex> lk(m_mutex, std::try_to_lock);
+    if (!lk.owns_lock()) return;   // the callback has it: next frame
+    m_head[0] = qx; m_head[1] = qy; m_head[2] = qz; m_head[3] = qw;
+}
+
+// Stereo gains for the four first-order components at the current head pose. AmbiX axes are x front, y left,
+// z up; the headset's are x right, y up, -z forward, so ambi (x, y, z) = (-Z, -X, Y) in headset terms. The field
+// is rotated by the inverse head rotation (first-order components rotate like a vector), then each ear is a
+// cardioid: out = 0.5 W + 0.5 (X cos a + Y sin a) with a = +45 (left) / -45 (right). A rear source comes through
+// at 0.15 of a front one: a front/back level cue, no HRTF yet.
+void AudioOut::decodeGains(float g[2][4]) {
+    // inverse head rotation as a 3x3 (conjugate quaternion)
+    float x = -m_head[0], y = -m_head[1], z = -m_head[2], w = m_head[3];
+    float r[3][3] = {{1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)},
+                     {2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)},
+                     {2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)}};
+    // a world-frame ambi component vector (X, Y, Z)_ambi = (-Zh, -Xh, Yh): build the headset-frame vector from the
+    // ambi unit axes, rotate, and read back the head-relative ambi components
+    auto rel = [&](float ax, float ay, float az, float out[3]) {
+        float hx = -ay, hy = az, hz = -ax;   // ambi -> headset axes
+        float rx = r[0][0] * hx + r[0][1] * hy + r[0][2] * hz;
+        float ry = r[1][0] * hx + r[1][1] * hy + r[1][2] * hz;
+        float rz = r[2][0] * hx + r[2][1] * hy + r[2][2] * hz;
+        out[0] = -rz; out[1] = -rx; out[2] = ry;   // headset -> ambi
+    };
+    // columns of the rotation in ambi terms: where each incoming component lands
+    float cx[3], cy[3], cz[3];
+    rel(1, 0, 0, cx);
+    rel(0, 1, 0, cy);
+    rel(0, 0, 1, cz);
+    const float c45 = 0.70710678f;
+    for (int ear = 0; ear < 2; ear++) {
+        float sa = ear == 0 ? c45 : -c45;   // sin a: + left ear, - right ear
+        float ca = c45;
+        // head-relative X' = cx[0] X + cy[0] Y + cz[0] Z ; Y' = cx[1] X + cy[1] Y + cz[1] Z
+        g[ear][0] = 0.5f;                                   // W
+        g[ear][1] = 0.5f * (cy[0] * ca + cy[1] * sa);       // Y (ACN 1)
+        g[ear][2] = 0.5f * (cz[0] * ca + cz[1] * sa);       // Z (ACN 2)
+        g[ear][3] = 0.5f * (cx[0] * ca + cx[1] * sa);       // X (ACN 3)
+    }
+}
+
 void AudioOut::push(AudioBlock&& b) {
-    if (b.frames == 0 || b.pcm.size() < (size_t)b.frames * kChannels) return;
+    int ch = b.channels == 4 ? 4 : 2;
+    if (b.frames == 0 || b.pcm.size() < (size_t)b.frames * ch) return;
     int64_t now = nowNs();
     if (b.dueLocalNs < now - kFarNs || b.dueLocalNs > now + kFarNs) return;
     std::lock_guard<std::mutex> lk(m_mutex);
@@ -148,6 +192,14 @@ int64_t AudioOut::playTimeNs(int64_t framesAhead) {
 void AudioOut::pullBlocksLocked() {
     while (!m_queue.empty()) {
         AudioBlock& b = m_queue.front();
+        int bch = b.channels == 4 ? 4 : 2;
+        if (bch != m_fifoChannels) {   // stereo <-> ambisonic: start the FIFO over with the new stride
+            m_fifo.clear();
+            m_fifoPos = 0;
+            m_fifoValid = false;
+            m_fifoChannels = bch;
+        }
+        const int kChannels = m_fifoChannels;
         int64_t fifoEnd = m_fifoDueNs + (int64_t)((m_fifo.size() - m_fifoPos) / kChannels) * kNs / kRate;
         bool follows = m_fifoValid && !b.discontinuity && std::llabs(b.dueLocalNs - fifoEnd) <= kContiguousNs;
         if (!m_fifoValid || !follows) {
@@ -181,19 +233,27 @@ void AudioOut::pullBlocksLocked() {
 }
 
 int AudioOut::onRender(int16_t* out, int32_t frames) {
+    const int kOut = 2;   // the stream is always stereo
     std::unique_lock<std::mutex> lk(m_mutex, std::try_to_lock);
     if (!lk.owns_lock()) {   // never block the audio thread: a missed callback is a few ms of silence
-        std::memset(out, 0, (size_t)frames * kChannels * sizeof(int16_t));
+        std::memset(out, 0, (size_t)frames * kOut * sizeof(int16_t));
         return 0;
     }
     pullBlocksLocked();
+    const int kChannels = m_fifoChannels;
+    // decode gains for this callback: from the last callback's to the current head pose, so a turn is a glide
+    float gNow[2][4], gFrom[2][4];
+    decodeGains(gNow);
+    if (!m_lastGainValid) { std::memcpy(m_lastGain, gNow, sizeof gNow); m_lastGainValid = true; }
+    std::memcpy(gFrom, m_lastGain, sizeof gFrom);
+    std::memcpy(m_lastGain, gNow, sizeof gNow);
     int32_t done = 0;
     int64_t playAt = playTimeNs(0);
     while (done < frames) {
         size_t avail = (m_fifo.size() - m_fifoPos) / kChannels;
         if (!m_fifoValid || avail == 0) {
             if (m_fifoValid && m_stats.played > 0) m_stats.underruns++;
-            std::memset(out + (size_t)done * kChannels, 0, (size_t)(frames - done) * kChannels * sizeof(int16_t));
+            std::memset(out + (size_t)done * kOut, 0, (size_t)(frames - done) * kOut * sizeof(int16_t));
             m_fifoValid = false;   // the next block restarts the clock
             break;
         }
@@ -203,7 +263,7 @@ int AudioOut::onRender(int16_t* out, int32_t frames) {
         if (diff > kNs / 1000) {
             int64_t wait = std::min<int64_t>(frames - done, diff * kRate / kNs);
             if (wait <= 0) wait = 1;
-            std::memset(out + (size_t)done * kChannels, 0, (size_t)wait * kChannels * sizeof(int16_t));
+            std::memset(out + (size_t)done * kOut, 0, (size_t)wait * kOut * sizeof(int16_t));
             m_stats.silenceFrames += (uint64_t)wait;
             done += (int32_t)wait;
             continue;
@@ -216,7 +276,25 @@ int AudioOut::onRender(int16_t* out, int32_t frames) {
             continue;
         }
         size_t n = std::min<size_t>(avail, (size_t)(frames - done));
-        std::memcpy(out + (size_t)done * kChannels, m_fifo.data() + m_fifoPos, n * kChannels * sizeof(int16_t));
+        if (kChannels == 2) {
+            std::memcpy(out + (size_t)done * kOut, m_fifo.data() + m_fifoPos, n * kOut * sizeof(int16_t));
+        } else {
+            const int16_t* in = m_fifo.data() + m_fifoPos;
+            int16_t* o = out + (size_t)done * kOut;
+            float inv = frames > 1 ? 1.0f / (float)(frames - 1) : 0.0f;
+            for (size_t i = 0; i < n; i++) {
+                float t = (float)(done + (int32_t)i) * inv;
+                float w = in[i * 4], yy = in[i * 4 + 1], zz = in[i * 4 + 2], xx = in[i * 4 + 3];
+                for (int ear = 0; ear < 2; ear++) {
+                    float g0 = gFrom[ear][0] + (gNow[ear][0] - gFrom[ear][0]) * t;
+                    float g1 = gFrom[ear][1] + (gNow[ear][1] - gFrom[ear][1]) * t;
+                    float g2 = gFrom[ear][2] + (gNow[ear][2] - gFrom[ear][2]) * t;
+                    float g3 = gFrom[ear][3] + (gNow[ear][3] - gFrom[ear][3]) * t;
+                    float v = (g0 * w + g1 * yy + g2 * zz + g3 * xx) * 1.4f;   // a front source lands near full scale
+                    o[i * 2 + ear] = (int16_t)std::max(-32768.0f, std::min(32767.0f, v));
+                }
+            }
+        }
         m_fifoPos += n * kChannels;
         m_fifoDueNs += (int64_t)n * kNs / kRate;
         m_stats.played += n;

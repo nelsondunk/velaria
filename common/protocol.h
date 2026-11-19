@@ -88,7 +88,8 @@ struct HelloMsg {
 };
 
 enum HelloCaps : uint32_t {
-    kCapAudio = 1u << 0,   // the receiver plays AudioMsg; a sender keeps its audio to itself otherwise
+    kCapAudio = 1u << 0,    // the receiver plays AudioMsg; a sender keeps its audio to itself otherwise
+    kCapAudio4 = 1u << 1,   // ...and wants the first FOUR channels (a first-order AmbiX bus: W Y Z X), not a stereo pair (+74)
 };
 
 enum AudioFlags : uint32_t {
@@ -101,7 +102,7 @@ enum AudioFlags : uint32_t {
 // keeps. Blocks are whatever Resolve schedules (1602 frames at 29.97, 1600 at 30, 800 at 60).
 struct AudioMsg {
     uint32_t sampleRate;
-    uint16_t channels;       // 2
+    uint16_t channels;       // 2, or 4 for a receiver that asked for kCapAudio4
     uint16_t format;         // 1 = s16le interleaved
     uint32_t frames;         // sample frames in the payload that follows
     uint32_t flags;          // AudioFlags

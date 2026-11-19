@@ -348,22 +348,27 @@ public:
         int64_t expect = m_audioNextStreamNs;
         if (streamNs < 0 || expect < 0 || std::llabs(streamNs - expect) > 2000000LL) a.flags |= kAudioDiscontinuity;
         m_audioNextStreamNs = streamNs >= 0 ? streamNs + (int64_t)frames * 1000000000LL / 48000 : -1;
-        std::vector<uint8_t> pcm((size_t)frames * 4);
-        int16_t* out = reinterpret_cast<int16_t*>(pcm.data());
-        uint32_t take = std::min<uint32_t>(channels, 2);
-        if (bits == 32) {
-            const int32_t* in = static_cast<const int32_t*>(samples);
-            for (uint32_t i = 0; i < frames; i++) {
-                for (uint32_t c = 0; c < 2; c++) out[i * 2 + c] = (int16_t)(in[i * channels + (c < take ? c : 0)] >> 16);
+        // the first N of Resolve's channels as s16: N = 2 for the stereo mix, 4 for a first-order AmbiX bus (+74)
+        auto pack = [&](uint32_t n) {
+            std::vector<uint8_t> pcm((size_t)frames * n * 2);
+            int16_t* out = reinterpret_cast<int16_t*>(pcm.data());
+            uint32_t take = std::min<uint32_t>(channels, n);
+            if (bits == 32) {
+                const int32_t* in = static_cast<const int32_t*>(samples);
+                for (uint32_t i = 0; i < frames; i++)
+                    for (uint32_t c = 0; c < n; c++) out[i * n + c] = c < take ? (int16_t)(in[i * channels + c] >> 16) : (n == 2 ? out[i * n] : 0);
+            } else {
+                const int16_t* in = static_cast<const int16_t*>(samples);
+                for (uint32_t i = 0; i < frames; i++)
+                    for (uint32_t c = 0; c < n; c++) out[i * n + c] = c < take ? in[i * channels + c] : (n == 2 ? out[i * n] : 0);
             }
-        } else {
-            const int16_t* in = static_cast<const int16_t*>(samples);
-            for (uint32_t i = 0; i < frames; i++) {
-                for (uint32_t c = 0; c < 2; c++) out[i * 2 + c] = in[i * channels + (c < take ? c : 0)];
-            }
-        }
-        auto msg = std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, a, pcm.data(), pcm.size()));
-        m_server.broadcastAudio(msg);
+            AudioMsg m = a;
+            m.channels = (uint16_t)n;
+            return std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, m, pcm.data(), pcm.size()));
+        };
+        auto stereo = pack(2);
+        MsgPtr quad = m_server.anyAudioClient4() ? pack(4) : nullptr;
+        m_server.broadcastAudio(stereo, quad);
         if ((a.seq % 300) == 0) VLOGD("audio: block %llu, %u frames, pts %+.3f s ahead", (unsigned long long)a.seq, frames, (a.ptsNs - nowNs()) / 1e9);
     }
 

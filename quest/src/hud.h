@@ -207,6 +207,7 @@ struct HudInfo {
     bool swapEyes = false, hudOn = true, pinned = false, hands = false, grid = false, outline = true;
     std::string source;       // preference: auto | resolve | ndi
     bool audio = true;        // the mix is wanted in the headset
+    bool audioAmbi = false;   // ...as a head-tracked first-order ambisonic bus (+74)
     bool audioLive = false;   // blocks are arriving and the output stream is open
     float fisheyeFov = 190;   // lens FOV used by the fisheye projection
     float domeTilt = 0, domeFov = 180;   // dome preview: tilt (deg), master FOV (deg)
