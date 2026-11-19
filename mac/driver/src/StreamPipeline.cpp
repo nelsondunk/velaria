@@ -298,8 +298,44 @@ public:
         if (toRelease) toRelease->Release();
     }
 
-    void onAudio(const void*, uint32_t, uint32_t, uint32_t, int64_t) override {
-        // Audio is not streamed in v1 (headset preview is picture-only; Resolve keeps playing audio locally).
+    // Resolve's monitoring mix, as handed to the card (16 channels x 32-bit at 48 kHz, 1602-frame blocks at
+    // 29.97). The first two channels go to headsets that asked for audio, as s16, stamped with the host time the
+    // block is due, from the same stream-to-host mapping the video uses. UNTESTED against a real mix (18 Nov).
+    void onAudio(const void* samples, uint32_t frames, uint32_t channels, uint32_t bits, int64_t streamNs) override {
+        if (!m_cfg.audio || !samples || frames == 0 || channels == 0) return;
+        if (!m_server.anyAudioClient()) { m_audioNextStreamNs = -1; return; }
+        if (bits != 16 && bits != 32) return;
+        AudioMsg a{};
+        a.sampleRate = 48000;
+        a.channels = 2;
+        a.format = kAudioFormatS16;
+        a.frames = frames;
+        a.seq = m_audioSeq++;
+        {
+            std::lock_guard<std::mutex> lk(m_mutex);
+            a.ptsNs = streamNs >= 0 ? hostForStreamLocked(streamNs) : nowNs();
+        }
+        // a gap or jump against the previous block's end means the headset must not play them back to back
+        int64_t expect = m_audioNextStreamNs;
+        if (streamNs < 0 || expect < 0 || std::llabs(streamNs - expect) > 2000000LL) a.flags |= kAudioDiscontinuity;
+        m_audioNextStreamNs = streamNs >= 0 ? streamNs + (int64_t)frames * 1000000000LL / 48000 : -1;
+        std::vector<uint8_t> pcm((size_t)frames * 4);
+        int16_t* out = reinterpret_cast<int16_t*>(pcm.data());
+        uint32_t take = std::min<uint32_t>(channels, 2);
+        if (bits == 32) {
+            const int32_t* in = static_cast<const int32_t*>(samples);
+            for (uint32_t i = 0; i < frames; i++) {
+                for (uint32_t c = 0; c < 2; c++) out[i * 2 + c] = (int16_t)(in[i * channels + (c < take ? c : 0)] >> 16);
+            }
+        } else {
+            const int16_t* in = static_cast<const int16_t*>(samples);
+            for (uint32_t i = 0; i < frames; i++) {
+                for (uint32_t c = 0; c < 2; c++) out[i * 2 + c] = in[i * channels + (c < take ? c : 0)];
+            }
+        }
+        auto msg = std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, a, pcm.data(), pcm.size()));
+        m_server.broadcastAudio(msg);
+        if ((a.seq % 300) == 0) VLOGD("audio: block %llu, %u frames, pts %+.3f s ahead", (unsigned long long)a.seq, frames, (a.ptsNs - nowNs()) / 1e9);
     }
 
 private:
@@ -632,6 +668,8 @@ private:
     bool m_running = false;
     uint32_t m_run = 0;
     int64_t m_anchorHost = 0, m_anchorStream = 0;
+    int64_t m_audioNextStreamNs = -1;   // where the next audio block should start, stream time
+    uint64_t m_audioSeq = 0;
     double m_speed = 1.0;
     std::vector<Held> m_held;
     MsgPtr m_configMsg;

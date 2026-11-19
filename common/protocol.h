@@ -83,9 +83,32 @@ struct HelloMsg {
     uint16_t reserved;
     uint32_t maxWidth;
     uint32_t maxHeight;
-    uint32_t capabilities;   // bit0: wants audio
+    uint32_t capabilities;   // HelloCaps
     char name[32];
 };
+
+enum HelloCaps : uint32_t {
+    kCapAudio = 1u << 0,   // the receiver plays AudioMsg; a sender keeps its audio to itself otherwise
+};
+
+enum AudioFlags : uint32_t {
+    kAudioDiscontinuity = 1u << 0,   // this block does not follow the previous one (seek, stop, flush): restart the clock
+};
+
+// AUDIO (sender -> receiver, +65): Resolve's monitoring mix as it hands it to the device, reduced to the first two
+// channels, 48 kHz, signed 16-bit interleaved. ptsNs is when the first sample should be heard on the SENDER clock,
+// the same clock as VideoMsg.ptsNs, so the receiver lines sound up with picture through the one mapping it already
+// keeps. Blocks are whatever Resolve schedules (1602 frames at 29.97, 1600 at 30, 800 at 60).
+struct AudioMsg {
+    uint32_t sampleRate;
+    uint16_t channels;       // 2
+    uint16_t format;         // 1 = s16le interleaved
+    uint32_t frames;         // sample frames in the payload that follows
+    uint32_t flags;          // AudioFlags
+    int64_t ptsNs;
+    uint64_t seq;            // consecutive per sender; a gap means blocks were dropped on the way
+};
+constexpr uint16_t kAudioFormatS16 = 1;
 
 struct StreamConfigMsg {
     uint32_t configId;

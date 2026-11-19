@@ -65,6 +65,9 @@ Config load() {
             int co = 1;
             num("Coexist", co);
             c.coexist = co != 0;
+            int au = 1;
+            num("Audio", au);
+            c.audio = au != 0;
         }
         if (pl) CFRelease(pl);
         CFReadStreamClose(rs);

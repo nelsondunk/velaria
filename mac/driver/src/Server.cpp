@@ -74,6 +74,21 @@ public:
         m_cv.notify_one();
     }
 
+    bool wantsAudio() const { return m_wantsAudio.load(); }
+
+    void sendAudio(const MsgPtr& m) {
+        if (!m || !m_helloDone || !m_wantsAudio) return;
+        std::lock_guard<std::mutex> lk(m_mutex);
+        // about 1.5 s of 33 ms blocks: beyond that the link is behind and old sound is worse than none
+        if (m_audio.size() >= 48) {
+            m_audio.clear();
+            if (++m_audioDrops == 1 || (m_audioDrops % 50) == 0)
+                VLOGW("client %s: audio queue full, dropped (%llu times)", m_peer.c_str(), (unsigned long long)m_audioDrops);
+        }
+        m_audio.push_back(m);
+        m_cv.notify_one();
+    }
+
     // Returns true if this client needs a keyframe (queue was dropped).
     bool sendVideo(const MsgPtr& m, bool keyframe, int64_t bitrateBps) {
         if (!m_helloDone) return false;
@@ -123,7 +138,7 @@ private:
             bool isVideo = false;
             {
                 std::unique_lock<std::mutex> lk(m_mutex);
-                m_cv.wait(lk, [&] { return !m_alive || !m_control.empty() || !m_pongs.empty() || !m_video.empty(); });
+                m_cv.wait(lk, [&] { return !m_alive || !m_control.empty() || !m_pongs.empty() || !m_audio.empty() || !m_video.empty(); });
                 if (!m_alive) break;
                 if (!m_pongs.empty()) {
                     pong = m_pongs.front();
@@ -132,6 +147,9 @@ private:
                 } else if (!m_control.empty()) {
                     msg = m_control.front();
                     m_control.pop_front();
+                } else if (!m_audio.empty()) {
+                    msg = m_audio.front();   // ahead of video: a 33 ms block must not wait behind a 500 KB frame
+                    m_audio.pop_front();
                 } else {
                     msg = m_video.front();
                     m_video.pop_front();
@@ -207,7 +225,9 @@ private:
                 }
                 char name[33] = {0};
                 std::memcpy(name, h.name, 32);
-                VLOGI("client %s hello: '%s' v%u max %ux%u", m_peer.c_str(), name, h.version, h.maxWidth, h.maxHeight);
+                m_wantsAudio = (h.capabilities & kCapAudio) != 0;
+                VLOGI("client %s hello: '%s' v%u max %ux%u%s", m_peer.c_str(), name, h.version, h.maxWidth, h.maxHeight,
+                      m_wantsAudio ? " +audio" : "");
                 if (m_server->m_cb.currentConfig) sendControl(m_server->m_cb.currentConfig());
                 if (m_server->m_cb.currentPlayback) sendControl(m_server->m_cb.currentPlayback());
                 {
@@ -281,6 +301,9 @@ private:
     size_t m_videoBytes = 0;
     bool m_needKey = true;
     uint64_t m_dropEvents = 0;
+    std::deque<MsgPtr> m_audio;       // small, time-critical: sent ahead of video
+    uint64_t m_audioDrops = 0;
+    std::atomic<bool> m_wantsAudio{false};
     std::atomic<uint64_t> m_bytesSent{0};   // written by the send thread, read by the receive thread's last log line
     int64_t m_lastStatsLog = 0;
 };
@@ -476,6 +499,23 @@ void StreamServer::broadcastVideo(const MsgPtr& msg, bool keyframe, int64_t bitr
     for (auto& c : cs)
         if (c->alive()) needKey |= c->sendVideo(msg, keyframe, bitrateBps);
     if (needKey && m_cb.keyframeNeeded) m_cb.keyframeNeeded();
+}
+
+void StreamServer::broadcastAudio(const MsgPtr& msg) {
+    std::vector<std::shared_ptr<Client>> cs;
+    {
+        std::lock_guard<std::mutex> lk(m_mutex);
+        cs = m_clients;
+    }
+    for (auto& c : cs)
+        if (c->alive() && c->ready()) c->sendAudio(msg);
+}
+
+bool StreamServer::anyAudioClient() const {
+    std::lock_guard<std::mutex> lk(m_mutex);
+    for (auto& c : m_clients)
+        if (c->alive() && c->ready() && c->wantsAudio()) return true;
+    return false;
 }
 
 void StreamServer::broadcastControl(const MsgPtr& msg) {

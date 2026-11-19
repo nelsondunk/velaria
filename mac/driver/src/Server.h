@@ -33,6 +33,9 @@ public:
     void stop();
     void broadcastVideo(const MsgPtr& msg, bool keyframe, int64_t bitrateBps);
     void broadcastControl(const MsgPtr& msg);
+    // audio goes only to clients whose hello asked for it (kCapAudio); a client that falls behind loses old blocks
+    void broadcastAudio(const MsgPtr& msg);
+    bool anyAudioClient() const;
     int clientCount() const { return m_clientCount.load(); }
 
 private:

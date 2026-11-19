@@ -18,6 +18,7 @@ struct Config {
     bool trace = false;                // log-only probe mode (no streaming)
     bool streamWhenNoClient = false;   // encode even when no headset is connected (benchmarks)
     bool coexist = true;               // load Blackmagic's framework underneath when install.sh --coexist set it aside
+    bool audio = true;                 // send Resolve's monitoring mix (first two channels) to headsets that ask for it
 
     bool usbOnly() const { return network == "usb" || network == "USB"; }
 
