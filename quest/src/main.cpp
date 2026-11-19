@@ -2912,6 +2912,7 @@ void android_main(android_app* app) {
     g.net.stop();
     g.bridge.stop();
     g.hud.stop();
+    if (g.theatreThread.joinable()) g.theatreThread.join();   // a decode in flight: a joinable thread would terminate() on exit
     if (g.destroyHandTracker)
         for (auto& t : g.handTracker)
             if (t != XR_NULL_HANDLE) g.destroyHandTracker(t);

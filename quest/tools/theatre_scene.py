@@ -20,7 +20,7 @@ seat table (quest/src/main.cpp kDomeSeats) is printed by this script: --table.
 """
 import math, os, sys
 try:
-    import bpy
+    import bpy, bmesh
     from mathutils import Matrix, Vector
 except ImportError:   # --table works from a plain python
     bpy = None
@@ -30,7 +30,7 @@ SPRING = 3.0        # springline height above the front floor
 EYE = 1.2           # seated eye height above the row floor
 IOD = 0.090         # eye spacing for the near set (natural 0.064; wider reads bigger)
 SIZE = 6144         # output: SIZE x SIZE top/bottom, i.e. SIZE x SIZE/2 per eye
-SAMPLES = 128
+SAMPLES = 80
 FAR_SCALE = 1000.0  # the far set (dome, drum wall, cove) scaled about the eye: "at infinity"
 
 ROWS = 7
@@ -149,14 +149,15 @@ def arc_slab(name, r0, r1, a0, a1, z0, z1, coll, m, segs=None):
     return mesh_obj(name, verts, faces, coll, m)
 
 
-def cut_selected(ob):
-    """Delete the vertices whose .select flag is set (set them in object mode first)."""
-    bpy.ops.object.select_all(action='DESELECT')
-    ob.select_set(True)
-    bpy.context.view_layer.objects.active = ob
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.mesh.delete(type='VERT')
-    bpy.ops.object.mode_set(mode='OBJECT')
+def cut_verts(ob, pred):
+    """Delete the vertices (and what they hold up) whose local coordinate satisfies pred, in place."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    dead = [v for v in bm.verts if pred(v.co)]
+    bmesh.ops.delete(bm, geom=dead, context='VERTS')
+    bm.to_mesh(ob.data)
+    bm.free()
+    ob.data.update()
 
 
 def box(name, loc, scale, coll, m, rot_z=0.0, rot_x=0.0, bevel=0.0):
@@ -227,9 +228,7 @@ def build():
     bpy.ops.mesh.primitive_uv_sphere_add(segments=128, ring_count=64, radius=R, location=(0, 0, SPRING))
     dome = link(bpy.context.object, far, m_dome)
     dome.name = "Dome"
-    for v in dome.data.vertices:
-        v.select = v.co.z < -0.01
-    cut_selected(dome)
+    cut_verts(dome, lambda co: co.z < -0.01)
     bpy.ops.mesh.primitive_torus_add(major_segments=128, minor_segments=10, major_radius=R - 0.16, minor_radius=0.045, location=(0, 0, SPRING - 0.24))
     link(bpy.context.object, far, m_cove).name = "Cove"
     bpy.ops.mesh.primitive_cylinder_add(vertices=128, radius=R - 0.03, depth=0.14, location=(0, 0, SPRING - 0.11), end_fill_type='NOTHING')
@@ -283,10 +282,7 @@ def build():
         t = link(bpy.context.object, near, m_rail)
         t.name = "Rail"
         # keep only the span in front of the block: cut by deleting far vertices
-        for v in t.data.vertices:
-            ang = math.atan2(v.co.x, v.co.y)
-            v.select = abs(ang) > span
-        cut_selected(t)
+        cut_verts(t, lambda co: abs(math.atan2(co.x, co.y)) > span)
     k = int(span * rr / 1.1)
     for j in range(-k, k + 1):
         a = j * span / max(1, k)
