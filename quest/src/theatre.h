@@ -18,7 +18,8 @@ struct TheatreImage {
     ~TheatreImage() { release(); }
     void release();
 };
-// Decodes theatre/seat<seat>.jpg into `out`; with bottomUp the rows are flipped into GL order (so the upload needs
-// no second copy). Returns false, with out.px null, when the asset is missing or will not decode.
-bool loadTheatreSeat(AAssetManager* am, int seat, TheatreImage& out, bool bottomUp);
+// Decodes theatre/<name>.jpg (e.g. "M15_seat2": venue size M, tilt 15, seat 2) into `out`; with bottomUp the rows
+// are flipped into GL order (so the upload needs no second copy). Returns false, with out.px null, when the asset
+// is missing or will not decode.
+bool loadTheatreSeat(AAssetManager* am, const char* name, TheatreImage& out, bool bottomUp);
 }

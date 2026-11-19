@@ -383,11 +383,20 @@ def build(v):
     block = Vector((0.0, (v.rows[0][0] + v.rows[-1][0]) / 2, v.rows[nrows // 2][1] + 1.0))
     bpy.ops.object.light_add(type='AREA', location=lpos)
     show = bpy.context.object
-    show.data.energy = 2.9 * R * R
+    show.data.energy = 6.5 * R * R
     show.data.size = 0.25 * R
     show.data.color = (0.60, 0.68, 0.85)
     show.rotation_euler = (block - lpos).to_track_quat('-Z', 'Y').to_euler()
     link(show, near)
+    # and a much weaker, broader glow from the whole dome, so the shadows are deep but not empty
+    zpos = Vector(v.to_world((0.0, 0.0, 0.9 * R)))
+    bpy.ops.object.light_add(type='AREA', location=zpos)
+    glow = bpy.context.object
+    glow.data.energy = 2.0 * R * R
+    glow.data.size = 0.9 * R
+    glow.data.color = (0.55, 0.62, 0.80)
+    glow.rotation_euler = (block - zpos).to_track_quat('-Z', 'Y').to_euler()
+    link(glow, near)
 
     # ---- camera: stereo equirect; image centre = -Y = the front
     bpy.ops.object.camera_add(location=(0, 0, EYE), rotation=(math.radians(90), 0, math.radians(180)))
@@ -466,22 +475,26 @@ def render_seats(v, cam, outdir, seats):
 
 
 def render_preview(v, outdir):
-    """One perspective still per venue, from a standing spot on the left aisle, looking across the room."""
+    """Two perspective stills per venue: from the left aisle looking across, and from the rear platform looking front."""
     sc = bpy.context.scene
     sc.render.use_multiview = False
     sc.render.resolution_x, sc.render.resolution_y = 1600, 900
     sc.cycles.samples = 48
     R = v.R
     mid = v.rows[len(v.rows) * 2 // 3]
-    pos = Vector((0.55 * R, mid[0] + 0.3, mid[1] + 1.7))
-    aim = Vector((-0.1 * R, -0.3 * R, v.hC * 0.6))
-    bpy.ops.object.camera_add(location=pos)
-    cam = bpy.context.object
-    cam.data.lens = 16
-    cam.rotation_euler = (aim - pos).to_track_quat('-Z', 'Y').to_euler()
-    sc.camera = cam
-    sc.render.filepath = os.path.join(outdir, "preview_%s.jpg" % v.tag)
-    bpy.ops.render.render(write_still=True)
+    rear = v.rows[-1]
+    shots = {
+        "aisle": (Vector((0.55 * R, mid[0] + 0.3, mid[1] + 1.7)), Vector((-0.1 * R, -0.3 * R, v.hC * 0.6)), 16),
+        "rear": (Vector((0.0, rear[0] + 0.8, rear[1] + 1.7)), Vector((0.0, -0.5 * R, v.hC + 0.2 * R)), 13),
+    }
+    for name, (pos, aim, lens) in shots.items():
+        bpy.ops.object.camera_add(location=pos)
+        cam = bpy.context.object
+        cam.data.lens = lens
+        cam.rotation_euler = (aim - pos).to_track_quat('-Z', 'Y').to_euler()
+        sc.camera = cam
+        sc.render.filepath = os.path.join(outdir, "preview_%s_%s.jpg" % (v.tag, name))
+        bpy.ops.render.render(write_still=True)
 
 
 if __name__ == "__main__":

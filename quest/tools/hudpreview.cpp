@@ -183,9 +183,10 @@ int main(int argc, char** argv) {
     dump(PanelId::Instance, "setup-warning"); s.info.setup.clear();
     // fisheye view tab with lens presets
     s.info.projection = "fisheye"; s.info.layout = "SBS"; dump(PanelId::Look, "fisheye"); s.info.projection = "360"; s.info.layout = "TB";
-    // dome view tab with the theatre rows
-    s.info.projection = "dome"; s.info.layout = "mono"; s.info.domeTilt = 20; s.info.domeSeat = 2;
-    dump(PanelId::Look, "dome"); s.info.projection = "360"; s.info.layout = "TB";
+    // the Dome tab (+70): venue, tilt, seat; and the View tab with the projection set to dome
+    s.info.projection = "dome"; s.info.layout = "mono"; s.info.domeTilt = 27; s.info.domeSeat = 2; s.info.domeVenue = 2;
+    s.lookTab = 1; dump(PanelId::Look, "dome"); s.lookTab = 0; dump(PanelId::Look, "dome-view");
+    s.info.projection = "360"; s.info.layout = "TB";
     // nothing on this layer
     m.layer = 0; m.groups.clear(); m.frame = m.start + 1500; m.tc = "01:01:47:22";
     dump(PanelId::Instance, "empty");

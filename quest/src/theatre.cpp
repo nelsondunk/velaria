@@ -24,11 +24,11 @@ void TheatreImage::release() {
     w = h = 0;
 }
 
-bool loadTheatreSeat(AAssetManager* am, int seat, TheatreImage& out, bool bottomUp) {
+bool loadTheatreSeat(AAssetManager* am, const char* asset, TheatreImage& out, bool bottomUp) {
     out.release();
-    if (!am || seat < 0 || seat > 4) return false;
-    char name[64];
-    snprintf(name, sizeof name, "theatre/seat%d.jpg", seat);
+    if (!am || !asset) return false;
+    char name[96];
+    snprintf(name, sizeof name, "theatre/%s.jpg", asset);
     AAsset* a = AAssetManager_open(am, name, AASSET_MODE_BUFFER);
     if (!a) {
         LOGW("theatre: no asset %s", name);

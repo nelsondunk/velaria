@@ -138,6 +138,7 @@ enum class HudButton {
     DomeSeat,       // arg 0 centre, 1 front, 2 rear, 3 left, 4 right
     DomeFov,        // next master field of view (180 / 200 / 220); no chip since +68 (no evidence anyone masters wider)
     DomeTheatre,    // show / hide the rendered theatre behind the dome picture
+    DomeVenue,      // arg = venue size index (Small / Medium / Large)
     PanelToggle,    // arg = PanelId: show / hide that panel altogether (dock chips on the Instance strip)
     // instance strip
     GroupPrev, GroupNext, Copy, Paste, PasteAll, Undo, Refresh,
@@ -210,6 +211,7 @@ struct HudInfo {
     float fisheyeFov = 190;   // lens FOV used by the fisheye projection
     float domeTilt = 0, domeFov = 180;   // dome preview: tilt (deg), master FOV (deg)
     int domeSeat = 0;         // 0 sweet spot, 1 front row, 2 rear row, 3 left, 4 right
+    int domeVenue = 1;        // 0 Small 12 m, 1 Medium 18 m, 2 Large 26 m
     bool domeTheatre = true;  // the rendered theatre is shown behind the picture
     std::string serverName;   // what we are connected to ("Resolve", "NDI · Adobe Premiere Pro")
     std::string notice;    // transient message after an action

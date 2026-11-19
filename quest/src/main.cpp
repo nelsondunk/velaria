@@ -37,6 +37,7 @@
 #include "hud.h"
 #include "net.h"
 #include "theatre.h"
+#include "dome_seats.h"
 #include "protocol.h"
 #include "timing.h"
 
@@ -69,6 +70,7 @@ struct Settings {
     // Dome preview: the theatre the domemaster is judged in
     float domeTilt = 0;        // degrees the dome's front edge drops below level (0 = classic level dome, up to 30)
     int domeSeat = 0;          // which seat of the theatre (kDomeSeats): 0 sweet spot, 1 front row, 2 rear row, 3 left, 4 right
+    int domeVenue = 1;         // venue size (dome_seats.h): 0 Small 12 m, 1 Medium 18 m, 2 Large 26 m
     bool domeTheatre = true;   // show the rendered theatre interior behind the dome picture
     float domeFov = 180;       // field of view the master's circle covers; the dome shows its inner 180
     bool panelOn[kPanelCount] = {true, true, true, true, false};   // dock: which panels exist at all (Instance strip always); Scopes off until asked
@@ -101,6 +103,7 @@ struct Settings {
             else if (k == "fisheyeFov") fisheyeFov = (float)atof(v.c_str());
             else if (k == "domeTilt") domeTilt = std::max(0.0f, std::min(30.0f, (float)atof(v.c_str())));
             else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
+            else if (k == "domeVenue") domeVenue = std::max(0, std::min(kVenueSizes - 1, atoi(v.c_str())));
             else if (k == "domeTheatre") domeTheatre = v == "1";
             else if (k == "domeFov") domeFov = std::max(180.0f, std::min(220.0f, (float)atof(v.c_str())));
             else if (k == "panelOn" && v.size() >= 7) {
@@ -132,7 +135,7 @@ struct Settings {
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
           << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
-          << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeFov " << domeFov << "\ndomeTheatre " << (domeTheatre ? 1 : 0)
+          << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeVenue " << domeVenue << "\ndomeFov " << domeFov << "\ndomeTheatre " << (domeTheatre ? 1 : 0)
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
           << "\nyawDeg " << yawDeg
@@ -219,12 +222,12 @@ struct App {
     Swapchain grid;                         // horizon / level grid, an equirect layer over the picture
     Swapchain outline;                      // thin card outline (quiet cousin of the lift halo)
     Swapchain theatre;                      // dome theatre background: top/bottom stereo equirect for the current seat (+68)
-    int theatreSeat = -1;                   // which seat's picture is in the swapchain; -1 none
-    bool theatreMissing[5] = {false, false, false, false, false};   // asset absent or undecodable: don't retry every frame
+    std::string theatreKey;                 // which render is in the swapchain ("M15_seat2"); empty = none
+    std::set<std::string> theatreMissing;   // assets absent or undecodable: don't retry every frame
     // the 6144 x 6144 JPEG takes a couple of seconds to decode: a worker does it, the render thread only uploads (+69)
     std::thread theatreThread;
     std::atomic<bool> theatreBusy{false};
-    int theatreLoading = -1;
+    std::string theatreLoading;
     vrq::TheatreImage theatreImage;
     // what the last blit warped the frame for: when it changes on a parked frame, warp the same frame again
     std::string warpKey;
@@ -388,17 +391,25 @@ static Layout effectiveLayout() {
 // view of the hemisphere is computed per pixel by the dome warp (gfx.cpp kFSDome) from the eye's position inside the
 // dome, which comes from the theatre model: quest/tools/theatre_scene.py --table prints this table. Everything is
 // in fractions of the dome radius, so the dome's real size never matters.
-static const float kDomeSeats[5][3] = {   // (right, up, back) of the eyes from the dome's centre on the springline
-    {0.0000f, -0.1600f, 0.3400f},   // sweet spot (row 3)
-    {0.0000f, -0.2250f, 0.1275f},   // front row
-    {0.0000f, -0.0300f, 0.7650f},   // rear row
-    {-0.4087f, -0.1275f, 0.3373f},  // left end of row 4
-    {0.4087f, -0.1275f, 0.3373f},   // right end of row 4
-};
+// The venue (size and tilt) picks a render set and a seat table; the tilt presets are the rendered rooms, the
+// 1 degree trim moves the picture inside the nearest room.
+static int venueTiltIndex() {
+    int best = 0;
+    for (int i = 1; i < kVenueTilts; i++)
+        if (std::fabs(g.settings.domeTilt - kVenueTilt[i]) < std::fabs(g.settings.domeTilt - kVenueTilt[best])) best = i;
+    return best;
+}
+static std::string theatreAssetName(int seat) {
+    char b[48];
+    int v = std::max(0, std::min(kVenueSizes - 1, g.settings.domeVenue));
+    snprintf(b, sizeof b, "%s%d_seat%d", kVenueSizeTag[v], kVenueTilt[venueTiltIndex()], seat);
+    return b;
+}
 constexpr float kDomeLatTop = 90.0f, kDomeLatBottom = -40.0f;   // the warp's output covers this band of latitude
 static Gfx::Dome domeWarp() {
     Gfx::Dome d;
-    const float* e = kDomeSeats[std::max(0, std::min(4, g.settings.domeSeat))];
+    int v = std::max(0, std::min(kVenueSizes - 1, g.settings.domeVenue));
+    const float* e = kDomeSeats[v][venueTiltIndex()][std::max(0, std::min(4, g.settings.domeSeat))];
     d.eye[0] = e[0]; d.eye[1] = e[1]; d.eye[2] = e[2];
     d.tiltDeg = g.settings.domeTilt;
     d.fovDeg = g.settings.domeFov;
@@ -720,6 +731,7 @@ static void setLayout(int v) {
 }
 static void setProjection(int v) {
     g.settings.projection = v;
+    if (v == (int)Projection::Dome) g.lookTab = 1;   // the Dome tab (venue, tilt, seat) opens with the projection
     const char* proj[] = {"Flat", "180\xC2\xB0", "360\xC2\xB0", "Fisheye 180\xC2\xB0", "Dome"};
     showNotice(v < 0 ? "Projection: auto" : std::string("Projection: ") + proj[v % 5]);
 }
@@ -1075,6 +1087,14 @@ static void activate(HudButton b, int arg = 0) {
             static const char* seats[] = {"sweet spot", "front row", "rear row", "left", "right"};
             g.settings.domeSeat = std::max(0, std::min(4, arg));
             showNotice(std::string("Seat: ") + seats[g.settings.domeSeat]);
+            break;
+        }
+        case HudButton::DomeVenue: {
+            g.settings.domeVenue = std::max(0, std::min(kVenueSizes - 1, arg));
+            g.settings.save();
+            char m[64];
+            snprintf(m, sizeof m, "Venue: %.0f m dome", kVenueDiameter[g.settings.domeVenue]);
+            showNotice(m);
             break;
         }
         case HudButton::DomeTheatre:
@@ -1813,8 +1833,8 @@ static void retire(AImage* img) {
 static std::string warpKeyNow() {
     char b[160];
     Projection proj = effectiveProjection();
-    snprintf(b, sizeof b, "%d|%d|%.1f|%.0f|%d|%.0f|%dx%d", (int)proj, (int)effectiveLayout(), g.settings.fisheyeFov,
-             g.settings.domeTilt, g.settings.domeSeat, g.settings.domeFov, g.video.width, g.video.height);
+    snprintf(b, sizeof b, "%d|%d|%.1f|%.0f|%d|%d|%.0f|%dx%d", (int)proj, (int)effectiveLayout(), g.settings.fisheyeFov,
+             g.settings.domeTilt, g.settings.domeSeat, g.settings.domeVenue, g.settings.domeFov, g.video.width, g.video.height);
     return b;
 }
 static void blitFrame(AImage* image) {
@@ -2105,6 +2125,7 @@ static void updateHud(int64_t now, bool playing) {
     in.fisheyeFov = g.settings.fisheyeFov;
     in.domeTilt = g.settings.domeTilt;
     in.domeSeat = g.settings.domeSeat;
+    in.domeVenue = g.settings.domeVenue;
     in.domeFov = g.settings.domeFov;
     in.domeTheatre = g.settings.domeTheatre;
     // Resolve setup preflight: what the bridge found in the project settings, then what only this end can see
@@ -2307,7 +2328,7 @@ static void pollDebugCommands(int64_t now) {
         {"NudgeDown", HudButton::NudgeDown}, {"NudgeUp", HudButton::NudgeUp}, {"Key", HudButton::Key},
         {"Zoom", HudButton::Zoom}, {"Copy", HudButton::Copy}, {"Paste", HudButton::Paste}, {"PasteAll", HudButton::PasteAll},
         {"Dial", HudButton::Dial}, {"Grid", HudButton::Grid}, {"Outline", HudButton::Outline}, {"Source", HudButton::Source}, {"FovDown", HudButton::FovDown}, {"FovUp", HudButton::FovUp}, {"PanelToggle", HudButton::PanelToggle}, {"Layer", HudButton::Layer}, {"Lock", HudButton::Lock}, {"Hide", HudButton::Hide}, {"GroupPick", HudButton::GroupPick}, {"ScopesView", HudButton::ScopesView}, {"Jump", HudButton::Jump}, {"FovPreset", HudButton::FovPreset},
-        {"DomeTilt", HudButton::DomeTilt}, {"DomeTiltDown", HudButton::DomeTiltDown}, {"DomeTiltUp", HudButton::DomeTiltUp}, {"DomeSeat", HudButton::DomeSeat}, {"DomeFov", HudButton::DomeFov}, {"DomeTheatre", HudButton::DomeTheatre}};
+        {"DomeTilt", HudButton::DomeTilt}, {"DomeTiltDown", HudButton::DomeTiltDown}, {"DomeTiltUp", HudButton::DomeTiltUp}, {"DomeSeat", HudButton::DomeSeat}, {"DomeFov", HudButton::DomeFov}, {"DomeTheatre", HudButton::DomeTheatre}, {"DomeVenue", HudButton::DomeVenue}};
     for (auto& l : lines) {
         std::istringstream ss(l);
         std::string cmd, a, b;
@@ -2487,29 +2508,29 @@ static void renderFrame() {
         bool dome = P == Projection::Dome;
         // the theatre behind the dome: the seat's stereo render as an infinite sphere, level, front at the dome's front
         if (dome && g.settings.domeTheatre) {
-            int seat = std::max(0, std::min(4, g.settings.domeSeat));
+            std::string want = theatreAssetName(std::max(0, std::min(4, g.settings.domeSeat)));
             if (g.theatreBusy.load() == false && g.theatreThread.joinable()) {   // a decode finished: upload it
                 g.theatreThread.join();
                 vrq::TheatreImage& im = g.theatreImage;
                 if (im.px && im.w > 0 && im.h == im.w && createSwapchain(g.theatre, im.w, im.h, true)) {
                     renderInto(g.theatre, [&](GLuint tex) { g.gfx.upload(tex, im.px, im.w, im.h, true); });
-                    g.theatreSeat = g.theatreLoading;
+                    g.theatreKey = g.theatreLoading;
                 } else {
-                    g.theatreMissing[g.theatreLoading] = true;
+                    g.theatreMissing.insert(g.theatreLoading);
                 }
                 im.release();
-                g.theatreLoading = -1;
+                g.theatreLoading.clear();
             }
-            if (g.theatreSeat != seat && !g.theatreMissing[seat] && !g.theatreThread.joinable()) {
-                g.theatreLoading = seat;
+            if (g.theatreKey != want && !g.theatreMissing.count(want) && !g.theatreThread.joinable()) {
+                g.theatreLoading = want;
                 g.theatreBusy = true;
                 AAssetManager* am = g.android->activity->assetManager;
-                g.theatreThread = std::thread([am, seat]() {
-                    vrq::loadTheatreSeat(am, seat, g.theatreImage, true);
+                g.theatreThread = std::thread([am, want]() {
+                    vrq::loadTheatreSeat(am, want.c_str(), g.theatreImage, true);
                     g.theatreBusy = false;
                 });
             }
-            if (g.theatre.hasContent && g.theatreSeat >= 0) {
+            if (g.theatre.hasContent && g.theatreKey == want) {
                 int half = g.theatre.height / 2;
                 for (int e = 0; e < 2; e++) {
                     XrCompositionLayerEquirect2KHR& t = g.theatreLayer[e];

@@ -651,6 +651,66 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
     return rects;
 }
 
+// The Dome tab (+70): the venue the domemaster is judged in. Rendered rooms exist for three sizes and four tilts
+// (quest/tools/theatre_scene.py); the 1 degree trim moves the picture inside the nearest rendered room.
+void drawDomeTab(Chrome& ch, float y) {
+    Canvas& c = ch.c;
+    const HudInfo& in = ch.s.info;
+    const PanelSpec& sp = kSpecs[(int)PanelId::Look];
+    const float pad = 40, inner = sp.w - 2 * pad, gap = 12, ch_h = 54;
+    char b[120];
+    auto group = [&](const char* name) {
+        c.text(pad, y + 16, name, S16, kDim, 3);
+        y += 30;
+    };
+    group("VENUE");
+    {
+        static const char* names[] = {"Small  \xC2\xB7  12 m", "Medium  \xC2\xB7  18 m", "Large  \xC2\xB7  26 m"};
+        float w = (inner - gap * 2) / 3;
+        for (int i = 0; i < 3; i++)
+            ch.chip3(HudButton::DomeVenue, i, pad + i * (w + gap), y, w, ch_h, in.domeVenue == i ? ChipState::On : ChipState::Rest, names[i]);
+        y += ch_h + gap + 8;
+    }
+    group("SCREEN TILT");
+    {
+        static const int tilts[] = {0, 15, 25, 30};
+        static const char* names[] = {"Level", "15\xC2\xB0  \xC2\xB7  hybrid", "25\xC2\xB0  \xC2\xB7  cinema", "30\xC2\xB0  \xC2\xB7  IMAX dome"};
+        float w = (inner - gap * 3) / 4;
+        int near = 0;
+        for (int i = 1; i < 4; i++)
+            if (std::fabs(in.domeTilt - tilts[i]) < std::fabs(in.domeTilt - tilts[near])) near = i;
+        for (int i = 0; i < 4; i++)
+            ch.chip3(HudButton::DomeTilt, tilts[i], pad + i * (w + gap), y, w, ch_h, near == i ? ChipState::On : ChipState::Rest, names[i]);
+        y += ch_h + gap;
+        float tr = 110, mid = inner - 2 * tr - 2 * gap;
+        ch.chip3(HudButton::DomeTiltDown, 0, pad, y, tr, ch_h, ChipState::Rest, "1\xC2\xB0", (int)Icon::Minus);
+        if (std::lround(in.domeTilt) == tilts[near]) snprintf(b, sizeof b, "Tilt %.0f\xC2\xB0", in.domeTilt);
+        else snprintf(b, sizeof b, "Tilt %.0f\xC2\xB0  \xC2\xB7  picture only, room stays at %d\xC2\xB0", in.domeTilt, tilts[near]);
+        ch.chip3(HudButton::None, 0, pad + tr + gap, y, mid, ch_h, ChipState::Flat, b);
+        ch.chip3(HudButton::DomeTiltUp, 0, pad + tr + gap + mid + gap, y, tr, ch_h, ChipState::Rest, "1\xC2\xB0", (int)Icon::Plus);
+        y += ch_h + gap + 8;
+    }
+    group("SEAT");
+    {
+        static const char* seats[] = {"Sweet spot", "Front row", "Rear row", "Left end", "Right end"};
+        float w = (inner - gap * 4) / 5;
+        int seat = std::max(0, std::min(4, in.domeSeat));
+        for (int i = 0; i < 5; i++)
+            ch.chip3(HudButton::DomeSeat, i, pad + i * (w + gap), y, w, ch_h, seat == i ? ChipState::On : ChipState::Rest, seats[i]);
+        y += ch_h + gap + 8;
+    }
+    group("MASTER");
+    {
+        float w = (inner - gap) / 2;
+        ch.chip(HudButton::DomeTheatre, 0, pad, y, w, ch_h, in.domeTheatre ? "Theatre: shown" : "Theatre: hidden", in.domeTheatre);
+        snprintf(b, sizeof b, "Master field of view %.0f\xC2\xB0", in.domeFov);
+        ch.chip3(HudButton::DomeFov, 0, pad + w + gap, y, w, ch_h, std::lround(in.domeFov) != 180 ? ChipState::On : ChipState::Rest, b);
+        y += ch_h + gap;
+        c.text(pad, y + 22, "The dome shows the inner 180\xC2\xB0 of a 200\xC2\xB0 or 220\xC2\xB0 master. The room and the picture both sit at infinity.", S16, kDim);
+        y += 40;
+    }
+}
+
 void drawViewTab(Chrome& ch, float y) {
     Canvas& c = ch.c;
     const HudInfo& in = ch.s.info;
@@ -746,34 +806,6 @@ void drawViewTab(Chrome& ch, float y) {
             ch.chip3(HudButton::FovUp, 0, pad + small + gap + mid + gap, y, small, ch_h, ChipState::Rest, "5\xC2\xB0", (int)Icon::Plus);
             y += ch_h + gap;
         }
-        if (in.projection == "dome") {
-            // the theatre: tilt presets (how far the dome's front edge sits below level)
-            static const int tilts[] = {0, 10, 15, 20, 25, 30};
-            float tw = (inner - gap * 5) / 6;
-            for (int i = 0; i < 6; i++) {
-                snprintf(b, sizeof b, i == 0 ? "Level" : "%d\xC2\xB0", tilts[i]);
-                ch.chip3(HudButton::DomeTilt, tilts[i], pad + i * (tw + gap), y, tw, ch_h, std::lround(in.domeTilt) == tilts[i] ? ChipState::On : ChipState::Rest, b);
-            }
-            y += ch_h + gap;
-            // one row: 1 degree trim around the readout, then the seat (steps on a tap) and the theatre toggle.
-            // Dome size and rim height went in +69: the seat table carries the eye position, and at infinity the
-            // dome's real size changes nothing.
-            static const char* seats[] = {"sweet spot", "front row", "rear row", "left", "right"};
-            float tr = 96, rest = inner - 2 * tr - 4 * gap, x0 = pad;
-            float ws[3] = {rest * 0.24f, rest * 0.42f, rest * 0.34f};
-            ch.chip3(HudButton::DomeTiltDown, 0, x0, y, tr, ch_h, ChipState::Rest, "1\xC2\xB0", (int)Icon::Minus);
-            x0 += tr + gap;
-            snprintf(b, sizeof b, "Tilt %.0f\xC2\xB0", in.domeTilt);
-            ch.chip3(HudButton::None, 0, x0, y, ws[0], ch_h, ChipState::Flat, b);
-            x0 += ws[0] + gap;
-            ch.chip3(HudButton::DomeTiltUp, 0, x0, y, tr, ch_h, ChipState::Rest, "1\xC2\xB0", (int)Icon::Plus);
-            x0 += tr + gap;
-            int seat = std::max(0, std::min(4, in.domeSeat));
-            ch.chip3(HudButton::DomeSeat, (seat + 1) % 5, x0, y, ws[1], ch_h, seat ? ChipState::On : ChipState::Rest, std::string("Seat: ") + seats[seat]);
-            x0 += ws[1] + gap;
-            ch.chip3(HudButton::DomeTheatre, 0, x0, y, ws[2], ch_h, in.domeTheatre ? ChipState::On : ChipState::Rest, "Theatre");
-            y += ch_h + gap;
-        }
         y += 8;
     }
     group("OVERLAYS");
@@ -833,6 +865,7 @@ std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
     if (y < 0) return rects;
     const EditModel* m = s.edit.get();
     std::vector<std::string> tabs = m ? m->lookTabs() : std::vector<std::string>{"View"};
+    if (s.info.projection == "dome") tabs.insert(tabs.begin() + 1, "Dome");   // the venue lives on its own tab (+70)
     int tab = std::max(0, std::min((int)tabs.size() - 1, s.lookTab));
     // tabs row
     const float pad = 40;
@@ -854,6 +887,10 @@ std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
     c.inWell = false;
     y += th + 28;
     c.fillRoundRect(pad, y - 12, sp.w - 2 * pad, 1, 0.5f, Colour{1, 1, 1, 0.08f});
+    if (tabs[tab] == "Dome") {
+        drawDomeTab(ch, y);
+        return rects;
+    }
     if (tab == 0 || !m || !m->current()) {
         drawViewTab(ch, y);
         return rects;
