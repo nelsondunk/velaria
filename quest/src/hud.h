@@ -147,6 +147,7 @@ enum class HudButton {
     ClipPrev, ClipNext, StepBack, StepFwd, Scrub, Zoom,
     MarkerPrev, MarkerNext,     // seek to the previous / next marker
     MarkerAdd,                  // arg 0: drop a review note at the playhead (with where you are looking); arg 1: remove the one under it
+    Still,                      // a gallery still of the current frame (frame grab from the headset)
     // look panel
     Tab,            // arg = tab index (0 = View)
     PageUp, PageDown,

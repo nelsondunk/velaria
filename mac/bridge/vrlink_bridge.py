@@ -857,6 +857,15 @@ class Bridge:
                 self.broadcast(self.timeline_snapshot())
                 if text:
                     self.broadcast({"type": "notice", "msg": text})
+        elif cmd == "still":
+            # a frame grab from the headset: Resolve's gallery still of the current frame (Color page gallery,
+            # exportable from there); the headset only needs to know it happened
+            try:
+                ok = bool(self.timeline.GrabStill())
+            except Exception as e:
+                log("still: %s" % e)
+                ok = False
+            self.broadcast({"type": "notice", "msg": ("Still saved to the gallery at %s" % frame_to_tc(self.current_frame(), self.fps, self.drop)) if ok else "Resolve could not grab a still here (open the Color page once)"})
         elif cmd == "ping":
             self.send(client, {"type": "pong", "t": msg.get("t")})
 

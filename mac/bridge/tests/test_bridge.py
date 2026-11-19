@@ -618,3 +618,10 @@ def test_markers_from_the_headset():
     # an unknown colour falls back to Cyan
     b.handle(Client(), {"cmd": "marker", "action": "add", "color": "Octarine"})
     assert tl.markers[350]["color"] == "Cyan"
+
+
+def test_still_from_the_headset():
+    b, sent = make_bridge()
+    b.handle(Client(), {"cmd": "still"})
+    assert b.timeline.stills == 1
+    assert sent[-1] == {"type": "notice", "msg": "Still saved to the gallery at 01:00:11:20"}

@@ -164,6 +164,7 @@ class Timeline:
     def GetItemListInTrack(self, kind, v): return list(self.tracks.get(v, []))
     def GetSetting(self, k): return "30" if k == "timelineFrameRate" else "0"
     def GetMarkers(self): return dict(self.markers)
+    def GrabStill(self): self.stills = getattr(self, "stills", 0) + 1; return object()
 
     def AddMarker(self, frame, color, name, note, duration, custom=""):
         if frame in self.markers: return False

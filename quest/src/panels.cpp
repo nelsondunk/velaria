@@ -1007,6 +1007,9 @@ std::vector<ButtonRect> drawDeck(Canvas& c, const UiState& s) {
         float w = Chrome::chipWidth(lbl, -1, "");
         mx -= 10 + w;  ch.chip3(HudButton::MarkerAdd, here ? 1 : 0, mx, my, w, mh, here ? ChipState::On : ChipState::Rest, lbl);
         mx -= 10 + 150; ch.chip3(HudButton::MarkerPrev, 0, mx, my, 150, mh, mk, "Marker", (int)Icon::Previous);
+        // a frame grab: Resolve's gallery still of this frame, for client sends
+        float stw = Chrome::chipWidth("Still", -1, "");
+        mx -= 24 + stw; ch.chip3(HudButton::Still, 0, mx, my, stw, mh, ChipState::Rest, "Still");
         // what the row is about: the marker under the playhead (name, first line of its note), else a count
         std::string line;
         if (here) {

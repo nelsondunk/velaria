@@ -805,6 +805,7 @@ static void activate(HudButton b, int arg = 0) {
             return;
         }
         case HudButton::Undo: bridgeCmd("undo"); return;
+        case HudButton::Still: bridgeCmd("still"); return;
         case HudButton::MarkerPrev:
         case HudButton::MarkerNext: {
             Json j = Json::object();
@@ -2221,7 +2222,7 @@ static void pollDebugCommands(int64_t now) {
         {"Projection", HudButton::Projection}, {"DelayDown", HudButton::DelayDown}, {"DelayAuto", HudButton::DelayAuto},
         {"DelayUp", HudButton::DelayUp}, {"ResetView", HudButton::ResetView}, {"PinAll", HudButton::PinAll},
         {"Pin", HudButton::PinAll}, {"Tab", HudButton::Tab}, {"ClipPrev", HudButton::ClipPrev}, {"ClipNext", HudButton::ClipNext},
-        {"StepBack", HudButton::StepBack}, {"StepFwd", HudButton::StepFwd}, {"Undo", HudButton::Undo}, {"MarkerPrev", HudButton::MarkerPrev}, {"MarkerNext", HudButton::MarkerNext}, {"MarkerAdd", HudButton::MarkerAdd},
+        {"StepBack", HudButton::StepBack}, {"StepFwd", HudButton::StepFwd}, {"Undo", HudButton::Undo}, {"MarkerPrev", HudButton::MarkerPrev}, {"MarkerNext", HudButton::MarkerNext}, {"MarkerAdd", HudButton::MarkerAdd}, {"Still", HudButton::Still},
         {"Refresh", HudButton::Refresh}, {"GroupPrev", HudButton::GroupPrev}, {"GroupNext", HudButton::GroupNext},
         {"PageUp", HudButton::PageUp}, {"PageDown", HudButton::PageDown}, {"Toggle", HudButton::Toggle},
         {"NudgeDown", HudButton::NudgeDown}, {"NudgeUp", HudButton::NudgeUp}, {"Key", HudButton::Key},
