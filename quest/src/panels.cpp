@@ -718,7 +718,7 @@ void drawViewTab(Chrome& ch, float y) {
     }
     group("PICTURE");
     cols(3, 0, x, w);
-    ch.chip(HudButton::Layout, 0, x, y, w, ch_h, std::string("Layout: ") + (in.layoutAuto ? "Auto" : in.layout), !in.layoutAuto);
+    ch.chip(HudButton::Layout, 0, x, y, w, ch_h, std::string("Stereo layout: ") + (in.layoutAuto ? "Auto" : in.layout), !in.layoutAuto);
     cols(3, 1, x, w);
     std::string projName = in.projection == "fisheye" ? "Fisheye 180\xC2\xB0" : in.projection == "dome" ? "Dome" : in.projection;
     ch.chip(HudButton::Projection, 0, x, y, w, ch_h, std::string("Projection: ") + (in.projectionAuto ? "Auto" : projName), !in.projectionAuto);

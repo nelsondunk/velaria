@@ -1985,6 +1985,21 @@ static void followHead() {
         g.stripYaw = wrapAngle(g.stripYaw + d * 0.12f);
         if (std::fabs(d) < 1.0f * (float)M_PI / 180) gliding = false;
     }
+    // The unplaced panels ("Panels: follow me") used to take their yaw only when the panels opened, so turning
+    // round left them behind until the next look-down (Nelson, 18 Nov). They now glide with the same rule as the
+    // strip, and bring their anchor point along, but never while a hand is pressing on one.
+    if (g.cockpitValid && g.panelOpen) {
+        bool pressing = false;
+        for (auto& p : g.pointers) pressing = pressing || (p.valid && p.pressed && p.pressPanel >= 0);
+        float dc = wrapAngle(g.headYaw - g.cockpitYaw);
+        static bool glidingC = false;
+        if (std::fabs(dc) > 25.0f * (float)M_PI / 180 && !pressing) glidingC = true;
+        if (glidingC && !pressing) {
+            g.cockpitYaw = wrapAngle(g.cockpitYaw + dc * 0.12f);
+            g.cockpitPos = vAdd(g.cockpitPos, vScale(vSub(g.head.position, g.cockpitPos), 0.12f));
+            if (std::fabs(dc) < 1.0f * (float)M_PI / 180) glidingC = false;
+        }
+    }
 }
 
 static void updateHud(int64_t now, bool playing) {
@@ -2058,7 +2073,12 @@ static void updateHud(int64_t now, bool playing) {
             }
         }
         if (setup != in.setup) {
-            if (!setup.empty()) LOGI("setup: %s", setup.c_str());
+            if (!setup.empty()) {
+                LOGI("setup: %s", setup.c_str());
+                // a toast as well as the strip's status line: Nelson sat at 1080 monitoring for ten minutes without
+                // noticing the line (18 Nov), and the strip may be rolled up or behind him
+                showNotice(setup);
+            }
             in.setup = setup;
             g.hudForce = true;
         }
