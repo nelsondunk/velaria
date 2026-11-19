@@ -36,10 +36,10 @@ def build():
     sc = bpy.context.scene
     sc.unit_settings.system = 'METRIC'
     # materials
-    m_floor = mat("Floor", (0.035, 0.035, 0.04), 0.95)
-    m_wall = mat("Wall", (0.06, 0.055, 0.05), 0.9)
+    m_floor = mat("Floor", (0.07, 0.068, 0.075), 0.95)
+    m_wall = mat("Wall", (0.10, 0.09, 0.085), 0.9)
     m_dome = mat("Dome", (0.005, 0.005, 0.006), 1.0)
-    m_seat = mat("Seat", (0.05, 0.07, 0.11), 0.85)
+    m_seat = mat("Seat", (0.08, 0.11, 0.18), 0.85)
     m_seat_frame = mat("SeatFrame", (0.02, 0.02, 0.02), 0.6)
     m_console = mat("Console", (0.04, 0.04, 0.045), 0.7)
     m_cove = mat("Cove", (1, 0.75, 0.5), 0.5, emit=4.0, emit_rgb=(1.0, 0.72, 0.45))
@@ -80,14 +80,14 @@ def build():
     skip = [(x, y) for x, y in SEATS.values()]
     n = 0
     for ri, rr in enumerate(rows):
-        half = math.radians(62 if rr > 3 else 45)
+        half = math.radians(118 if rr > 3 else 60)   # seats wrap well past the viewer; the rear stays open for the console
         step = 0.62 / rr   # angular pitch for 0.62 m between seats
         k = int(half / step)
         for i in range(-k, k + 1):
             a = i * step
             x, y = rr * math.sin(a), -rr * math.cos(a)
             # aisle down the middle and at ±35 degrees
-            if abs(a) < step * 0.6 or abs(abs(a) - math.radians(35)) < step * 0.6:
+            if abs(a) < step * 0.6 or abs(abs(a) - math.radians(40)) < step * 0.6 or abs(abs(a) - math.radians(85)) < step * 0.6:
                 continue
             if any((x - sx) ** 2 + (y - sy) ** 2 < 0.45 ** 2 for sx, sy in skip):
                 continue
@@ -127,12 +127,12 @@ def build():
     # a little fill so the seats read in the dark
     bpy.ops.object.light_add(type='AREA', location=(0, 0, SPRING - 0.3))
     fill = bpy.context.object
-    fill.data.energy = 60
+    fill.data.energy = 220
     fill.data.size = 6
     fill.data.color = (1.0, 0.85, 0.7)
     fill.rotation_euler = (0, 0, 0)
     # camera: stereo equirect
-    bpy.ops.object.camera_add(location=(0, 0, EYE), rotation=(math.radians(90), 0, 0))
+    bpy.ops.object.camera_add(location=(0, 0, EYE), rotation=(math.radians(90), 0, math.radians(180)))   # image centre = -Y = the front
     cam = bpy.context.object
     cam.name = "SeatCam"
     cam.data.type = 'PANO'
@@ -169,7 +169,7 @@ def build():
     sc.render.image_settings.views_format = 'STEREO_3D'
     sc.render.image_settings.stereo_3d_format.display_mode = 'TOPBOTTOM'
     sc.view_settings.view_transform = 'Standard'
-    sc.view_settings.exposure = 0.0
+    sc.view_settings.exposure = 0.7
     return cam, n
 
 
