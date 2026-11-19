@@ -620,8 +620,25 @@ def test_markers_from_the_headset():
     assert tl.markers[350]["color"] == "Cyan"
 
 
-def test_still_from_the_headset():
+def test_still_from_the_headset(tmp_path):
     b, sent = make_bridge()
+    # no clip path known: falls back to ~/Pictures/Velaria Stills (redirected for the test)
+    import os
+    b.stills_dir = lambda: str(tmp_path)
     b.handle(Client(), {"cmd": "still"})
-    assert b.timeline.stills == 1
-    assert sent[-1] == {"type": "notice", "msg": "Still saved to the gallery at 01:00:11:20"}
+    files = sorted(os.listdir(tmp_path))
+    assert files == ["Test timeline 01-00-11-20.jpg"]
+    assert sent[-1]["type"] == "notice" and sent[-1]["msg"].startswith("Still saved: ")
+    # a second grab on the same frame does not overwrite
+    b.handle(Client(), {"cmd": "still"})
+    assert sorted(os.listdir(tmp_path)) == ["Test timeline 01-00-11-20 (2).jpg", "Test timeline 01-00-11-20.jpg"]
+
+
+def test_stills_land_beside_the_clip_media(tmp_path):
+    b, sent = make_bridge()
+    class MPI:
+        def GetClipProperty(self, k): return str(tmp_path / "footage" / "shot.mov")
+    (tmp_path / "footage").mkdir()
+    for v in (1, 2):
+        for it in b.timeline.tracks[v]: it.mpi = MPI()
+    assert b.stills_dir() == str(tmp_path / "footage" / "Velaria Stills")

@@ -130,7 +130,7 @@ class Item:
     def GetFusionCompCount(self): return 1 if self.comp else 0
     def GetFusionCompByIndex(self, i): return self.comp
     def GetFusionCompNameList(self): return ["Composition 1"] if self.comp else []
-    def GetMediaPoolItem(self): return None
+    def GetMediaPoolItem(self): return self.mpi if hasattr(self, "mpi") else None
 
 
 def pano_map(name="PanoMap1"):
@@ -164,7 +164,6 @@ class Timeline:
     def GetItemListInTrack(self, kind, v): return list(self.tracks.get(v, []))
     def GetSetting(self, k): return "30" if k == "timelineFrameRate" else "0"
     def GetMarkers(self): return dict(self.markers)
-    def GrabStill(self): self.stills = getattr(self, "stills", 0) + 1; return object()
 
     def AddMarker(self, frame, color, name, note, duration, custom=""):
         if frame in self.markers: return False
@@ -200,6 +199,11 @@ class Project:
     def GetCurrentTimeline(self): return self.timeline
     def GetName(self): return "Test project"
     def GetSetting(self, k): return "30"
+
+    def ExportCurrentFrameAsStill(self, path):
+        self.exported = getattr(self, "exported", []) + [path]
+        open(path, "wb").write(b"\xff\xd8test")
+        return True
 
 
 class ProjectManager:

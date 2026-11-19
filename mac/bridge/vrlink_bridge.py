@@ -858,14 +858,7 @@ class Bridge:
                 if text:
                     self.broadcast({"type": "notice", "msg": text})
         elif cmd == "still":
-            # a frame grab from the headset: Resolve's gallery still of the current frame (Color page gallery,
-            # exportable from there); the headset only needs to know it happened
-            try:
-                ok = bool(self.timeline.GrabStill())
-            except Exception as e:
-                log("still: %s" % e)
-                ok = False
-            self.broadcast({"type": "notice", "msg": ("Still saved to the gallery at %s" % frame_to_tc(self.current_frame(), self.fps, self.drop)) if ok else "Resolve could not grab a still here (open the Color page once)"})
+            self.broadcast({"type": "notice", "msg": self.grab_still()})
         elif cmd == "ping":
             self.send(client, {"type": "pong", "t": msg.get("t")})
 
@@ -923,6 +916,66 @@ class Bridge:
                         log("hide: %s: %s" % (key, e))
             self.tl_signature = None   # force the next re-scan to broadcast
         return n
+
+    # ---------------------------------------------------------------- stills (frame grabs from the headset)
+    STILLS_FOLDER = "Velaria Stills"
+
+    def stills_dir(self):
+        """Beside the media of the clip under the playhead (Nelson, 18 Nov: 'next to the project's media keeps it
+        organised'); ~/Pictures/Velaria Stills when there is no clip or that place cannot be written."""
+        folder = None
+        try:
+            it = self.timeline.GetCurrentVideoItem()
+            mp = it.GetMediaPoolItem() if it else None
+            path = mp.GetClipProperty("File Path") if mp else ""
+            if path:
+                folder = os.path.join(os.path.dirname(path), self.STILLS_FOLDER)
+        except Exception as e:
+            log("still: clip path: %s" % e)
+        for cand in ([folder] if folder else []) + [os.path.expanduser("~/Pictures/" + self.STILLS_FOLDER)]:
+            try:
+                os.makedirs(cand, exist_ok=True)
+                if os.access(cand, os.W_OK):
+                    return cand
+            except OSError:
+                continue
+        return None
+
+    def grab_still(self):
+        # Project.ExportCurrentFrameAsStill writes the current frame at the timeline's output size, stays on the
+        # current page (0.1-0.3 s on Bruce, 18 Nov) and picks the format from the extension. GrabStill, the gallery
+        # route, flipped Resolve to the Color page, which is why it was dropped.
+        page = None
+        try:
+            page = self.resolve.GetCurrentPage()
+        except Exception:
+            pass
+        folder = self.stills_dir()
+        if not folder:
+            return "Nowhere to save a still (no writable folder)"
+        tc = frame_to_tc(self.current_frame(), self.fps, self.drop).replace(":", "-").replace(";", "-")
+        safe = "".join(ch if ch.isalnum() or ch in " -_." else "_" for ch in self.timeline.GetName()).strip() or "timeline"
+        path = os.path.join(folder, "%s %s.jpg" % (safe, tc))
+        n = 2
+        while os.path.exists(path):
+            path = os.path.join(folder, "%s %s (%d).jpg" % (safe, tc, n))
+            n += 1
+        try:
+            ok = bool(self.project.ExportCurrentFrameAsStill(path))
+        except Exception as e:
+            log("still: %s" % e)
+            ok = False
+        try:
+            if page and self.resolve.GetCurrentPage() != page:
+                self.resolve.OpenPage(page)
+        except Exception:
+            pass
+        if not ok:
+            return "Resolve could not export this frame"
+        log("still -> %s" % path)
+        home = os.path.expanduser("~")
+        shown = path[len(home) + 1:] if path.startswith(home + "/") else path
+        return "Still saved: " + shown
 
     # ---------------------------------------------------------------- markers (review notes from the headset)
     MARKER_COLOURS = ("Blue", "Cyan", "Green", "Yellow", "Red", "Pink", "Purple", "Fuchsia", "Rose", "Lavender", "Sky", "Mint", "Lemon", "Sand", "Cocoa", "Cream")
