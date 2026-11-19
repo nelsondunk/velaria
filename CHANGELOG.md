@@ -59,6 +59,8 @@ Thu 19 Nov afternoon (+74, driver rebuilt and installed 14:3x): **ambisonic soun
 - Headset: the **Sound** chip cycles *in headset* (stereo) → *ambisonic* → *off*. In ambisonic mode the field is rotated by the inverse head pose each render callback and decoded with a cardioid pair at ±45° (gains glide across the callback as the head turns). Left/right and head-tracking are right; front/back is a level cue only and elevation is flattened until the HRTF step (Resonance Audio, third order).
 - Test material on Baxter, `Sync test/`: `Velaria ambisonic test 1st order.wav` (tones by direction) and `… spoken.wav` (each direction announced by a voice placed where it says, then its tone; `macros/regression-rig/mkambix.py`, `mkambix_voice.py`). Confirmed by Nelson in the headset: "ambisonics and head tracking is working", "works great".
 
++75 (15:43): **all twelve venues** in the app (Small / Medium / Large × Level / 15° / 25° / 30°, five seats each, 6144² top/bottom; 50 MB of renders, 27 MB APK). Rendered on Bruce 13:09–15:36 at the final look.
+
 ## Unreleased — 1.1 work in progress (Dome preview)
 
 **UNTESTED on a headset.** Built on Linux only (13 Nov 2026); nothing below has been seen in a Quest.
