@@ -311,8 +311,8 @@ def build(v):
     m_rail = mat("Rail", (0.45, 0.45, 0.47), 0.3, metal=1.0)
     m_console = mat("Console", (0.035, 0.035, 0.04), 0.6)
     m_screen = mat("Screen", (0.2, 0.3, 0.5), 0.4, emit=1.2, emit_rgb=(0.25, 0.40, 0.70))
-    m_step = mat("StepLight", (0.3, 0.6, 1.0), 0.5, emit=4.0, emit_rgb=(0.30, 0.50, 1.0))
-    m_exit = mat("Exit", (0.2, 1.0, 0.4), 0.5, emit=2.5, emit_rgb=(0.15, 1.0, 0.35))
+    m_step = mat("StepLight", (0.3, 0.6, 1.0), 0.5, emit=2.5, emit_rgb=(0.30, 0.50, 1.0))
+    m_exit = mat("Exit", (0.2, 1.0, 0.4), 0.5, emit=1.8, emit_rgb=(0.15, 1.0, 0.35))
     m_door = mat("Door", (0.05, 0.045, 0.04), 0.7)
 
     # ---- far set: the dome (black; the headset draws the picture there) and the skirt wall under its rim
@@ -390,12 +390,12 @@ def build(v):
     # ---- light: the show, as one soft cool source from the dome above-front; a whisper of ambient
     sc.world = bpy.data.worlds.new("World")
     sc.world.use_nodes = True
-    sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0.004, 0.005, 0.008, 1)
+    sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0.0015, 0.002, 0.0035, 1)
     lpos = Vector(v.to_world((0.0, -0.35 * R, 0.75 * R)))
     block = Vector((0.0, (v.rows[0][0] + v.rows[-1][0]) / 2, v.rows[nrows // 2][1] + 1.0))
     bpy.ops.object.light_add(type='AREA', location=lpos)
     show = bpy.context.object
-    show.data.energy = 9.0 * R * R
+    show.data.energy = 3.2 * R * R   # "just barely able to see floors and walls" (Nelson, 19 Nov)
     show.data.size = 0.25 * R
     show.data.color = (0.60, 0.68, 0.85)
     show.rotation_euler = (block - lpos).to_track_quat('-Z', 'Y').to_euler()
@@ -404,7 +404,7 @@ def build(v):
     zpos = Vector(v.to_world((0.0, 0.0, 0.9 * R)))
     bpy.ops.object.light_add(type='AREA', location=zpos)
     glow = bpy.context.object
-    glow.data.energy = 2.0 * R * R
+    glow.data.energy = 0.6 * R * R
     glow.data.size = 0.9 * R
     glow.data.color = (0.55, 0.62, 0.80)
     glow.rotation_euler = (block - zpos).to_track_quat('-Z', 'Y').to_euler()
