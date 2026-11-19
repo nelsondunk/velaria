@@ -71,16 +71,20 @@ def seats_in_row(i):
     return out
 
 
+EYE_BACK = 0.12     # a seated person's eyes sit behind the cushion's centre, towards the backrest
+
+
 def camera_seats():
     """The five headset seats as (x, y, z_eye) in Blender space: sweet spot, front, rear, left, right."""
+    def eye(i, x, y, a):
+        return (x + EYE_BACK * math.sin(a), y + EYE_BACK * math.cos(a), row_z(i) + EYE)   # back from the facing direction
     def centre(i):
-        return (0.0, row_y(i), row_z(i) + EYE)
+        return eye(i, 0.0, row_y(i), 0.0)
     r4 = seats_in_row(3)
     # the viewer's left, facing -Y, is +X in Blender (right = forward x up = -Y x +Z = -X)
     left = max(r4, key=lambda s: s[0])
     right = min(r4, key=lambda s: s[0])
-    return [centre(2), centre(0), centre(6),
-            (left[0], left[1], row_z(3) + EYE), (right[0], right[1], row_z(3) + EYE)]
+    return [centre(2), centre(0), centre(6), eye(3, *left), eye(3, *right)]
 
 
 def headset_table():
@@ -270,7 +274,7 @@ def build():
                     arc_slab("Nose%d_%d_%d" % (i, side, s), sr0, sr0 + 0.025, a0, a1, sz - 0.01, sz + 0.004, near, m_nose)
                     arc_slab("StepLight%d_%d_%d" % (i, side, s), sr0 - 0.002, sr0 + 0.01, a0 + 0.03 / rho, a1 - 0.03 / rho, sz - 0.05, sz - 0.03, near, m_step)
         for (x, y, a) in seats_in_row(i):
-            if any((x - cx) ** 2 + (y - cy) ** 2 < 0.2 ** 2 for cx, cy, _ in cams):
+            if any((x - cx) ** 2 + (y - cy) ** 2 < 0.3 ** 2 for cx, cy, _ in cams):
                 continue   # the camera's own chair
             chair(x, y, z, a, near, (m_seat, m_frame, m_arm))
             n += 1

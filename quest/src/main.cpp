@@ -389,11 +389,11 @@ static Layout effectiveLayout() {
 // dome, which comes from the theatre model: quest/tools/theatre_scene.py --table prints this table. Everything is
 // in fractions of the dome radius, so the dome's real size never matters.
 static const float kDomeSeats[5][3] = {   // (right, up, back) of the eyes from the dome's centre on the springline
-    {0.0000f, -0.1600f, 0.3250f},   // sweet spot (row 3)
-    {0.0000f, -0.2250f, 0.1125f},   // front row
-    {0.0000f, -0.0300f, 0.7500f},   // rear row
-    {-0.4013f, -0.1275f, 0.3243f},  // left end of row 4
-    {0.4013f, -0.1275f, 0.3243f},   // right end of row 4
+    {0.0000f, -0.1600f, 0.3400f},   // sweet spot (row 3)
+    {0.0000f, -0.2250f, 0.1275f},   // front row
+    {0.0000f, -0.0300f, 0.7650f},   // rear row
+    {-0.4087f, -0.1275f, 0.3373f},  // left end of row 4
+    {0.4087f, -0.1275f, 0.3373f},   // right end of row 4
 };
 constexpr float kDomeLatTop = 90.0f, kDomeLatBottom = -40.0f;   // the warp's output covers this band of latitude
 static Gfx::Dome domeWarp() {
