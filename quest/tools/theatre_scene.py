@@ -277,17 +277,20 @@ def cyl(name, loc, radius, depth, coll, m, rot=(0, 0, 0), verts=24):
 
 
 def chair(x, y, z, a, recline, coll, mats):
+    """One chair; returns (parts, back) so a render can hide a chair or just its backrest."""
     rot = math.pi - a
     fx, fy = -math.sin(a), -math.cos(a)
     m_seat, m_frame, m_arm = mats
-    box("Ped", (x, y, z + 0.18), (0.40, 0.30, 0.36), coll, m_frame, rot)
-    box("Cushion", (x, y, z + 0.44), (0.50, 0.48, 0.10), coll, m_seat, rot, bevel=0.03)
+    parts = [box("Ped", (x, y, z + 0.18), (0.40, 0.30, 0.36), coll, m_frame, rot),
+             box("Cushion", (x, y, z + 0.44), (0.50, 0.48, 0.10), coll, m_seat, rot, bevel=0.03)]
     bx, by = x - fx * 0.26, y - fy * 0.26
-    box("Back", (bx, by, z + 0.72), (0.50, 0.08, 0.60), coll, m_seat, rot, rot_x=recline, bevel=0.03)
+    back = box("Back", (bx, by, z + 0.72), (0.50, 0.08, 0.60), coll, m_seat, rot, rot_x=recline, bevel=0.03)
+    parts.append(back)
     for side in (-1, 1):
         ax, ay = x + side * (-fy) * 0.29, y + side * fx * 0.29
-        box("Arm", (ax - fx * 0.04, ay - fy * 0.04, z + 0.64), (0.06, 0.42, 0.05), coll, m_arm, rot, bevel=0.015)
-        box("ArmPost", (ax - fx * 0.18, ay - fy * 0.18, z + 0.50), (0.05, 0.06, 0.28), coll, m_frame, rot)
+        parts.append(box("Arm", (ax - fx * 0.04, ay - fy * 0.04, z + 0.64), (0.06, 0.42, 0.05), coll, m_arm, rot, bevel=0.015))
+        parts.append(box("ArmPost", (ax - fx * 0.18, ay - fy * 0.18, z + 0.50), (0.05, 0.06, 0.28), coll, m_frame, rot))
+    return parts, back
 
 
 def build(v):
@@ -310,9 +313,9 @@ def build(v):
     m_arm = mat("Armrest", (0.09, 0.07, 0.05), 0.55)
     m_rail = mat("Rail", (0.45, 0.45, 0.47), 0.3, metal=1.0)
     m_console = mat("Console", (0.035, 0.035, 0.04), 0.6)
-    m_screen = mat("Screen", (0.2, 0.3, 0.5), 0.4, emit=1.2, emit_rgb=(0.25, 0.40, 0.70))
-    m_step = mat("StepLight", (0.3, 0.6, 1.0), 0.5, emit=2.5, emit_rgb=(0.30, 0.50, 1.0))
-    m_exit = mat("Exit", (0.2, 1.0, 0.4), 0.5, emit=1.8, emit_rgb=(0.15, 1.0, 0.35))
+    m_screen = mat("Screen", (0.2, 0.3, 0.5), 0.4, emit=0.8, emit_rgb=(0.25, 0.40, 0.70))
+    m_step = mat("StepLight", (0.3, 0.6, 1.0), 0.5, emit=1.8, emit_rgb=(0.30, 0.50, 1.0))
+    m_exit = mat("Exit", (0.2, 1.0, 0.4), 0.5, emit=1.4, emit_rgb=(0.15, 1.0, 0.35))
     m_door = mat("Door", (0.05, 0.045, 0.04), 0.7)
 
     # ---- far set: the dome (black; the headset draws the picture there) and the skirt wall under its rim
@@ -340,6 +343,7 @@ def build(v):
     link(bpy.context.object, near, m_floor).name = "Floor"
     fan = math.radians(FAN_DEG)
     cams = v.camera_seats()
+    own_back, neighbours = {}, {}
     n = 0
     nrows = len(v.rows)
     steps_per_row = max(2, int(math.ceil(v.rise / 0.18)))
@@ -365,10 +369,14 @@ def build(v):
                     arc_slab("Nose%d_%d_%d" % (i, side, s), v.arc_y, sr0, sr0 + 0.025, a0, a1, sz - 0.01, sz + 0.004, near, m_nose)
                     arc_slab("StepLight%d_%d_%d" % (i, side, s), v.arc_y, sr0 - 0.002, sr0 + 0.01, a0 + 0.03 / rho, a1 - 0.03 / rho, sz - 0.05, sz - 0.03, near, m_step)
         for (x, y, a) in v.seats_in_row(i):
-            if any((x - cx) ** 2 + (y - cy) ** 2 < 0.3 ** 2 for cx, cy, _ in cams):
-                continue
-            chair(x, y, z, a, v.recline, near, (m_seat, m_frame, m_arm))
+            parts, back = chair(x, y, z, a, v.recline, near, (m_seat, m_frame, m_arm))
             n += 1
+            for ci, (cx, cy, _) in enumerate(cams):
+                d2 = (x - cx) ** 2 + (y - cy) ** 2
+                if d2 < 0.3 ** 2:
+                    own_back.setdefault(ci, []).append(back)          # the viewer's chair: no backrest behind the head
+                elif d2 < 0.95 ** 2:
+                    neighbours.setdefault(ci, []).extend(parts)        # the seats either side stay empty (strain at 0.6 m)
     # the front rail
     rr = v.rho(0) - 0.75
     span = fan + AISLE_W / rr + 0.25 / rr
@@ -390,12 +398,12 @@ def build(v):
     # ---- light: the show, as one soft cool source from the dome above-front; a whisper of ambient
     sc.world = bpy.data.worlds.new("World")
     sc.world.use_nodes = True
-    sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0.0015, 0.002, 0.0035, 1)
+    sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0.0008, 0.001, 0.0018, 1)
     lpos = Vector(v.to_world((0.0, -0.35 * R, 0.75 * R)))
     block = Vector((0.0, (v.rows[0][0] + v.rows[-1][0]) / 2, v.rows[nrows // 2][1] + 1.0))
     bpy.ops.object.light_add(type='AREA', location=lpos)
     show = bpy.context.object
-    show.data.energy = 3.2 * R * R   # "just barely able to see floors and walls" (Nelson, 19 Nov)
+    show.data.energy = 1.6 * R * R   # "just barely able to see floors and walls" (Nelson, 19 Nov; halved again 12:35)
     show.data.size = 0.25 * R
     show.data.color = (0.60, 0.68, 0.85)
     show.rotation_euler = (block - lpos).to_track_quat('-Z', 'Y').to_euler()
@@ -404,7 +412,7 @@ def build(v):
     zpos = Vector(v.to_world((0.0, 0.0, 0.9 * R)))
     bpy.ops.object.light_add(type='AREA', location=zpos)
     glow = bpy.context.object
-    glow.data.energy = 0.6 * R * R
+    glow.data.energy = 0.3 * R * R
     glow.data.size = 0.9 * R
     glow.data.color = (0.55, 0.62, 0.80)
     glow.rotation_euler = (block - zpos).to_track_quat('-Z', 'Y').to_euler()
@@ -463,6 +471,7 @@ def build(v):
         except Exception:
             pass
     bpy.ops.object.select_all(action='DESELECT')
+    v.per_seat_hidden = {ci: own_back.get(ci, []) + neighbours.get(ci, []) for ci in range(len(cams))}
     return cam, n
 
 
@@ -482,6 +491,9 @@ def render_seats(v, cam, outdir, seats):
         x, y, z = cams[i]
         cam.location = (x, y, z)
         place_far(far, (x, y, z), base)
+        for ci, objs in v.per_seat_hidden.items():
+            for ob in objs:
+                ob.hide_render = ci == i
         sc.render.filepath = os.path.join(outdir, "%s_seat%d.jpg" % (v.tag, i))
         bpy.ops.render.render(write_still=True)
 
