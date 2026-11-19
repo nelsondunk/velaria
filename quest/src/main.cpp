@@ -1859,7 +1859,7 @@ static void syncReader() {
         g.readerGen = gen;
         g.framesSincePlay = 0;   // (re)connect or new stream starts with a big keyframe: don't let it set the delay
         StreamConfig cfg = g.decoder.config();
-        if (cfg.msg.configId != g.configId) {
+        if (cfg.msg.configId != g.configId || cfg.msg.width != g.cfg.msg.width || cfg.msg.height != g.cfg.msg.height) {
             g.cfg = cfg;
             g.configId = cfg.msg.configId;
             int w = 0, h = 0;
