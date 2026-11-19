@@ -200,6 +200,7 @@ private:
     uint32_t m_audioBits = 16;
     bool m_audioPreroll = false;
     int64_t m_audioEndSample = 0;         // end of scheduled audio, in samples of stream time
+    uint64_t m_audioRefused = 0;          // blocks refused as "buffer full" (logged sparsely)
     int64_t m_audioPrerollStartSample = -1;
 
     std::map<uint32_t, ConfigValue> m_config;

@@ -627,6 +627,10 @@ HRESULT VirtualDevice::BeginAudioPreroll() {
     {
         std::lock_guard<std::mutex> lk(m_mutex);
         m_audioPreroll = true;
+        if (!m_running) {   // a fresh preroll after a stop: forget the previous run's samples
+            m_audioEndSample = 0;
+            m_audioPrerollStartSample = -1;
+        }
     }
     wakeClock();
     return S_OK;
@@ -649,12 +653,25 @@ HRESULT VirtualDevice::ScheduleAudioSamples(void* buffer, uint32_t count, BMDTim
         if (!m_audioEnabled) return E_ACCESSDENIED;
         int64_t startSample = timeScale > 0 ? (int64_t)((__int128)streamTime * kAudioRate / timeScale) : m_audioEndSample;
         if (timeScale <= 0) streamTime = 0;
+        // A new run (after a stop, a seek, or a flush we were not told about) starts somewhere the old bookkeeping
+        // does not reach: anything outside one FIFO's worth of the old end is a restart, not a late block. Without
+        // this the first play worked and every later one was refused as "buffer full" (found 18 Nov, Nelson).
+        if (m_audioEndSample > 0 && (startSample > m_audioEndSample + kMaxBufferedAudioSamples ||
+                                     startSample + (int64_t)count < m_audioEndSample - kMaxBufferedAudioSamples)) {
+            VLOGD("audio: stream restarted at sample %lld (old end %lld)", (long long)startSample, (long long)m_audioEndSample);
+            m_audioEndSample = 0;
+            m_audioPrerollStartSample = -1;
+        }
         int64_t nowSample = m_running ? streamNsAtHostLocked(nowNs()) * kAudioRate / kNsPerSec
                                       : (m_audioPrerollStartSample >= 0 ? m_audioPrerollStartSample : startSample);
         if (m_audioPrerollStartSample < 0) m_audioPrerollStartSample = startSample;
         int64_t buffered = std::max<int64_t>(0, m_audioEndSample - nowSample);
         int64_t room = std::max<int64_t>(0, kMaxBufferedAudioSamples - buffered);
         accepted = (uint32_t)std::min<int64_t>(count, room);
+        if (accepted == 0 && count > 0 && (++m_audioRefused == 1 || (m_audioRefused % 200) == 0))
+            VLOGW("audio: refused %u frames (start %lld, end %lld, now %lld, buffered %lld, %s) x%llu", count, (long long)startSample,
+                  (long long)m_audioEndSample, (long long)nowSample, (long long)buffered, m_running ? "running" : "stopped",
+                  (unsigned long long)m_audioRefused);
         m_audioEndSample = std::max(m_audioEndSample, startSample + accepted);
         streamNs = startSample * kNsPerSec / kAudioRate;
         sink = m_sink;
@@ -743,6 +760,8 @@ HRESULT VirtualDevice::StopScheduledPlayback(BMDTimeValue stopAt, BMDTimeValue* 
             m_running = false;
             m_flushAndNotifyStop = true;
             m_stoppingGen = m_runGen;
+            m_audioEndSample = 0;             // the next run prerolls from wherever it likes
+            m_audioPrerollStartSample = -1;
         } else {
             m_stopAtStreamNs = toNs(stopAt, timeScale);
             m_stoppedStreamNs = m_stopAtStreamNs;
