@@ -273,6 +273,7 @@ struct App {
     int hoverArg = 0, pressedArg = 0, hoverPanel = -1, pressedPanel = -1;
     std::string lastUiKey;
     int lookTab = 0;
+    bool notePick = false;     // Timeline panel: choosing a note preset
 
     // edit mode
     BridgeClient bridge;
@@ -814,20 +815,28 @@ static void activate(HudButton b, int arg = 0) {
             return;
         }
         case HudButton::MarkerAdd: {
-            // a review note at the playhead: Resolve gets the marker, its note says where the reviewer was looking
-            // (in Canvas Control's Yaw / Pitch) and which card was picked, so the editor can aim a fix at it
-            Json j = Json::object();
-            j["cmd"] = "marker";
-            if (arg == 1) { j["action"] = "remove"; g.bridge.send(j); return; }
-            j["action"] = "add";
-            j["color"] = "Cyan";
-            if (g.headValid) {
-                float pan = 0, tilt = 0;
-                rayAngles(qRotate(g.head.orientation, {0, 0, -1}), pan, tilt);
-                j["pan"] = (double)pan; j["tilt"] = (double)tilt;
+            // arg 0: show the presets; 1: remove the marker under the playhead; 2: put the presets away
+            if (arg == 1) {
+                Json j = Json::object();
+                j["cmd"] = "marker"; j["action"] = "remove";
+                g.bridge.send(j);
+                return;
             }
-            if (const EditGroup* cg = g.edit.current()) j["card"] = cg->clipName.empty() ? cg->tool : cg->clipName;
+            g.notePick = arg == 0;
+            g.hudForce = true;
+            return;
+        }
+        case HudButton::NotePreset: {
+            // a review note at the playhead: the preset's word as the marker name, its colour, nothing else
+            // (the gaze numbers tried on 18 Nov meant nothing to a reader; Nelson)
+            if (arg < 0 || arg >= kNotePresetCount) return;
+            Json j = Json::object();
+            j["cmd"] = "marker"; j["action"] = "add";
+            j["name"] = kNotePresets[arg].name;
+            j["color"] = kNotePresets[arg].colour;
             g.bridge.send(j);
+            g.notePick = false;
+            g.hudForce = true;
             return;
         }
         case HudButton::Hide: {
@@ -2152,6 +2161,7 @@ static void updateHud(int64_t now, bool playing) {
     UiState s;
     s.info = in;
     s.lookTab = g.lookTab;
+    s.notePick = g.notePick;
     for (int i = 0; i < kPanelCount; i++) s.enabled[i] = g.settings.panelOn[i];
     s.hover = g.hover;
     s.hoverArg = g.hoverArg;
@@ -2242,7 +2252,7 @@ static void pollDebugCommands(int64_t now) {
         {"Projection", HudButton::Projection}, {"DelayDown", HudButton::DelayDown}, {"DelayAuto", HudButton::DelayAuto},
         {"DelayUp", HudButton::DelayUp}, {"ResetView", HudButton::ResetView}, {"PinAll", HudButton::PinAll},
         {"Pin", HudButton::PinAll}, {"Tab", HudButton::Tab}, {"ClipPrev", HudButton::ClipPrev}, {"ClipNext", HudButton::ClipNext},
-        {"StepBack", HudButton::StepBack}, {"StepFwd", HudButton::StepFwd}, {"Undo", HudButton::Undo}, {"MarkerPrev", HudButton::MarkerPrev}, {"MarkerNext", HudButton::MarkerNext}, {"MarkerAdd", HudButton::MarkerAdd}, {"Still", HudButton::Still},
+        {"StepBack", HudButton::StepBack}, {"StepFwd", HudButton::StepFwd}, {"Undo", HudButton::Undo}, {"MarkerPrev", HudButton::MarkerPrev}, {"MarkerNext", HudButton::MarkerNext}, {"MarkerAdd", HudButton::MarkerAdd}, {"NotePreset", HudButton::NotePreset}, {"Still", HudButton::Still},
         {"Refresh", HudButton::Refresh}, {"GroupPrev", HudButton::GroupPrev}, {"GroupNext", HudButton::GroupNext},
         {"PageUp", HudButton::PageUp}, {"PageDown", HudButton::PageDown}, {"Toggle", HudButton::Toggle},
         {"NudgeDown", HudButton::NudgeDown}, {"NudgeUp", HudButton::NudgeUp}, {"Key", HudButton::Key},

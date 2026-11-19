@@ -200,7 +200,12 @@ Colour EditModel::clipColour(const std::string& n, bool fusion) {
                               {"Teal", 0.25f, 0.68f, 0.68f},   {"Navy", 0.25f, 0.35f, 0.65f},    {"Blue", 0.32f, 0.55f, 0.90f},
                               {"Purple", 0.55f, 0.38f, 0.80f}, {"Violet", 0.70f, 0.45f, 0.85f},  {"Pink", 0.92f, 0.45f, 0.70f},
                               {"Tan", 0.75f, 0.62f, 0.45f},    {"Beige", 0.80f, 0.75f, 0.62f},   {"Brown", 0.55f, 0.40f, 0.28f},
-                              {"Chocolate", 0.42f, 0.28f, 0.20f}};
+                              {"Chocolate", 0.42f, 0.28f, 0.20f},
+                              // Resolve's marker colours (the review-note presets use these)
+                              {"Red", 0.90f, 0.30f, 0.28f},    {"Cyan", 0.30f, 0.78f, 0.85f},    {"Fuchsia", 0.85f, 0.35f, 0.75f},
+                              {"Rose", 0.92f, 0.55f, 0.62f},   {"Lavender", 0.70f, 0.62f, 0.90f}, {"Sky", 0.45f, 0.70f, 0.95f},
+                              {"Mint", 0.45f, 0.85f, 0.65f},   {"Lemon", 0.95f, 0.90f, 0.40f},   {"Sand", 0.85f, 0.75f, 0.55f},
+                              {"Cocoa", 0.50f, 0.35f, 0.25f},  {"Cream", 0.95f, 0.92f, 0.82f}};
     for (auto& t : table)
         if (n == t.name) return Colour{t.r, t.g, t.b, 0.85f};
     return fusion ? Colour{0.45f, 0.55f, 0.70f, 0.85f} : Colour{0.40f, 0.44f, 0.50f, 0.85f};

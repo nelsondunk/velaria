@@ -150,7 +150,8 @@ enum class HudButton {
     // deck
     ClipPrev, ClipNext, StepBack, StepFwd, Scrub, Zoom,
     MarkerPrev, MarkerNext,     // seek to the previous / next marker
-    MarkerAdd,                  // arg 0: drop a review note at the playhead (with where you are looking); arg 1: remove the one under it
+    MarkerAdd,                  // arg 0: open the note presets; arg 1: remove the marker under the playhead; arg 2: cancel the presets
+    NotePreset,                 // arg = index into kNotePresets: drop that marker at the playhead
     Still,                      // a gallery still of the current frame (frame grab from the headset)
     // look panel
     Tab,            // arg = tab index (0 = View)
@@ -231,6 +232,7 @@ struct UiState {
     HudInfo info;
     std::shared_ptr<const EditModel> edit;
     int lookTab = 0;                       // 0 = View (settings), then the macro's sections
+    bool notePick = false;                 // Timeline panel: Drop note was tapped, the row shows the note presets
     HudButton hover = HudButton::None, pressed = HudButton::None;
     int hoverArg = 0, pressedArg = 0;
     int hoverPanel = -1, pressedPanel = -1;
@@ -240,6 +242,14 @@ struct UiState {
 };
 
 constexpr int kRolledH = 64;   // texture rows a rolled-up panel shows
+
+// Review-note presets (Nelson, 18 Nov): a memory jog per category, one Resolve marker colour each, so a pass can
+// sweep the timeline by type. Names are what the marker is called in Resolve.
+struct NotePreset { const char* name; const char* colour; };
+constexpr NotePreset kNotePresets[] = {
+    {"Editing", "Yellow"}, {"Sound", "Purple"}, {"Colour", "Rose"}, {"Graphics", "Cyan"}, {"Immersive", "Red"}, {"Love this", "Green"},
+};
+constexpr int kNotePresetCount = 6;
 
 void drawStrip(Canvas& c, const HudInfo& info);
 void drawCursor(Canvas& c);

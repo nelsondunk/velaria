@@ -117,6 +117,11 @@ int main(int argc, char** argv) {
     s.lookTab = 0;
     dump(PanelId::Look, "view");
     dump(PanelId::Deck, "timeline");
+    // the note presets open, and a marker under the playhead
+    s.notePick = true; dump(PanelId::Deck, "notes"); s.notePick = false;
+    { EditMarker mk; mk.frame = m.frame; mk.name = "Immersive"; mk.colour = "Red"; m.markers.push_back(mk); }
+    dump(PanelId::Deck, "marker");
+    m.markers.pop_back();
     dump(PanelId::Scopes, "waveform");
     // patches layer, locked patch picked
     m.layer = 1; m.group = 3;

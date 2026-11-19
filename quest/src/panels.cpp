@@ -975,7 +975,8 @@ std::vector<ButtonRect> drawDeck(Canvas& c, const UiState& s) {
     for (auto& mk : m->markers) {
         if (mk.frame < va || mk.frame > vb) continue;
         float x = fx(mk.frame);
-        c.fillTriangle(x - 6, laneTop - 8, x + 6, laneTop - 8, x, laneTop + 2, Colour{1, 1, 1, 0.8f});
+        Colour mc = EditModel::clipColour(mk.colour, false); mc.a = 0.95f;   // the note's colour, so a pass reads by type
+        c.fillTriangle(x - 6, laneTop - 8, x + 6, laneTop - 8, x, laneTop + 2, mc);
     }
     if (m->frame >= 0 && m->frame >= va && m->frame <= vb) {
         float x = fx(m->frame);
@@ -1002,7 +1003,23 @@ std::vector<ButtonRect> drawDeck(Canvas& c, const UiState& s) {
         c.text(sp.w - pad - Canvas::measure(tln, S20), py, tln, S20, kDim);
     }
     float my = py + 16, mh = 48;
-    if (my + mh + 8 <= sp.h) {
+    if (my + mh + 8 <= sp.h && s.notePick) {
+        // the note presets: one coloured dot and a word each, and a way back; a tap drops the marker and closes the row
+        float px = pad;
+        c.text(px, my + 32, "Note:", S20, kDim);
+        px += Canvas::measure("Note:", S20) + 16;
+        for (int i = 0; i < kNotePresetCount; i++) {
+            std::string lbl = kNotePresets[i].name;
+            float w = Chrome::chipWidth(lbl, -1, "") + 22;   // room for the dot
+            ch.chip3(HudButton::NotePreset, i, px, my, w, mh, ChipState::Rest, "   " + lbl);
+            Colour dot = EditModel::clipColour(kNotePresets[i].colour, false);
+            dot.a = 1;
+            c.fillRoundRect(px + 16, my + mh / 2 - 7, 14, 14, 7, dot);
+            px += w + 10;
+        }
+        float cw = Chrome::chipWidth("Cancel", -1, "");
+        ch.chip3(HudButton::MarkerAdd, 2, sp.w - pad - cw, my, cw, mh, ChipState::Flat, "Cancel");
+    } else if (my + mh + 8 <= sp.h) {
         float mx = sp.w - pad;
         // same shape as the Clip transport above: word + chevron, so the two rows read as one family
         ChipState mk = m->markers.empty() ? ChipState::Off : ChipState::Rest;
@@ -1011,21 +1028,24 @@ std::vector<ButtonRect> drawDeck(Canvas& c, const UiState& s) {
         float w = Chrome::chipWidth(lbl, -1, "");
         mx -= 10 + w;  ch.chip3(HudButton::MarkerAdd, here ? 1 : 0, mx, my, w, mh, here ? ChipState::On : ChipState::Rest, lbl);
         mx -= 10 + 150; ch.chip3(HudButton::MarkerPrev, 0, mx, my, 150, mh, mk, "Marker", (int)Icon::Previous);
-        // a frame grab: Resolve's gallery still of this frame, for client sends
-        float stw = Chrome::chipWidth("Still", -1, "");
-        mx -= 24 + stw; ch.chip3(HudButton::Still, 0, mx, my, stw, mh, ChipState::Rest, "Still");
-        // what the row is about: the marker under the playhead (name, first line of its note), else a count
+        // a frame grab to a file beside the clip's media (the bridge says where)
+        float stw = Chrome::chipWidth("Grab still", -1, "");
+        mx -= 24 + stw; ch.chip3(HudButton::Still, 0, mx, my, stw, mh, ChipState::Rest, "Grab still");
+        // what the row is about: the marker under the playhead (its name, coloured), else a count
         std::string line;
+        Colour ink = kDim;
         if (here) {
-            line = here->name;
+            line = here->name.empty() ? "Marker" : here->name;
             std::string first = here->note.substr(0, here->note.find('\n'));
             if (!first.empty()) line += "  \xC2\xB7  " + first;
-        } else if (!m->markers.empty()) {
-            line = std::to_string(m->markers.size()) + (m->markers.size() == 1 ? " marker" : " markers");
+            ink = kText;
+            Colour dot = EditModel::clipColour(here->colour, false); dot.a = 1;
+            c.fillRoundRect(pad, my + mh / 2 - 7, 14, 14, 7, dot);
+            c.text(pad + 24, my + 32, fitText(line, S20, mx - 48 - pad), S20, ink);
         } else {
-            line = "No markers yet";
+            line = m->markers.empty() ? "No markers yet" : std::to_string(m->markers.size()) + (m->markers.size() == 1 ? " marker" : " markers");
+            c.text(pad, my + 32, fitText(line, S20, mx - 24 - pad), S20, ink);
         }
-        c.text(pad, my + 32, fitText(line, S20, mx - 24 - pad), S20, here ? kText : kDim);
     }
     return rects;
 }
