@@ -1,0 +1,70 @@
+// Velaria Dome Output (DCTL) — equirectangular 360 to a fulldome master in place, for the Color page or the
+// ResolveFX DCTL plug-in in Fusion. Same geometry as macros/fuses/Velaria_DomeOutput.fuse: angular (equidistant)
+// fisheye, IMERSA orientation (zenith at the frame centre, bottom of frame = front of the dome, left = dome left).
+// Checked against ffmpeg v360 (equirect -> fisheye, h_fov = v_fov = 180, pitch = 90) on the Velaria 360 chart.
+//
+// The output is the same size as the input, so use it on a SQUARE timeline. What the clip looks like in that square
+// decides "Source": a stereo over/under 360 fills the square (left eye top); a mono 2:1 equirect is letterboxed in
+// the middle half. "Auto" picks over/under for a square frame and the inscribed circle for a 2:1 frame.
+
+DEFINE_UI_PARAMS(tilt, Theatre Tilt, DCTLUI_SLIDER_FLOAT, 0.0, 0.0, 30.0, 0.5)
+DEFINE_UI_PARAMS(horizon, Horizon, DCTLUI_SLIDER_FLOAT, 0.0, -45.0, 90.0, 0.5)
+DEFINE_UI_PARAMS(pan, Pan, DCTLUI_SLIDER_FLOAT, 0.0, -180.0, 180.0, 1.0)
+DEFINE_UI_PARAMS(fov, Master FOV, DCTLUI_COMBO_BOX, 0, {FOV180, FOV200, FOV220}, {180, 200, 220})
+DEFINE_UI_PARAMS(source, Source, DCTLUI_COMBO_BOX, 0, {SRC_AUTO, SRC_MONO, SRC_OU, SRC_LETTERBOX}, {Auto, Mono 2:1 frame, Over-Under (left eye top), Letterboxed mono in a square})
+
+__DEVICE__ float3 sampleEq(__TEXTURE__ texR, __TEXTURE__ texG, __TEXTURE__ texB, float fx, float fy, int x0, int y0, int x1, int y1)
+{
+    // bilinear inside the band [x0..x1] x [y0..y1] (inclusive), fx / fy in pixel units
+    fx = _clampf(fx, (float)x0, (float)x1);
+    fy = _clampf(fy, (float)y0, (float)y1);
+    int ix = (int)_floorf(fx), iy = (int)_floorf(fy);
+    int jx = ix + 1 > x1 ? x1 : ix + 1, jy = iy + 1 > y1 ? y1 : iy + 1;
+    float tx = fx - ix, ty = fy - iy;
+    float3 c00 = make_float3(_tex2D(texR, ix, iy), _tex2D(texG, ix, iy), _tex2D(texB, ix, iy));
+    float3 c10 = make_float3(_tex2D(texR, jx, iy), _tex2D(texG, jx, iy), _tex2D(texB, jx, iy));
+    float3 c01 = make_float3(_tex2D(texR, ix, jy), _tex2D(texG, ix, jy), _tex2D(texB, ix, jy));
+    float3 c11 = make_float3(_tex2D(texR, jx, jy), _tex2D(texG, jx, jy), _tex2D(texB, jx, jy));
+    float3 a = c00 * (1.0f - tx) + c10 * tx;
+    float3 b = c01 * (1.0f - tx) + c11 * tx;
+    return a * (1.0f - ty) + b * ty;
+}
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, __TEXTURE__ p_TexR, __TEXTURE__ p_TexG, __TEXTURE__ p_TexB)
+{
+    // the source band: where the equirect (one eye) sits in this frame, in pixels, and its size
+    int src = source;
+    if (src == SRC_AUTO) src = (p_Width == p_Height) ? SRC_OU : SRC_MONO;
+    int bx0 = 0, by0 = 0, bw = p_Width, bh = p_Height;          // SRC_MONO: the whole frame is the equirect
+    if (src == SRC_OU) { bh = p_Height / 2; }                       // top half (rows 0.. in DCTL's top-down frame)
+    else if (src == SRC_LETTERBOX) { bh = p_Height / 2; by0 = p_Height / 4; }
+
+    // the dome circle: inscribed in the frame's height, centred
+    float size = (float)p_Height;
+    float cx = (float)p_Width * 0.5f, cy = (float)p_Height * 0.5f;
+    float nx = ((float)p_X + 0.5f - cx) / size * 2.0f;
+    float ny = -(((float)p_Y + 0.5f - cy) / size * 2.0f);       // DCTL rows run top-down; ny = -1 is the bottom = front
+    float r = _sqrtf(nx * nx + ny * ny);
+    if (r > 1.0f) return make_float3(0.0f, 0.0f, 0.0f);
+
+    float halfFov = 0.5f * (fov == FOV220 ? 220.0f : (fov == FOV200 ? 200.0f : 180.0f)) * 0.017453292f;
+    float phi = _atan2f(ny, nx);
+    float theta = r * halfFov;                                    // angle from the zenith (equidistant)
+    float st = _sinf(theta);
+    float dr = st * _cosf(phi);                                   // dome right
+    float df = -st * _sinf(phi);                                  // dome forward
+    float du = _cosf(theta);                                      // dome up
+    float a = -(tilt + horizon) * 0.017453292f;                   // dome frame -> world: pitch about the right axis
+    float ca = _cosf(a), sa = _sinf(a);
+    float f2 = df * ca - du * sa;
+    float u2 = df * sa + du * ca;
+    float lon = _atan2f(dr, f2) - pan * 0.017453292f;
+    float lat = _asinf(_clampf(u2, -1.0f, 1.0f));
+    float u = 0.5f + lon / 6.2831853f;
+    u = u - _floorf(u);
+    float v = 0.5f - lat / 3.14159265f;                           // top-down: lat +90 is the top row
+
+    float fx = (float)bx0 + u * (float)bw - 0.5f;
+    float fy = (float)by0 + v * (float)bh - 0.5f;
+    return sampleEq(p_TexR, p_TexG, p_TexB, fx, fy, bx0, by0, bx0 + bw - 1, by0 + bh - 1);
+}

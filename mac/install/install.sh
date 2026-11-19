@@ -375,5 +375,22 @@ if [ -d "$HERE/macros" ] && [ -d "$(dirname "$FUSION")" ]; then
   if [ "$moved" -gt 0 ]; then echo "Moved the 1.0.8 Kalyx macros to $BK (timelines keep working; run Skylight_UpgradeMacros on each comp to switch them over)."; fi
   echo "Fusion library: Velaria macros installed (Effects > Velaria on the Edit page, Macros on the Fusion page)."
 fi
+
+# 6b. Dome add-on (only present in a Dome package): the Dome Output Fuse (Fusion page, category Velaria) and the same
+#     transform as a DCTL for the Color page. Resolve reads Fuses at launch; DCTLs live in the master LUT folder,
+#     which is the one Resolve scans (the per-user LUT folder is not, as found on 18 Nov 2026).
+if [ -d "$HERE/macros/fuses" ] && ls "$HERE"/macros/fuses/*.fuse >/dev/null 2>&1; then
+  sudo -u "$USER_NAME" mkdir -p "$FUSION/Fuses/Velaria"
+  for f in "$HERE"/macros/fuses/*.fuse; do
+    sudo -u "$USER_NAME" cp "$f" "$FUSION/Fuses/Velaria/" && xattr -d com.apple.quarantine "$FUSION/Fuses/Velaria/$(basename "$f")" 2>/dev/null || true
+  done
+  echo "Dome: Velaria Dome Output installed (Fusion page > Effects > Tools > Velaria)."
+fi
+LUTDIR="/Library/Application Support/Blackmagic Design/DaVinci Resolve/LUT"
+if [ -d "$HERE/macros/dctl" ] && [ -d "$LUTDIR" ] && ls "$HERE"/macros/dctl/*.dctl >/dev/null 2>&1; then
+  mkdir -p "$LUTDIR/Velaria"
+  for f in "$HERE"/macros/dctl/*.dctl; do cp "$f" "$LUTDIR/Velaria/" && chmod 644 "$LUTDIR/Velaria/$(basename "$f")"; done
+  echo "Dome: Velaria Dome Output DCTL installed (Color page > LUTs > Velaria; right-click the LUT list > Update Lists if Resolve is open)."
+fi
 echo
 echo "Done. Next: restart DaVinci Resolve, then Preferences > Video and Audio I/O > select 'Velaria (Quest)'."

@@ -1,0 +1,162 @@
+--[[
+Velaria Dome Output — equirectangular 360 (mono, or one eye of a stereo plate) to a fulldome master
+(angular / equidistant fisheye, IMERSA orientation: zenith at the frame centre, bottom of frame = front of
+the dome, left = dome left). GPU Fuse (DCTL kernel), DaVinci Resolve Studio 18+ / Fusion 18+.
+
+The geometry is the one checked against ffmpeg's v360 filter (equirect -> fisheye, h_fov=v_fov=180,
+pitch=90): on the Velaria 360 test chart the two agree inside the circle to a mean of 0.005 (8-bit scale);
+see macros/fuses/dome_check.py. Fusion images are y-up, so "bottom of frame" is y = 0 here.
+
+Controls
+  Theatre Tilt   front edge of the dome below level, 0..30 degrees (venue). 0 = level planetarium.
+  Horizon        raises the source horizon above the front springline, degrees (creative). Adds to Tilt.
+  Pan            which direction of the 360 faces the front of the dome.
+  Master FOV     180 (standard) / 200 / 220: a wider master shows below the springline.
+  Source eyes    Mono / Over-Under (left eye top) / Side-by-Side (left eye left): stereo plates use the left eye.
+  Size           Timeline (the comp's frame height, square) or a fixed square master size.
+  Outside circle Black (alpha 1) for delivery, or transparent so a later Merge can see through.
+]]
+
+FuRegisterClass("VelariaDomeOutput", CT_Tool, {
+    REGS_Name = "Velaria Dome Output",
+    REGS_Category = "Velaria",
+    REGS_OpIconString = "VDO",
+    REGS_OpDescription = "Equirectangular 360 to a fulldome master (angular fisheye, zenith centred, front at the bottom)",
+    REGS_Company = "Hammer & Anvil",
+    REGS_URL = "https://hammerandanvil.ca",
+    REG_NoMotionBlurCtrls = true,
+    REG_NoObjMatCtrls = true,
+    REG_NoBlendCtrls = true,
+    REG_OpNoMask = true,
+    REG_SupportsDoD = false,
+    REG_Fuse_NoEdit = true,
+    REG_Fuse_NoReload = true,
+    REG_TimeVariant = false,
+    REG_Version = 100,
+})
+
+DomeParams = [[
+    float cosA; float sinA;     // tilt + horizon, as one pitch about the right axis
+    float pan;                  // radians
+    float halfFov;              // radians, master FOV / 2
+    int dstSize;
+    int eyes;                   // 0 mono, 1 over-under (left top), 2 side-by-side (left left)
+    int transparent;
+    int compOrder;
+]]
+
+DomeKernel = [[
+__KERNEL__ void DomeKernel(__CONSTANTREF__ DomeParams *params, __TEXTURE2D__ src, __TEXTURE2D_WRITE__ dst)
+{
+    DEFINE_KERNEL_ITERATORS_XY(x, y);
+    if (x < params->dstSize && y < params->dstSize) {
+        float size = (float)params->dstSize;
+        float nx = ((float)x + 0.5f) / size * 2.0f - 1.0f;
+        float ny = ((float)y + 0.5f) / size * 2.0f - 1.0f;      // y is up: ny = -1 is the bottom = front
+        float r = _sqrtf(nx * nx + ny * ny);
+        float4 col = to_float4(0.0f, 0.0f, 0.0f, params->transparent ? 0.0f : 1.0f);
+        if (r <= 1.0f) {
+            float phi = _atan2f(ny, nx);
+            float theta = r * params->halfFov;                   // angle from the dome's zenith (equidistant)
+            float st = _sinf(theta);
+            float dr = st * _cosf(phi);                            // dome right
+            float df = -st * _sinf(phi);                           // dome forward (bottom of frame)
+            float du = _cosf(theta);                               // dome up
+            // dome frame -> world: pitch about the right axis by -(tilt + horizon)
+            float f2 = df * params->cosA - du * params->sinA;
+            float u2 = df * params->sinA + du * params->cosA;
+            float lon = _atan2f(dr, f2) - params->pan;
+            float lat = _asinf(_clampf(u2, -1.0f, 1.0f));
+            float u = 0.5f + lon / (2.0f * 3.14159265f);
+            u = u - _floorf(u);
+            float v = 0.5f + lat / 3.14159265f;
+            if (params->eyes == 1) v = 0.5f + v * 0.5f;          // over-under, left eye on top
+            else if (params->eyes == 2) u = u * 0.5f;            // side-by-side, left eye on the left
+            col = _tex2DVecN(src, u, v, params->compOrder);
+            col.w = 1.0f;
+        }
+        _tex2DVec4Write(dst, x, y, col);
+    }
+}
+]]
+
+function Create()
+    InTilt = self:AddInput("Theatre Tilt", "TheatreTilt", {
+        LINKID_DataType = "Number", INPID_InputControl = "SliderControl",
+        INP_MinScale = 0, INP_MaxScale = 30, INP_MinAllowed = 0, INP_MaxAllowed = 60, INP_Default = 0,
+        INPS_ToolTip = "How far the dome's front edge sits below level. 0 for a level planetarium; tilted theatres are usually 10 to 30.",
+    })
+    InHorizon = self:AddInput("Horizon", "Horizon", {
+        LINKID_DataType = "Number", INPID_InputControl = "SliderControl",
+        INP_MinScale = -45, INP_MaxScale = 90, INP_MinAllowed = -90, INP_MaxAllowed = 90, INP_Default = 0,
+        INPS_ToolTip = "Raises the source horizon above the front springline. 45 puts it near the sweet spot of a level dome.",
+    })
+    InPan = self:AddInput("Pan", "Pan", {
+        LINKID_DataType = "Number", INPID_InputControl = "ScrewControl",
+        INP_MinScale = -180, INP_MaxScale = 180, INP_Default = 0,
+        INPS_ToolTip = "Which direction of the 360 faces the front of the dome.",
+    })
+    InFov = self:AddInput("Master FOV", "MasterFOV", {
+        LINKID_DataType = "FuID", INPID_InputControl = "ComboControl",
+        { CCS_AddString = "180", }, { CCS_AddString = "200", }, { CCS_AddString = "220", },
+        INP_Default = "180", INP_DoNotifyChanged = true,
+    })
+    InEyes = self:AddInput("Source Eyes", "SourceEyes", {
+        LINKID_DataType = "FuID", INPID_InputControl = "ComboControl",
+        { CCS_AddString = "Mono", }, { CCS_AddString = "Over-Under (left eye top)", }, { CCS_AddString = "Side-by-Side (left eye left)", },
+        INP_Default = "Mono",
+    })
+    InSize = self:AddInput("Size", "Size", {
+        LINKID_DataType = "FuID", INPID_InputControl = "ComboControl",
+        { CCS_AddString = "Timeline", }, { CCS_AddString = "1024", }, { CCS_AddString = "2048", },
+        { CCS_AddString = "3072", }, { CCS_AddString = "4096", }, { CCS_AddString = "8192", },
+        INP_Default = "Timeline",
+        INPS_ToolTip = "Timeline: a square the height of the comp's frame format. Otherwise a fixed master size.",
+    })
+    InTransparent = self:AddInput("Transparent outside circle", "Transparent", {
+        LINKID_DataType = "Number", INPID_InputControl = "CheckboxControl", INP_Integer = true, INP_Default = 0,
+    })
+
+    InImage = self:AddInput("Input", "Input", { LINKID_DataType = "Image", LINK_Main = 1 })
+    OutImage = self:AddOutput("Output", "Output", { LINKID_DataType = "Image", LINK_Main = 1 })
+end
+
+local function sizeOf(sel, comp)
+    if sel == "Timeline" then
+        local h = tonumber(comp:GetPrefs("Comp.FrameFormat.Height")) or 0
+        if h <= 0 then h = 4096 end
+        return math.floor(h + 0.5)
+    end
+    return tonumber(sel) or 4096
+end
+
+function Process(req)
+    local src = InImage:GetValue(req)
+    local size = sizeOf(InSize:GetValue(req).Value, self.Comp)
+    if req:IsQuick() and src then size = math.max(64, math.floor(size * src.ProxyScale + 0.5)) end
+    local dst = Image({ IMG_Like = src, IMG_Width = size, IMG_Height = size, IMG_XScale = 1, IMG_YScale = 1,
+                        IMG_NoData = req:IsPreCalc() })
+    if src and not req:IsPreCalc() then
+        local node = DVIPComputeNode(req, "DomeKernel", DomeKernel, "DomeParams", DomeParams)
+        local params = node:GetParamBlock(DomeParams)
+        local a = -math.rad(InTilt:GetValue(req).Value + InHorizon:GetValue(req).Value)
+        params.cosA = math.cos(a); params.sinA = math.sin(a)
+        params.pan = math.rad(InPan:GetValue(req).Value)
+        params.halfFov = math.rad((tonumber(InFov:GetValue(req).Value) or 180) / 2)
+        params.dstSize = size
+        local eyes = InEyes:GetValue(req).Value
+        params.eyes = (eyes:sub(1, 4) == "Over") and 1 or ((eyes:sub(1, 4) == "Side") and 2 or 0)
+        params.transparent = InTransparent:GetValue(req).Value > 0.5 and 1 or 0
+        params.compOrder = 15
+        node:SetParamBlock(params)
+        node:AddSampler("RowSampler", TEX_FILTER_MODE_LINEAR, TEX_ADDRESS_MODE_CLAMP, TEX_NORMALIZED_COORDS_TRUE)
+        node:AddInput("src", src)
+        node:AddOutput("dst", dst)
+        local ok = node:RunSession(req)
+        if not ok then
+            dst = nil
+            dump(node:GetErrorLog())
+        end
+    end
+    OutImage:Set(req, dst)
+end

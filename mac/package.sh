@@ -29,6 +29,11 @@ mkdir -p "$OUT/macros"
 # the 3D Titles / 3D Cards (Vine, Salmon, Hay Bale) are internal: their model kits are client assets (Nelson, 2 Nov)
 for f in ../macros/Velaria*.setting; do case "$f" in *"3D Title"*|*"3D Card"*) ;; *) cp "$f" "$OUT/macros/";; esac; done
 cp ../macros/Skylight_UpgradeMacros.lua "$OUT/macros/"
+# Dome add-on (VELARIA_DOME=1): the Dome Output Fuse and DCTL. Not in the Core package: Dome is the upsell (Nelson, 2 Nov).
+if [ "${VELARIA_DOME:-0}" = 1 ]; then
+  mkdir -p "$OUT/macros/fuses" "$OUT/macros/dctl"
+  cp ../macros/fuses/*.fuse "$OUT/macros/fuses/" && cp ../macros/dctl/*.dctl "$OUT/macros/dctl/"
+fi
 # adb for customers without the Android SDK: Google's platform-tools (universal), trimmed to adb + licence + revision.
 # Refresh with: cd ~/VRLink/vendor && curl -sSLo platform-tools-darwin.zip https://dl.google.com/android/repository/platform-tools-latest-darwin.zip && unzip -oq platform-tools-darwin.zip
 if [ -x ~/VRLink/vendor/platform-tools/adb ]; then
