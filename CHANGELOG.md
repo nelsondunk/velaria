@@ -20,6 +20,18 @@ Later the same evening, with Nelson present (headset +63 → +66, all UNTESTED o
 - **Sharper UI:** every UI quad asks the compositor for supersampling and sharpening (`XR_FB_composition_layer_settings`), Meta's fix for text and thin rules shimmering.
 - Not built, on purpose: a red/green "rendered" stripe. The API only says whether caching is switched on for a clip, not whether it is complete.
 
+Thu 19 Nov morning, after Nelson's first pass in the headset (+67, +68; driver rebuilt, awaiting install):
+
+- **Sound after a pause** (driver): the first play worked and every later one was refused as "buffer full"; the audio bookkeeping now resets on stop and on a fresh preroll. Needs the rebuilt framework installed (`sudo ~/VRLink/xfer/install-branch-driver.sh`).
+- **Chips:** edge highlights and inset shadows follow the rounded corners; chips inside a well (tabs, the layer control) cast no shadow. Both were what read as "a line hanging off the rounded square" and "a square box behind the tabs".
+- **Review notes:** Drop note opens six presets, each its own marker colour: Editing, Sound, Colour, Graphics, Immersive, Love this. The marker's name is the word; the gaze numbers are gone. Marker triangles on the Timeline lanes take their colour.
+- **Grab still** writes `<the clip's media folder>/Velaria Stills/<timeline> <timecode>.jpg` at the timeline's output size and stays on the current page (the gallery route flipped to Color).
+- **Panels: follow me** now glides with you when you turn, like the strip (they used to wait for the next look-down).
+- **Setup warnings** (1080 monitoring and the like) also appear as a toast, not only on the strip's status line.
+- "Layout" is labelled **Stereo layout**.
+- **Dome:** the seat sits below the rim (**Rim +1.8 m**, a chip in place of Master FOV; 0 / 1.2 / 1.8 / 2.5 m), and a **rendered planetarium interior** (seats, cove light, aisle lights, rear console) shows behind the dome picture, one stereo render per seat, so the seat presets read as places in a room. Setting `domeTheatre 0` turns it off. The Dome Output DCTL and Fuse feather the circle's edge by a pixel.
+- **Sync test clip:** `Sync test/Velaria sync flash beep 30fps.mov` on Baxter and timeline **15 Sync flash beep** in the test project: a one-frame white flash and a 1 kHz beep start on every :00 frame, with a frame counter and a sweeping second hand.
+
 ## Unreleased — 1.1 work in progress (Dome preview)
 
 **UNTESTED on a headset.** Built on Linux only (13 Nov 2026); nothing below has been seen in a Quest.

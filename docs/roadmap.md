@@ -91,6 +91,9 @@ Common need: an in-scene "drawing" mode (ray → sphere → equirect UV) and a v
 - [ ] Text editing: voice dictation or a simple on-panel keyboard (low priority).
 - [ ] Square-timeline monitoring: investigate advertising a custom square DeckLink mode so Output scaling no longer needs changing by hand (risk: Resolve may ignore unknown modes).
 
+## Square monitoring mode (Nelson, 18 Nov: "I don't love that")
+- [ ] Today a square 360 timeline needs Timeline Settings > Output scaling > 3840 x 3840 so it fits the 7680 x 4320 monitor raster, and a forgotten setting ships a wrong-size export. The fix is ours: the virtual device can offer Resolve a square monitoring mode (e.g. 4320 x 4320 or 5760 x 5760) so the headset path never touches output scaling. Needs: a new DisplayMode entry in the driver, the encoder's size caps checked, the preflight warnings updated, a docs pass. Est. 1–2 days plus a Mac test. Moved up on 19 Nov.
+
 ## Formats beyond 360 (Nelson: tools should also serve 180 and dome)
 - [x] Velaria View: fisheye-180 input (v33): dual circular fisheye (SBS or mono) unwrapped on the headset; verified on a synthetic graticule (`scratchpad/fisheye`, test chart `dualfisheye_3840x1920.uyvy` for the NDI test sender). Selected by hand (Projection → Fisheye 180): a 2:1 dual-fisheye frame is indistinguishable from SBS equirect by aspect alone.
 - **Format decision (Nelson, 30 Oct): no Apple Immersive work.** "If someone is designing for Vision Pro they probably have one and don't need our tool." Targets are Canon dual fisheye (RF 5.2 mm, 190°; RF-S 3.9 mm, 144°) and generic 180/200/220° fisheye (dome renders). Note: the Blackmagic URSA Cine Immersive *is* the Apple Immersive camera (per-unit lens calibration, Resolve immersive timeline built for Vision Pro); its common export, VR180 equirect SBS, already works; whether a Resolve immersive timeline puts anything useful on the DeckLink output is an untested question, ranked below Canon.
