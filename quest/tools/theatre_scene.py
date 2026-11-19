@@ -68,13 +68,19 @@ class Venue:
         while True:
             y = y0 + i * ROW_PITCH
             z = i * self.rise
-            if y > 0.86 * R:
+            if y > 0.86 * R or not self.inside_footprint(0.0, y, 2.0):
                 break
             if self.dome_height_above(0.0, y) - (z + EYE) < HEAD_CLEAR:
                 break
             rows.append((y, z))
             i += 1
         self.rows = rows
+
+    def inside_footprint(self, x, y, margin=0.0):
+        """Inside the rim's plan (an ellipse R x R cos t for a tilted dome), `margin` metres in from the wall."""
+        a = self.R - margin
+        b = a * math.cos(self.t)
+        return (x / a) ** 2 + (y / b) ** 2 <= 1.0
 
     # ---- dome geometry: a hemisphere of radius R about C = (0, 0, hC), rotated by t about X (front edge down)
     def to_local(self, p):
@@ -121,7 +127,7 @@ class Venue:
         for j in range(-k, k + 1):
             a = j * step
             x, y = rho * math.sin(a), self.arc_y + rho * math.cos(a)
-            if math.hypot(x, y) > self.R - WALL_CLEAR:
+            if not self.inside_footprint(x, y, WALL_CLEAR):
                 continue
             out.append((x, y, a))
         return out
@@ -176,13 +182,18 @@ def write_tables(path=None):
 
 # ------------------------------------------------------------------------------------------------ Blender
 
-def mat(name, rgb, rough=0.9, emit=0.0, emit_rgb=None, metal=0.0):
+def mat(name, rgb, rough=0.9, emit=0.0, emit_rgb=None, metal=0.0, specular=None):
     m = bpy.data.materials.new(name)
     m.use_nodes = True
     bsdf = m.node_tree.nodes["Principled BSDF"]
     bsdf.inputs["Base Color"].default_value = (*rgb, 1)
     bsdf.inputs["Roughness"].default_value = rough
     bsdf.inputs["Metallic"].default_value = metal
+    if specular is not None:
+        for key in ("Specular IOR Level", "Specular"):
+            if key in bsdf.inputs:
+                bsdf.inputs[key].default_value = specular
+                break
     if emit > 0:
         bsdf.inputs["Emission Color"].default_value = (*(emit_rgb or rgb), 1)
         bsdf.inputs["Emission Strength"].default_value = emit
@@ -293,7 +304,7 @@ def build(v):
     m_tier = mat("Tier", (0.055, 0.050, 0.060), 0.95)
     m_nose = mat("StepNose", (0.22, 0.20, 0.18), 0.6)
     m_wall = mat("Wall", (0.05, 0.047, 0.047), 0.9)
-    m_dome = mat("Dome", (0.0, 0.0, 0.0), 1.0)   # the picture goes here: black, reflects nothing
+    m_dome = mat("Dome", (0.0, 0.0, 0.0), 1.0, specular=0.0)   # the picture goes here: black, reflects nothing
     m_seat = mat("SeatFabric", (0.07, 0.09, 0.16), 0.85)
     m_frame = mat("SeatFrame", (0.015, 0.015, 0.016), 0.5, metal=0.4)
     m_arm = mat("Armrest", (0.09, 0.07, 0.05), 0.55)
@@ -320,7 +331,7 @@ def build(v):
     zr = v.rows[-1][1] if v.rows else 0.0
     for side in (-1, 1):
         ang = math.radians(side * 38)
-        dx, dy = (R - 0.04) * math.sin(ang), (R - 0.04) * math.cos(ang)
+        dx, dy = (R - 0.04) * math.sin(ang), (R - 0.04) * math.cos(ang) * math.cos(t)
         box("Door", (dx, dy, zr + 1.05), (1.8, 0.06, 2.1), far, m_door, -ang)
         box("ExitSign", (dx * 0.99, dy * 0.99, zr + 2.3), (0.36, 0.04, 0.14), far, m_exit, -ang)
 
@@ -383,7 +394,7 @@ def build(v):
     block = Vector((0.0, (v.rows[0][0] + v.rows[-1][0]) / 2, v.rows[nrows // 2][1] + 1.0))
     bpy.ops.object.light_add(type='AREA', location=lpos)
     show = bpy.context.object
-    show.data.energy = 6.5 * R * R
+    show.data.energy = 9.0 * R * R
     show.data.size = 0.25 * R
     show.data.color = (0.60, 0.68, 0.85)
     show.rotation_euler = (block - lpos).to_track_quat('-Z', 'Y').to_euler()
@@ -481,11 +492,15 @@ def render_preview(v, outdir):
     sc.render.resolution_x, sc.render.resolution_y = 1600, 900
     sc.cycles.samples = 48
     R = v.R
-    mid = v.rows[len(v.rows) * 2 // 3]
+    mi = len(v.rows) * 2 // 3
+    mid = v.rows[mi]
     rear = v.rows[-1]
+    rho = v.rho(mi)
+    a_cam = math.radians(FAN_DEG) + (AISLE_W * 0.5 + 0.1) / rho     # on the left stairs (+X), mid row
+    aisle_pos = Vector((rho * math.sin(a_cam), v.arc_y + rho * math.cos(a_cam), mid[1] + 1.7))
     shots = {
-        "aisle": (Vector((0.55 * R, mid[0] + 0.3, mid[1] + 1.7)), Vector((-0.1 * R, -0.3 * R, v.hC * 0.6)), 16),
-        "rear": (Vector((0.0, rear[0] + 0.8, rear[1] + 1.7)), Vector((0.0, -0.5 * R, v.hC + 0.2 * R)), 13),
+        "aisle": (aisle_pos, Vector((-0.15 * R, -0.3 * R, v.hC * 0.5)), 16),
+        "rear": (Vector((0.0, rear[0] + 0.6, rear[1] + 1.7)), Vector((0.0, -0.5 * R, v.hC + 0.15 * R)), 13),
     }
     for name, (pos, aim, lens) in shots.items():
         bpy.ops.object.camera_add(location=pos)
