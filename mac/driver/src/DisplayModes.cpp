@@ -2,6 +2,15 @@
 
 namespace vrl {
 
+// Private display-mode IDs for rasters no DeckLink card has. Blackmagic's own IDs are four printable characters
+// ('Hp30', '4k30', '8k30'); ours are 'S4..' (3840 square) and 'S6..' (5760 square) followed by the rate, so they
+// read in the driver log and cannot collide with the SDK table. Whether Resolve lists a mode it has no name for
+// is what the 19 Nov experiment is about: if it does, square 360 timelines stop needing Output scaling by hand.
+constexpr BMDDisplayMode fcc(char a, char b, char c, char d) {
+    return (BMDDisplayMode)(((uint32_t)(uint8_t)a << 24) | ((uint32_t)(uint8_t)b << 16) | ((uint32_t)(uint8_t)c << 8) |
+                            (uint32_t)(uint8_t)d);
+}
+
 const std::vector<ModeInfo>& supportedModes() {
     // Rates offered for each raster. Resolve picks one in Project Settings > Video Monitoring.
     static const std::vector<ModeInfo> modes = {
@@ -54,6 +63,24 @@ const std::vector<ModeInfo>& supportedModes() {
         {bmdMode8kDCI50, "8K DCI 50", 8192, 4320, 1000, 50000},
         {bmdMode8kDCI5994, "8K DCI 59.94", 8192, 4320, 1001, 60000},
         {bmdMode8kDCI60, "8K DCI 60", 8192, 4320, 1000, 60000},
+        // Square (over/under 360 and domemaster) — Velaria's own modes, see fcc() above. 3840 square is the
+        // encoder's sweet spot; 5760 square is the common 360 timeline size and is scaled to 3840 for the stream.
+        {fcc('S', '4', '2', '3'), "3840 x 3840 p23.98", 3840, 3840, 1001, 24000},
+        {fcc('S', '4', '2', '4'), "3840 x 3840 p24", 3840, 3840, 1000, 24000},
+        {fcc('S', '4', '2', '5'), "3840 x 3840 p25", 3840, 3840, 1000, 25000},
+        {fcc('S', '4', '2', '9'), "3840 x 3840 p29.97", 3840, 3840, 1001, 30000},
+        {fcc('S', '4', '3', '0'), "3840 x 3840 p30", 3840, 3840, 1000, 30000},
+        {fcc('S', '4', '5', '0'), "3840 x 3840 p50", 3840, 3840, 1000, 50000},
+        {fcc('S', '4', '5', '9'), "3840 x 3840 p59.94", 3840, 3840, 1001, 60000},
+        {fcc('S', '4', '6', '0'), "3840 x 3840 p60", 3840, 3840, 1000, 60000},
+        {fcc('S', '6', '2', '3'), "5760 x 5760 p23.98", 5760, 5760, 1001, 24000},
+        {fcc('S', '6', '2', '4'), "5760 x 5760 p24", 5760, 5760, 1000, 24000},
+        {fcc('S', '6', '2', '5'), "5760 x 5760 p25", 5760, 5760, 1000, 25000},
+        {fcc('S', '6', '2', '9'), "5760 x 5760 p29.97", 5760, 5760, 1001, 30000},
+        {fcc('S', '6', '3', '0'), "5760 x 5760 p30", 5760, 5760, 1000, 30000},
+        {fcc('S', '6', '5', '0'), "5760 x 5760 p50", 5760, 5760, 1000, 50000},
+        {fcc('S', '6', '5', '9'), "5760 x 5760 p59.94", 5760, 5760, 1001, 60000},
+        {fcc('S', '6', '6', '0'), "5760 x 5760 p60", 5760, 5760, 1000, 60000},
     };
     return modes;
 }
