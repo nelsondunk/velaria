@@ -25,6 +25,7 @@
 #include <map>
 #include <sstream>
 #include <atomic>
+#include <functional>
 #include <set>
 #include <string>
 #include <thread>
@@ -234,6 +235,14 @@ struct App {
     XrCompositionLayerEquirect2KHR theatreLayer[2];
     bool extRefresh = false, extTimespec = false, extColorSpace = false, extPerf = false, extHands = false, extAim = false;
     bool extLayerSettings = false;   // XR_FB_composition_layer_settings: supersample + sharpen the UI quads (+65, no more jaggies)
+    bool extColorScale = false;      // XR_KHR_composition_layer_color_scale_bias: the dome fade (+70)
+    // Dome fade (+70, Nelson: "a nice fade to black between changes in viewpoint or theatre"): a seat, venue or tilt
+    // change fades the room and the picture to black together, applies while black, and fades up once the new room
+    // is uploaded (or known missing) and the picture is re-warped.
+    float domeFade = 1.0f;               // 0 black .. 1 shown
+    int64_t domeFadeNs = 0;
+    std::function<void()> domePending;   // the change to make at black
+    bool domeWaiting = false;            // black, waiting for the new room
     PFN_xrEnumerateDisplayRefreshRatesFB enumRates = nullptr;
     PFN_xrRequestDisplayRefreshRateFB requestRate = nullptr;
     PFN_xrConvertTimeToTimespecTimeKHR timeToTimespec = nullptr;
@@ -526,6 +535,7 @@ static bool initXr() {
     if ((g.extTimespec = has(XR_KHR_CONVERT_TIMESPEC_TIME_EXTENSION_NAME))) exts.push_back(XR_KHR_CONVERT_TIMESPEC_TIME_EXTENSION_NAME);
     if ((g.extColorSpace = has(XR_FB_COLOR_SPACE_EXTENSION_NAME))) exts.push_back(XR_FB_COLOR_SPACE_EXTENSION_NAME);
     if ((g.extLayerSettings = has(XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME))) exts.push_back(XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME);
+    if ((g.extColorScale = has(XR_KHR_COMPOSITION_LAYER_COLOR_SCALE_BIAS_EXTENSION_NAME))) exts.push_back(XR_KHR_COMPOSITION_LAYER_COLOR_SCALE_BIAS_EXTENSION_NAME);
     if ((g.extPerf = has(XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME))) exts.push_back(XR_EXT_PERFORMANCE_SETTINGS_EXTENSION_NAME);
     if ((g.extHands = has(XR_EXT_HAND_TRACKING_EXTENSION_NAME))) exts.push_back(XR_EXT_HAND_TRACKING_EXTENSION_NAME);
     if (g.extHands && (g.extAim = has(XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME))) exts.push_back(XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME);
@@ -728,6 +738,14 @@ static void setLayout(int v) {
     g.settings.layout = v;
     const char* lay[] = {"Mono", "Side by side", "Over/under"};
     showNotice(v < 0 ? "Layout: auto" : std::string("Layout: ") + lay[v % 3]);
+}
+// Seat / venue / tilt changes go through the fade when the dome is on screen; otherwise they apply at once.
+static void domeChange(std::function<void()> change) {
+    if (effectiveProjection() == Projection::Dome && g.video.hasContent) {
+        g.domePending = std::move(change);
+    } else {
+        change();
+    }
 }
 static void setProjection(int v) {
     g.settings.projection = v;
@@ -1076,24 +1094,28 @@ static void activate(HudButton b, int arg = 0) {
         case HudButton::DomeTilt:
         case HudButton::DomeTiltDown:
         case HudButton::DomeTiltUp: {
-            float t = b == HudButton::DomeTilt ? (float)arg : g.settings.domeTilt + (b == HudButton::DomeTiltUp ? 1 : -1);
-            g.settings.domeTilt = std::max(0.0f, std::min(30.0f, t));
+            float t = std::max(0.0f, std::min(30.0f, b == HudButton::DomeTilt ? (float)arg : g.settings.domeTilt + (b == HudButton::DomeTiltUp ? 1 : -1)));
+            if (b == HudButton::DomeTilt) domeChange([t]() { g.settings.domeTilt = t; });   // a preset is a new room: fade
+            else g.settings.domeTilt = t;                                                   // the trim moves the picture live
             char m[64];
-            snprintf(m, sizeof m, "Dome tilt %.0f\xC2\xB0", g.settings.domeTilt);
+            snprintf(m, sizeof m, "Dome tilt %.0f\xC2\xB0", t);
             showNotice(m);
             break;
         }
         case HudButton::DomeSeat: {
             static const char* seats[] = {"sweet spot", "front row", "rear row", "left", "right"};
-            g.settings.domeSeat = std::max(0, std::min(4, arg));
-            showNotice(std::string("Seat: ") + seats[g.settings.domeSeat]);
+            int seat = std::max(0, std::min(4, arg));
+            if (seat == g.settings.domeSeat) break;
+            domeChange([seat]() { g.settings.domeSeat = seat; });
+            showNotice(std::string("Seat: ") + seats[seat]);
             break;
         }
         case HudButton::DomeVenue: {
-            g.settings.domeVenue = std::max(0, std::min(kVenueSizes - 1, arg));
-            g.settings.save();
+            int venue = std::max(0, std::min(kVenueSizes - 1, arg));
+            if (venue == g.settings.domeVenue) break;
+            domeChange([venue]() { g.settings.domeVenue = venue; g.settings.save(); });
             char m[64];
-            snprintf(m, sizeof m, "Venue: %.0f m dome", kVenueDiameter[g.settings.domeVenue]);
+            snprintf(m, sizeof m, "Venue: %.0f m dome", kVenueDiameter[venue]);
             showNotice(m);
             break;
         }
@@ -2506,6 +2528,34 @@ static void renderFrame() {
         }
         bool stereo = L != Layout::Mono;
         bool dome = P == Projection::Dome;
+        // the dome fade: down over 250 ms, the change at black, up over 350 ms once the new room is in
+        static XrCompositionLayerColorScaleBiasKHR fadeScale{XR_TYPE_COMPOSITION_LAYER_COLOR_SCALE_BIAS_KHR, nullptr, {1, 1, 1, 1}, {0, 0, 0, 0}};
+        {
+            int64_t now = monoNs();
+            float dt = g.domeFadeNs ? (float)(now - g.domeFadeNs) / 1e9f : 0.0f;
+            g.domeFadeNs = now;
+            if (!dome) {
+                g.domeFade = 1.0f;
+                g.domePending = nullptr;
+                g.domeWaiting = false;
+            } else if (g.domePending) {
+                g.domeFade = g.extColorScale ? std::max(0.0f, g.domeFade - dt / 0.25f) : 0.0f;
+                if (g.domeFade <= 0.0f) {
+                    g.domePending();
+                    g.domePending = nullptr;
+                    g.domeWaiting = true;
+                    keepVideoWarped();   // re-warp the parked frame now, while black
+                }
+            } else if (g.domeWaiting) {
+                std::string want = theatreAssetName(std::max(0, std::min(4, g.settings.domeSeat)));
+                bool roomReady = !g.settings.domeTheatre || g.theatreKey == want || g.theatreMissing.count(want);
+                if (roomReady && g.warpKey == warpKeyNow()) g.domeWaiting = false;
+            } else if (g.domeFade < 1.0f) {
+                g.domeFade = g.extColorScale ? std::min(1.0f, g.domeFade + dt / 0.35f) : 1.0f;
+            }
+            float f = g.domeFade * g.domeFade;   // perceptual: ease into black
+            fadeScale.colorScale = {f, f, f, 1.0f};
+        }
         // the theatre behind the dome: the seat's stereo render as an infinite sphere, level, front at the dome's front
         if (dome && g.settings.domeTheatre) {
             std::string want = theatreAssetName(std::max(0, std::min(4, g.settings.domeSeat)));
@@ -2517,6 +2567,7 @@ static void renderFrame() {
                     g.theatreKey = g.theatreLoading;
                 } else {
                     g.theatreMissing.insert(g.theatreLoading);
+                    showNotice("No room rendered for this venue and tilt yet: picture on black");
                 }
                 im.release();
                 g.theatreLoading.clear();
@@ -2535,6 +2586,7 @@ static void renderFrame() {
                 for (int e = 0; e < 2; e++) {
                     XrCompositionLayerEquirect2KHR& t = g.theatreLayer[e];
                     t = {XR_TYPE_COMPOSITION_LAYER_EQUIRECT2_KHR};
+                    if (g.extColorScale) t.next = &fadeScale;
                     t.layerFlags = 0;
                     t.space = g.localSpace;
                     t.eyeVisibility = e == 0 ? XR_EYE_VISIBILITY_LEFT : XR_EYE_VISIBILITY_RIGHT;
@@ -2571,6 +2623,7 @@ static void renderFrame() {
             eq[e].lowerVerticalAngle = -vHalf;
             if (dome) {   // the warp's level 360 view from the seat, transparent outside the dome so the theatre shows
                 eq[e].layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+                if (g.extColorScale) eq[e].next = &fadeScale;
                 eq[e].pose.orientation = qYaw(g.settings.yawDeg * deg);
                 eq[e].centralHorizontalAngle = 2.0f * (float)M_PI;
                 eq[e].upperVerticalAngle = kDomeLatTop * deg;
