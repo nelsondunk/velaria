@@ -483,11 +483,10 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         // plate shows through; "Show n" brings back everything hidden on this layer. Trim and Stereo passes hide too:
         // that is the quickest before/after of a pass.
         {
+            // an eye in the icon cluster: open = shown (tap hides), struck = hidden (tap shows)
             bool hidden = m->isHidden(*g);
-            std::string lbl = hidden ? "Show" : "Hide";
-            float w = Chrome::chipWidth(lbl, -1, "");
-            rx -= 10 + w;
-            ch.chip3(HudButton::Hide, 0, rx, rowA, w, 60, hidden ? ChipState::On : ChipState::Rest, lbl);
+            rx -= 10 + 60;
+            ch.iconChip(HudButton::Hide, 0, rx, rowA, 60, hidden ? ChipState::On : ChipState::Rest, hidden ? Icon::Hidden : Icon::Outline, hidden ? "Show" : "Hide");
             int nh = m->hiddenInLayer();
             if (nh > (hidden ? 1 : 0)) {
                 std::string all = "Show " + std::to_string(nh);
@@ -1001,11 +1000,13 @@ std::vector<ButtonRect> drawDeck(Canvas& c, const UiState& s) {
     float my = py + 16, mh = 48;
     if (my + mh + 8 <= sp.h) {
         float mx = sp.w - pad;
-        mx -= mh;      ch.iconChip(HudButton::MarkerNext, 0, mx, my, mh, m->markers.empty() ? ChipState::Off : ChipState::Rest, Icon::Next, "Next marker");
+        // same shape as the Clip transport above: word + chevron, so the two rows read as one family
+        ChipState mk = m->markers.empty() ? ChipState::Off : ChipState::Rest;
+        mx -= 150;     ch.chip3(HudButton::MarkerNext, 0, mx, my, 150, mh, mk, "Marker", (int)Icon::Next);
         std::string lbl = here ? "Remove note" : "Drop note";
         float w = Chrome::chipWidth(lbl, -1, "");
         mx -= 10 + w;  ch.chip3(HudButton::MarkerAdd, here ? 1 : 0, mx, my, w, mh, here ? ChipState::On : ChipState::Rest, lbl);
-        mx -= 10 + mh; ch.iconChip(HudButton::MarkerPrev, 0, mx, my, mh, m->markers.empty() ? ChipState::Off : ChipState::Rest, Icon::Previous, "Previous marker");
+        mx -= 10 + 150; ch.chip3(HudButton::MarkerPrev, 0, mx, my, 150, mh, mk, "Marker", (int)Icon::Previous);
         // what the row is about: the marker under the playhead (name, first line of its note), else a count
         std::string line;
         if (here) {
