@@ -512,7 +512,7 @@ void StreamServer::broadcastAudio(const MsgPtr& msg) {
 }
 
 bool StreamServer::anyAudioClient() const {
-    std::lock_guard<std::mutex> lk(m_mutex);
+    std::lock_guard<std::mutex> lk(const_cast<std::mutex&>(m_mutex));
     for (auto& c : m_clients)
         if (c->alive() && c->ready() && c->wantsAudio()) return true;
     return false;
