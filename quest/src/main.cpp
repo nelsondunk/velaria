@@ -67,6 +67,7 @@ struct Settings {
     float domeTilt = 0;        // degrees the dome's front edge drops below level (0 = classic level dome, up to 30)
     int domeSeat = 0;          // 0 centre, 1 front, 2 rear, 3 left, 4 right (kDomeSeatFrac of the radius off centre)
     float domeDiameter = 16;   // metres; sets the distance to the screen (parallax and vergence), not the picture
+    float domeRim = 1.8f;      // metres the springline (the dome's rim) sits above seated eye level (Nelson, 18 Nov: "I'd be below that line")
     float domeFov = 180;       // field of view the master's circle covers; the dome shows its inner 180
     bool panelOn[kPanelCount] = {true, true, true, true, false};   // dock: which panels exist at all (Instance strip always); Scopes off until asked
     int scopesView = 0;
@@ -99,6 +100,7 @@ struct Settings {
             else if (k == "domeTilt") domeTilt = std::max(0.0f, std::min(30.0f, (float)atof(v.c_str())));
             else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
             else if (k == "domeDiameter") domeDiameter = std::max(4.0f, std::min(40.0f, (float)atof(v.c_str())));
+            else if (k == "domeRim") domeRim = std::max(0.0f, std::min(4.0f, (float)atof(v.c_str())));
             else if (k == "domeFov") domeFov = std::max(180.0f, std::min(220.0f, (float)atof(v.c_str())));
             else if (k == "panelOn" && v.size() >= 7) {
                 for (int i = 0; i < kPanelCount; i++) if ((size_t)(i * 2) < v.size()) panelOn[i] = v[i * 2] == '1';
@@ -129,7 +131,7 @@ struct Settings {
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
           << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
-          << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeDiameter " << domeDiameter << "\ndomeFov " << domeFov
+          << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeDiameter " << domeDiameter << "\ndomeFov " << domeFov << "\ndomeRim " << domeRim
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
           << "\nyawDeg " << yawDeg
@@ -386,7 +388,8 @@ static XrPosef domeLayerPose() {
     float r = g.settings.domeDiameter * 0.5f * kDomeSeatFrac;
     const float* s = seat[std::max(0, std::min(4, g.settings.domeSeat))];
     XrQuaternionf f = domeFrame();
-    XrVector3f centre = vSub(g.domeAnchor, qRotate(f, {s[0] * r, 0, s[1] * r}));
+    // the seat sits below the springline: the dome's centre is domeRim above the viewer's eyes, along the dome's axis
+    XrVector3f centre = vSub(g.domeAnchor, qRotate(f, {s[0] * r, -g.settings.domeRim, s[1] * r}));
     return {qMul(f, qPitch((float)M_PI / 2)), centre};
 }
 
@@ -1064,6 +1067,18 @@ static void activate(HudButton b, int arg = 0) {
             g.settings.domeFov = g.settings.domeFov < 199 ? 200.0f : g.settings.domeFov < 219 ? 220.0f : 180.0f;
             char m[80];
             snprintf(m, sizeof m, "Master field of view %.0f\xC2\xB0", g.settings.domeFov);
+            showNotice(m);
+            break;
+        }
+        case HudButton::DomeRim: {
+            // how far below the rim you sit: 0 (eyes at the springline) .. 2.5 m (a tall drum under the dome)
+            static const float steps[] = {0.0f, 1.2f, 1.8f, 2.5f};
+            int i = 0;
+            while (i < 4 && steps[i] <= g.settings.domeRim + 0.01f) i++;
+            g.settings.domeRim = steps[i % 4];
+            g.settings.save();
+            char m[80];
+            snprintf(m, sizeof m, g.settings.domeRim > 0 ? "Rim %.1f m above your eyes" : "Eyes level with the rim", g.settings.domeRim);
             showNotice(m);
             break;
         }
@@ -2058,6 +2073,7 @@ static void updateHud(int64_t now, bool playing) {
     in.domeSeat = g.settings.domeSeat;
     in.domeDiameter = g.settings.domeDiameter;
     in.domeFov = g.settings.domeFov;
+    in.domeRim = g.settings.domeRim;
     // Resolve setup preflight: what the bridge found in the project settings, then what only this end can see
     // (the raster and frame rate the driver is actually fed, and whether a picture arrives at all)
     {
@@ -2258,7 +2274,7 @@ static void pollDebugCommands(int64_t now) {
         {"NudgeDown", HudButton::NudgeDown}, {"NudgeUp", HudButton::NudgeUp}, {"Key", HudButton::Key},
         {"Zoom", HudButton::Zoom}, {"Copy", HudButton::Copy}, {"Paste", HudButton::Paste}, {"PasteAll", HudButton::PasteAll},
         {"Dial", HudButton::Dial}, {"Grid", HudButton::Grid}, {"Outline", HudButton::Outline}, {"Source", HudButton::Source}, {"FovDown", HudButton::FovDown}, {"FovUp", HudButton::FovUp}, {"PanelToggle", HudButton::PanelToggle}, {"Layer", HudButton::Layer}, {"Lock", HudButton::Lock}, {"Hide", HudButton::Hide}, {"GroupPick", HudButton::GroupPick}, {"ScopesView", HudButton::ScopesView}, {"Jump", HudButton::Jump}, {"FovPreset", HudButton::FovPreset},
-        {"DomeTilt", HudButton::DomeTilt}, {"DomeTiltDown", HudButton::DomeTiltDown}, {"DomeTiltUp", HudButton::DomeTiltUp}, {"DomeSeat", HudButton::DomeSeat}, {"DomeSize", HudButton::DomeSize}, {"DomeFov", HudButton::DomeFov}};
+        {"DomeTilt", HudButton::DomeTilt}, {"DomeTiltDown", HudButton::DomeTiltDown}, {"DomeTiltUp", HudButton::DomeTiltUp}, {"DomeSeat", HudButton::DomeSeat}, {"DomeSize", HudButton::DomeSize}, {"DomeFov", HudButton::DomeFov}, {"DomeRim", HudButton::DomeRim}};
     for (auto& l : lines) {
         std::istringstream ss(l);
         std::string cmd, a, b;

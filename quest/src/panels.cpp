@@ -772,8 +772,9 @@ void drawViewTab(Chrome& ch, float y) {
             snprintf(b, sizeof b, "Dome %.0f m", in.domeDiameter);
             ch.chip3(HudButton::DomeSize, 0, x0, y, ws[2], ch_h, ChipState::Rest, b);
             x0 += ws[2] + gap;
-            snprintf(b, sizeof b, "Master %.0f\xC2\xB0", in.domeFov);
-            ch.chip3(HudButton::DomeFov, 0, x0, y, ws[3], ch_h, in.domeFov > 181 ? ChipState::On : ChipState::Rest, b);
+            // rim height took the Master FOV chip's place (+68): seats sit below the springline, and nobody masters wider than 180
+            if (in.domeRim > 0.05f) snprintf(b, sizeof b, "Rim +%.1f m", in.domeRim); else snprintf(b, sizeof b, "Rim at eye level");
+            ch.chip3(HudButton::DomeRim, 0, x0, y, ws[3], ch_h, in.domeRim > 0.05f ? ChipState::On : ChipState::Rest, b);
             y += ch_h + gap;
         }
         y += 8;
