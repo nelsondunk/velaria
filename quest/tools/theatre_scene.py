@@ -200,6 +200,63 @@ def mat(name, rgb, rough=0.9, emit=0.0, emit_rgb=None, metal=0.0, specular=None)
     return m
 
 
+def surface(m, kind, scale=120.0, bump=0.25, mottle=0.18):
+    """Procedural finish on a material: `weave` (seat fabric: fine crossed ridges), `carpet` (short-pile grain) or
+    `brushed` (armrests: directional grain). Noise drives a bump map and a little colour mottle, so the show light
+    grazing a surface reads as cloth or carpet instead of plastic (Nelson, 19 Nov 13:07). No image textures."""
+    nt = m.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    base = tuple(bsdf.inputs["Base Color"].default_value)
+    tex = nt.nodes.new("ShaderNodeTexCoord")
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = scale
+    noise.inputs["Detail"].default_value = 6.0
+    noise.inputs["Roughness"].default_value = 0.6
+    nt.links.new(tex.outputs["Object"], noise.inputs["Vector"])
+    height = noise.outputs["Fac"]
+    if kind == "weave":
+        wave = nt.nodes.new("ShaderNodeTexWave")
+        wave.wave_type = 'BANDS'
+        wave.bands_direction = 'DIAGONAL'
+        wave.inputs["Scale"].default_value = scale * 2.2
+        wave.inputs["Distortion"].default_value = 1.2
+        wave.inputs["Detail"].default_value = 2.0
+        nt.links.new(tex.outputs["Object"], wave.inputs["Vector"])
+        mixh = nt.nodes.new("ShaderNodeMix")
+        mixh.data_type = 'FLOAT'
+        mixh.inputs["Factor"].default_value = 0.5
+        nt.links.new(noise.outputs["Fac"], mixh.inputs[2])
+        nt.links.new(wave.outputs["Fac"], mixh.inputs[3])
+        height = mixh.outputs[0]
+    elif kind == "brushed":
+        mapping = nt.nodes.new("ShaderNodeMapping")
+        mapping.inputs["Scale"].default_value = (1.0, 18.0, 1.0)
+        nt.links.new(tex.outputs["Object"], mapping.inputs["Vector"])
+        nt.links.new(mapping.outputs["Vector"], noise.inputs["Vector"])
+    bmp = nt.nodes.new("ShaderNodeBump")
+    bmp.inputs["Strength"].default_value = bump
+    bmp.inputs["Distance"].default_value = 0.002
+    nt.links.new(height, bmp.inputs["Height"])
+    nt.links.new(bmp.outputs["Normal"], bsdf.inputs["Normal"])
+    if mottle > 0:
+        mottled = nt.nodes.new("ShaderNodeTexNoise")
+        mottled.inputs["Scale"].default_value = scale * 0.08
+        mottled.inputs["Detail"].default_value = 3.0
+        nt.links.new(tex.outputs["Object"], mottled.inputs["Vector"])
+        mix = nt.nodes.new("ShaderNodeMix")
+        mix.data_type = 'RGBA'
+        mix.inputs["Factor"].default_value = mottle
+        mix.inputs[6].default_value = base
+        mix.inputs[7].default_value = (base[0] * 0.6, base[1] * 0.6, base[2] * 0.6, 1.0)
+        ramp = nt.nodes.new("ShaderNodeMath")
+        ramp.operation = 'MULTIPLY'
+        ramp.inputs[1].default_value = mottle
+        nt.links.new(mottled.outputs["Fac"], ramp.inputs[0])
+        nt.links.new(ramp.outputs[0], mix.inputs["Factor"])
+        nt.links.new(mix.outputs[2], bsdf.inputs["Base Color"])
+    return m
+
+
 def link(obj, coll, m=None):
     for c in list(obj.users_collection):
         c.objects.unlink(obj)
@@ -303,14 +360,14 @@ def build(v):
     sc.collection.children.link(near)
     R, hC, t = v.R, v.hC, v.t
 
-    m_floor = mat("Carpet", (0.045, 0.040, 0.050), 0.95)
-    m_tier = mat("Tier", (0.055, 0.050, 0.060), 0.95)
+    m_floor = surface(mat("Carpet", (0.045, 0.040, 0.050), 0.95), "carpet", scale=260.0, bump=0.35, mottle=0.25)
+    m_tier = surface(mat("Tier", (0.055, 0.050, 0.060), 0.95), "carpet", scale=260.0, bump=0.35, mottle=0.25)
     m_nose = mat("StepNose", (0.22, 0.20, 0.18), 0.6)
     m_wall = mat("Wall", (0.05, 0.047, 0.047), 0.9)
     m_dome = mat("Dome", (0.0, 0.0, 0.0), 1.0, specular=0.0)   # the picture goes here: black, reflects nothing
-    m_seat = mat("SeatFabric", (0.07, 0.09, 0.16), 0.85)
+    m_seat = surface(mat("SeatFabric", (0.07, 0.09, 0.16), 0.85), "weave", scale=140.0, bump=0.3, mottle=0.15)
     m_frame = mat("SeatFrame", (0.015, 0.015, 0.016), 0.5, metal=0.4)
-    m_arm = mat("Armrest", (0.09, 0.07, 0.05), 0.55)
+    m_arm = surface(mat("Armrest", (0.09, 0.07, 0.05), 0.55), "brushed", scale=60.0, bump=0.15, mottle=0.2)
     m_rail = mat("Rail", (0.45, 0.45, 0.47), 0.3, metal=1.0)
     m_console = mat("Console", (0.035, 0.035, 0.04), 0.6)
     m_screen = mat("Screen", (0.2, 0.3, 0.5), 0.4, emit=0.4, emit_rgb=(0.25, 0.40, 0.70))
