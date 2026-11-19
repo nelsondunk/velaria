@@ -24,8 +24,10 @@
 #include <fstream>
 #include <map>
 #include <sstream>
+#include <atomic>
 #include <set>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "bridge.h"
@@ -66,9 +68,7 @@ struct Settings {
     float fisheyeFov = 190; // lens field of view for the dual-fisheye projection (Canon RF 5.2: 190)
     // Dome preview: the theatre the domemaster is judged in
     float domeTilt = 0;        // degrees the dome's front edge drops below level (0 = classic level dome, up to 30)
-    int domeSeat = 0;          // 0 centre, 1 front, 2 rear, 3 left, 4 right (kDomeSeatFrac of the radius off centre)
-    float domeDiameter = 16;   // metres; sets the distance to the screen (parallax and vergence), not the picture
-    float domeRim = 1.8f;      // metres the springline (the dome's rim) sits above seated eye level (Nelson, 18 Nov: "I'd be below that line")
+    int domeSeat = 0;          // which seat of the theatre (kDomeSeats): 0 sweet spot, 1 front row, 2 rear row, 3 left, 4 right
     bool domeTheatre = true;   // show the rendered theatre interior behind the dome picture
     float domeFov = 180;       // field of view the master's circle covers; the dome shows its inner 180
     bool panelOn[kPanelCount] = {true, true, true, true, false};   // dock: which panels exist at all (Instance strip always); Scopes off until asked
@@ -101,8 +101,6 @@ struct Settings {
             else if (k == "fisheyeFov") fisheyeFov = (float)atof(v.c_str());
             else if (k == "domeTilt") domeTilt = std::max(0.0f, std::min(30.0f, (float)atof(v.c_str())));
             else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
-            else if (k == "domeDiameter") domeDiameter = std::max(4.0f, std::min(40.0f, (float)atof(v.c_str())));
-            else if (k == "domeRim") domeRim = std::max(0.0f, std::min(4.0f, (float)atof(v.c_str())));
             else if (k == "domeTheatre") domeTheatre = v == "1";
             else if (k == "domeFov") domeFov = std::max(180.0f, std::min(220.0f, (float)atof(v.c_str())));
             else if (k == "panelOn" && v.size() >= 7) {
@@ -134,7 +132,7 @@ struct Settings {
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
           << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
-          << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeDiameter " << domeDiameter << "\ndomeFov " << domeFov << "\ndomeRim " << domeRim << "\ndomeTheatre " << (domeTheatre ? 1 : 0)
+          << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeFov " << domeFov << "\ndomeTheatre " << (domeTheatre ? 1 : 0)
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
           << "\nyawDeg " << yawDeg
@@ -223,6 +221,13 @@ struct App {
     Swapchain theatre;                      // dome theatre background: top/bottom stereo equirect for the current seat (+68)
     int theatreSeat = -1;                   // which seat's picture is in the swapchain; -1 none
     bool theatreMissing[5] = {false, false, false, false, false};   // asset absent or undecodable: don't retry every frame
+    // the 6144 x 6144 JPEG takes a couple of seconds to decode: a worker does it, the render thread only uploads (+69)
+    std::thread theatreThread;
+    std::atomic<bool> theatreBusy{false};
+    int theatreLoading = -1;
+    vrq::TheatreImage theatreImage;
+    // what the last blit warped the frame for: when it changes on a parked frame, warp the same frame again
+    std::string warpKey;
     XrCompositionLayerEquirect2KHR theatreLayer[2];
     bool extRefresh = false, extTimespec = false, extColorSpace = false, extPerf = false, extHands = false, extAim = false;
     bool extLayerSettings = false;   // XR_FB_composition_layer_settings: supersample + sharpen the UI quads (+65, no more jaggies)
@@ -263,8 +268,6 @@ struct App {
     bool cockpitValid = false;
     // Dome preview: where the viewer's head was when they took their seat (set on entering the dome projection,
     // on recentre and on a seat or size change); the dome hangs in the room relative to this.
-    XrVector3f domeAnchor{};
-    bool domeAnchorValid = false;
     struct Panel {
         Swapchain sc;
         XrPosef pose{};              // this frame (hit tests and the layer)
@@ -380,24 +383,40 @@ static Layout effectiveLayout() {
     if (effectiveProjection() == Projection::Dome) return Layout::Mono;   // a domemaster is one circle, always mono
     return g.settings.layout >= 0 ? (Layout)g.settings.layout : (Layout)g.cfg.msg.layout;
 }
-// Dome preview geometry. The dome's own frame has +Y through its zenith and -Z at its front; tilting the theatre
-// by t drops the front edge t below level, which is a pitch of -t. The domemaster is a fisheye looking along the
-// zenith with the frame's bottom at the front, i.e. the 180 layer pitched up 90 degrees inside that frame.
-constexpr float kDomeSeatFrac = 0.5f;   // off-centre seats sit half a radius from the centre, in the springline plane
-static XrQuaternionf domeFrame() {
-    const float deg = (float)M_PI / 180;
-    return qMul(qYaw(g.settings.yawDeg * deg), qPitch(-g.settings.domeTilt * deg));
+// Dome preview geometry (+69). The picture and the theatre behind it are both drawn at infinity, in the level room
+// frame, so nothing shifts between them (Nelson, 19 Nov: "the wall and screen should be at infinity"). The seat's
+// view of the hemisphere is computed per pixel by the dome warp (gfx.cpp kFSDome) from the eye's position inside the
+// dome, which comes from the theatre model: quest/tools/theatre_scene.py --table prints this table. Everything is
+// in fractions of the dome radius, so the dome's real size never matters.
+static const float kDomeSeats[5][3] = {   // (right, up, back) of the eyes from the dome's centre on the springline
+    {0.0000f, -0.1600f, 0.3250f},   // sweet spot (row 3)
+    {0.0000f, -0.2250f, 0.1125f},   // front row
+    {0.0000f, -0.0300f, 0.7500f},   // rear row
+    {-0.4013f, -0.1275f, 0.3243f},  // left end of row 4
+    {0.4013f, -0.1275f, 0.3243f},   // right end of row 4
+};
+constexpr float kDomeLatTop = 90.0f, kDomeLatBottom = -40.0f;   // the warp's output covers this band of latitude
+static Gfx::Dome domeWarp() {
+    Gfx::Dome d;
+    const float* e = kDomeSeats[std::max(0, std::min(4, g.settings.domeSeat))];
+    d.eye[0] = e[0]; d.eye[1] = e[1]; d.eye[2] = e[2];
+    d.tiltDeg = g.settings.domeTilt;
+    d.fovDeg = g.settings.domeFov;
+    d.latTopDeg = kDomeLatTop;
+    d.latBottomDeg = kDomeLatBottom;
+    d.srcW = (int)g.cfg.msg.width;
+    d.srcH = (int)g.cfg.msg.height;
+    return d;
 }
-// Where the dome's centre is in the room: the seat is where the viewer sat down (the anchor), so the centre is
-// the anchor minus the seat's offset. Leaning or standing then moves the viewer inside the dome, as in the room.
-static XrPosef domeLayerPose() {
-    static const float seat[5][2] = {{0, 0}, {0, -1}, {0, 1}, {-1, 0}, {1, 0}};   // x (right), z (back) in the dome frame
-    float r = g.settings.domeDiameter * 0.5f * kDomeSeatFrac;
-    const float* s = seat[std::max(0, std::min(4, g.settings.domeSeat))];
-    XrQuaternionf f = domeFrame();
-    // the seat sits below the springline: the dome's centre is domeRim above the viewer's eyes, along the dome's axis
-    XrVector3f centre = vSub(g.domeAnchor, qRotate(f, {s[0] * r, -g.settings.domeRim, s[1] * r}));
-    return {qMul(f, qPitch((float)M_PI / 2)), centre};
+// The video swapchain is the stream's size, except for the dome warp, whose output is a 2:1 equirect of the
+// stream's width doubled (capped at 8192 x 4096): the master's 21 px/degree survive the unwrap.
+static void videoSwapchainSize(int& w, int& h) {
+    w = (int)g.cfg.msg.width;
+    h = (int)g.cfg.msg.height;
+    if (effectiveProjection() == Projection::Dome && w > 0) {
+        w = std::min(2 * w, 8192);
+        h = std::min(h, 4096);
+    }
 }
 
 static bool createSwapchain(Swapchain& sc, int w, int h) {
@@ -700,7 +719,6 @@ static void setLayout(int v) {
 static void setProjection(int v) {
     g.settings.projection = v;
     const char* proj[] = {"Flat", "180\xC2\xB0", "360\xC2\xB0", "Fisheye 180\xC2\xB0", "Dome"};
-    if (v == (int)Projection::Dome) g.domeAnchorValid = false;   // sit down where the viewer is now
     showNotice(v < 0 ? "Projection: auto" : std::string("Projection: ") + proj[v % 5]);
 }
 static void nudgeDelay(int deltaMs) {
@@ -713,7 +731,6 @@ static void nudgeDelay(int deltaMs) {
 static void recentreView() {
     if (!g.headValid) return;
     g.settings.yawDeg = g.headYaw * 180.0f / (float)M_PI;
-    g.domeAnchorValid = false;   // dome preview: this is the seat now
     showNotice("View recentred");
 }
 // Panel layout persistence: poses are stored relative to the cockpit anchor so they come back in the same place
@@ -1053,39 +1070,20 @@ static void activate(HudButton b, int arg = 0) {
             break;
         }
         case HudButton::DomeSeat: {
-            static const char* seats[] = {"centre", "front", "rear", "left", "right"};
+            static const char* seats[] = {"sweet spot", "front row", "rear row", "left", "right"};
             g.settings.domeSeat = std::max(0, std::min(4, arg));
-            g.domeAnchorValid = false;
             showNotice(std::string("Seat: ") + seats[g.settings.domeSeat]);
             break;
         }
-        case HudButton::DomeSize: {
-            static const float sizes[] = {8, 12, 16, 20, 24};   // small portable to large fixed theatre, metres
-            int i = 0;
-            while (i < 5 && sizes[i] <= g.settings.domeDiameter + 0.01f) i++;
-            g.settings.domeDiameter = sizes[i % 5];
-            g.domeAnchorValid = false;
-            char m[64];
-            snprintf(m, sizeof m, "Dome diameter %.0f m", g.settings.domeDiameter);
-            showNotice(m);
+        case HudButton::DomeTheatre:
+            g.settings.domeTheatre = !g.settings.domeTheatre;
+            g.settings.save();
+            showNotice(g.settings.domeTheatre ? "Theatre shown" : "Theatre hidden: picture on black");
             break;
-        }
         case HudButton::DomeFov: {
             g.settings.domeFov = g.settings.domeFov < 199 ? 200.0f : g.settings.domeFov < 219 ? 220.0f : 180.0f;
             char m[80];
             snprintf(m, sizeof m, "Master field of view %.0f\xC2\xB0", g.settings.domeFov);
-            showNotice(m);
-            break;
-        }
-        case HudButton::DomeRim: {
-            // how far below the rim you sit: 0 (eyes at the springline) .. 2.5 m (a tall drum under the dome)
-            static const float steps[] = {0.0f, 1.2f, 1.8f, 2.5f};
-            int i = 0;
-            while (i < 4 && steps[i] <= g.settings.domeRim + 0.01f) i++;
-            g.settings.domeRim = steps[i % 4];
-            g.settings.save();
-            char m[80];
-            snprintf(m, sizeof m, g.settings.domeRim > 0 ? "Rim %.1f m above your eyes" : "Eyes level with the rim", g.settings.domeRim);
             showNotice(m);
             break;
         }
@@ -1808,6 +1806,38 @@ static void retire(AImage* img) {
     if (img) g.retired.push_back({img, 2});   // GPU finishes with it within a couple of frames
 }
 
+// Draws a decoded frame into the video swapchain through whatever warp the projection needs (plain copy, dual
+// fisheye unwrap, or the dome seat's view), and remembers the warp so a parked frame can be redrawn when it changes.
+static std::string warpKeyNow() {
+    char b[160];
+    Projection proj = effectiveProjection();
+    snprintf(b, sizeof b, "%d|%d|%.1f|%.0f|%d|%.0f|%dx%d", (int)proj, (int)effectiveLayout(), g.settings.fisheyeFov,
+             g.settings.domeTilt, g.settings.domeSeat, g.settings.domeFov, g.video.width, g.video.height);
+    return b;
+}
+static void blitFrame(AImage* image) {
+    AHardwareBuffer* ahb = nullptr;
+    if (!image || AImage_getHardwareBuffer(image, &ahb) != AMEDIA_OK || !ahb || !g.video.handle) return;
+    Projection proj = effectiveProjection();
+    Gfx::Fisheye fe;
+    fe.layout = (int)effectiveLayout();
+    fe.fovDeg = g.settings.fisheyeFov;
+    Gfx::Dome dm = domeWarp();
+    const Gfx::Fisheye* fep = proj == Projection::Fisheye180 ? &fe : nullptr;
+    const Gfx::Dome* dmp = proj == Projection::Dome ? &dm : nullptr;
+    renderInto(g.video, [&](GLuint tex) { g.gfx.blitVideo(ahb, tex, g.video.width, g.video.height, fep, dmp); });
+    g.warpKey = warpKeyNow();
+}
+// The swapchain follows the projection (the dome warp wants 2:1); on a resize, or when a parked frame's warp
+// changes (seat, tilt, projection), the frame on screen is drawn again so the change shows without new frames.
+static void keepVideoWarped() {
+    if (!g.video.handle || g.cfg.msg.width == 0) return;
+    int w = 0, h = 0;
+    videoSwapchainSize(w, h);
+    if (w != g.video.width || h != g.video.height) createSwapchain(g.video, w, h);
+    if (g.current.image && g.warpKey != warpKeyNow()) blitFrame(g.current.image);
+}
+
 static void syncReader() {
     uint32_t gen = 0;
     AImageReader* reader = g.decoder.reader(gen);
@@ -1827,10 +1857,12 @@ static void syncReader() {
         g.readerGen = gen;
         g.framesSincePlay = 0;   // (re)connect or new stream starts with a big keyframe: don't let it set the delay
         StreamConfig cfg = g.decoder.config();
-        if (cfg.msg.configId != g.configId || g.video.width != (int)cfg.msg.width || g.video.height != (int)cfg.msg.height) {
+        if (cfg.msg.configId != g.configId) {
             g.cfg = cfg;
             g.configId = cfg.msg.configId;
-            createSwapchain(g.video, (int)cfg.msg.width, (int)cfg.msg.height);
+            int w = 0, h = 0;
+            videoSwapchainSize(w, h);
+            createSwapchain(g.video, w, h);
             applyRefreshRate(cfg.msg.fpsDen ? (double)cfg.msg.fpsNum / cfg.msg.fpsDen : 0);
             if (g.setColorSpace)
                 g.setColorSpace(g.session, cfg.msg.colorPrimaries == 9 ? XR_COLOR_SPACE_REC2020_FB : XR_COLOR_SPACE_REC709_FB);
@@ -1942,6 +1974,7 @@ static void chooseFrame(int64_t displayMono) {
         }
     }
     updateAutoDelay(pb.playing);
+    keepVideoWarped();
     int64_t delay = g.settings.delayMs >= 0 ? (int64_t)g.settings.delayMs * 1000000 : g.autoDelayNs;
     g.net.setAudioDelayNs(delay);   // sound takes the same presentation delay as the picture
     if (g.settings.audio && g.net.connected()) { if (!g.audio.running()) g.audio.start(); }
@@ -1962,15 +1995,7 @@ static void chooseFrame(int64_t displayMono) {
     int idx = g.scheduler.pick(items, displayMono, pendingDue);
     if (idx >= 0) {
         HeldFrame next = g.held[(size_t)idx];
-        AHardwareBuffer* ahb = nullptr;
-        if (AImage_getHardwareBuffer(next.image, &ahb) == AMEDIA_OK && ahb && g.video.handle) {
-            Gfx::Fisheye fe;
-            Projection proj = effectiveProjection();
-            fe.layout = (int)effectiveLayout();   // mono for a domemaster
-            fe.fovDeg = proj == Projection::Dome ? g.settings.domeFov : g.settings.fisheyeFov;
-            const Gfx::Fisheye* fep = proj == Projection::Fisheye180 || proj == Projection::Dome ? &fe : nullptr;
-            renderInto(g.video, [&](GLuint tex) { g.gfx.blitVideo(ahb, tex, g.video.width, g.video.height, fep); });
-        }
+        blitFrame(next.image);
         for (int i = 0; i < idx; i++) retire(g.held[(size_t)i].image);   // superseded before display
         retire(g.current.image);
         g.current = next;
@@ -2078,9 +2103,8 @@ static void updateHud(int64_t now, bool playing) {
     in.fisheyeFov = g.settings.fisheyeFov;
     in.domeTilt = g.settings.domeTilt;
     in.domeSeat = g.settings.domeSeat;
-    in.domeDiameter = g.settings.domeDiameter;
     in.domeFov = g.settings.domeFov;
-    in.domeRim = g.settings.domeRim;
+    in.domeTheatre = g.settings.domeTheatre;
     // Resolve setup preflight: what the bridge found in the project settings, then what only this end can see
     // (the raster and frame rate the driver is actually fed, and whether a picture arrives at all)
     {
@@ -2281,7 +2305,7 @@ static void pollDebugCommands(int64_t now) {
         {"NudgeDown", HudButton::NudgeDown}, {"NudgeUp", HudButton::NudgeUp}, {"Key", HudButton::Key},
         {"Zoom", HudButton::Zoom}, {"Copy", HudButton::Copy}, {"Paste", HudButton::Paste}, {"PasteAll", HudButton::PasteAll},
         {"Dial", HudButton::Dial}, {"Grid", HudButton::Grid}, {"Outline", HudButton::Outline}, {"Source", HudButton::Source}, {"FovDown", HudButton::FovDown}, {"FovUp", HudButton::FovUp}, {"PanelToggle", HudButton::PanelToggle}, {"Layer", HudButton::Layer}, {"Lock", HudButton::Lock}, {"Hide", HudButton::Hide}, {"GroupPick", HudButton::GroupPick}, {"ScopesView", HudButton::ScopesView}, {"Jump", HudButton::Jump}, {"FovPreset", HudButton::FovPreset},
-        {"DomeTilt", HudButton::DomeTilt}, {"DomeTiltDown", HudButton::DomeTiltDown}, {"DomeTiltUp", HudButton::DomeTiltUp}, {"DomeSeat", HudButton::DomeSeat}, {"DomeSize", HudButton::DomeSize}, {"DomeFov", HudButton::DomeFov}, {"DomeRim", HudButton::DomeRim}};
+        {"DomeTilt", HudButton::DomeTilt}, {"DomeTiltDown", HudButton::DomeTiltDown}, {"DomeTiltUp", HudButton::DomeTiltUp}, {"DomeSeat", HudButton::DomeSeat}, {"DomeFov", HudButton::DomeFov}, {"DomeTheatre", HudButton::DomeTheatre}};
     for (auto& l : lines) {
         std::istringstream ss(l);
         std::string cmd, a, b;
@@ -2459,29 +2483,32 @@ static void renderFrame() {
         }
         bool stereo = L != Layout::Mono;
         bool dome = P == Projection::Dome;
-        XrPosef domePose{};
-        if (dome) {
-            if (!g.domeAnchorValid && g.headValid) {
-                g.domeAnchor = g.head.position;
-                g.domeAnchorValid = true;
-            }
-            domePose = domeLayerPose();
-        }
         // the theatre behind the dome: the seat's stereo render as an infinite sphere, level, front at the dome's front
-        if (dome && g.settings.domeTheatre && g.domeAnchorValid) {
+        if (dome && g.settings.domeTheatre) {
             int seat = std::max(0, std::min(4, g.settings.domeSeat));
-            if (g.theatreSeat != seat && !g.theatreMissing[seat]) {
-                std::vector<uint8_t> px;
-                int tw = 0, th = 0;
-                if (loadTheatreSeat(g.android->activity->assetManager, seat, px, tw, th) && tw > 0 && th == tw) {
-                    if (g.theatre.handle == XR_NULL_HANDLE || g.theatre.width != tw) createSwapchain(g.theatre, tw, th);
-                    renderInto(g.theatre, [&](GLuint tex) { g.gfx.upload(tex, px.data(), tw, th); });
-                    g.theatreSeat = seat;
+            if (g.theatreBusy.load() == false && g.theatreThread.joinable()) {   // a decode finished: upload it
+                g.theatreThread.join();
+                vrq::TheatreImage& im = g.theatreImage;
+                if (im.px && im.w > 0 && im.h == im.w) {
+                    if (g.theatre.handle == XR_NULL_HANDLE || g.theatre.width != im.w) createSwapchain(g.theatre, im.w, im.h);
+                    renderInto(g.theatre, [&](GLuint tex) { g.gfx.upload(tex, im.px, im.w, im.h, true); });
+                    g.theatreSeat = g.theatreLoading;
                 } else {
-                    g.theatreMissing[seat] = true;
+                    g.theatreMissing[g.theatreLoading] = true;
                 }
+                im.release();
+                g.theatreLoading = -1;
             }
-            if (g.theatreSeat == seat && g.theatre.hasContent) {
+            if (g.theatreSeat != seat && !g.theatreMissing[seat] && !g.theatreThread.joinable()) {
+                g.theatreLoading = seat;
+                g.theatreBusy = true;
+                AAssetManager* am = g.android->activity->assetManager;
+                g.theatreThread = std::thread([am, seat]() {
+                    vrq::loadTheatreSeat(am, seat, g.theatreImage, true);
+                    g.theatreBusy = false;
+                });
+            }
+            if (g.theatre.hasContent && g.theatreSeat >= 0) {
                 int half = g.theatre.height / 2;
                 for (int e = 0; e < 2; e++) {
                     XrCompositionLayerEquirect2KHR& t = g.theatreLayer[e];
@@ -2517,13 +2544,16 @@ static void renderFrame() {
             if (stereo && g.convLive != 0) convYaw = (float)(g.convLive * 0.5) * hAngle * (e == 0 ? -1.0f : 1.0f);
             eq[e].pose.orientation = qYaw(g.settings.yawDeg * deg + convYaw);
             eq[e].radius = 0;   // infinite sphere: no parallax from head translation
-            if (dome && g.domeAnchorValid) {   // a real-sized hemisphere around the seat; until the head is tracked, level and infinite
-                eq[e].pose = domePose;
-                eq[e].radius = g.settings.domeDiameter * 0.5f;
-            }
             eq[e].centralHorizontalAngle = hAngle;
             eq[e].upperVerticalAngle = vHalf;
             eq[e].lowerVerticalAngle = -vHalf;
+            if (dome) {   // the warp's level 360 view from the seat, transparent outside the dome so the theatre shows
+                eq[e].layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+                eq[e].pose.orientation = qYaw(g.settings.yawDeg * deg);
+                eq[e].centralHorizontalAngle = 2.0f * (float)M_PI;
+                eq[e].upperVerticalAngle = kDomeLatTop * deg;
+                eq[e].lowerVerticalAngle = kDomeLatBottom * deg;
+            }
             layers.push_back((XrCompositionLayerBaseHeader*)&eq[e]);
         }
     }

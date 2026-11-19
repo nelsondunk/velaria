@@ -4,6 +4,8 @@
 #include <android/log.h>
 
 #include <cstdio>
+#include <cstring>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_JPEG
@@ -16,7 +18,14 @@
 
 namespace vrq {
 
-bool loadTheatreSeat(AAssetManager* am, int seat, std::vector<uint8_t>& rgba, int& w, int& h) {
+void TheatreImage::release() {
+    if (px) stbi_image_free(px);
+    px = nullptr;
+    w = h = 0;
+}
+
+bool loadTheatreSeat(AAssetManager* am, int seat, TheatreImage& out, bool bottomUp) {
+    out.release();
     if (!am || seat < 0 || seat > 4) return false;
     char name[64];
     snprintf(name, sizeof name, "theatre/seat%d.jpg", seat);
@@ -27,15 +36,27 @@ bool loadTheatreSeat(AAssetManager* am, int seat, std::vector<uint8_t>& rgba, in
     }
     const void* buf = AAsset_getBuffer(a);
     int len = (int)AAsset_getLength(a);
-    int n = 0;
+    int n = 0, w = 0, h = 0;
     unsigned char* px = buf && len > 0 ? stbi_load_from_memory((const unsigned char*)buf, len, &w, &h, &n, 4) : nullptr;
     AAsset_close(a);
     if (!px) {
         LOGW("theatre: %s would not decode", name);
         return false;
     }
-    rgba.assign(px, px + (size_t)w * h * 4);
-    stbi_image_free(px);
+    if (bottomUp) {   // swap rows in place: one row of scratch instead of a second copy of the picture
+        size_t row = (size_t)w * 4;
+        std::vector<unsigned char> tmp(row);
+        for (int y = 0; y < h / 2; y++) {
+            unsigned char* a0 = px + (size_t)y * row;
+            unsigned char* b0 = px + (size_t)(h - 1 - y) * row;
+            memcpy(tmp.data(), a0, row);
+            memcpy(a0, b0, row);
+            memcpy(b0, tmp.data(), row);
+        }
+    }
+    out.px = px;
+    out.w = w;
+    out.h = h;
     LOGI("theatre: %s %dx%d", name, w, h);
     return true;
 }

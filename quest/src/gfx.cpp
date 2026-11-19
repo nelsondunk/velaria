@@ -3,6 +3,7 @@
 #include <android/log.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 
 #include "font.h"
@@ -81,6 +82,50 @@ void main() {
 }
 )";
 
+// Domemaster -> the view of the dome from a seat (+69). The dome is a hemisphere of radius 1 on the springline plane
+// (centre at the origin, zenith +Y, front -Z), pitched forward by the theatre tilt; the eye sits at uEye inside it.
+// For every output direction (a level 360 equirect, lon across, lat uLat.x at the top .. uLat.y at the bottom) the
+// ray from the eye meets the sphere, the hit point's angle from the zenith picks the radius in the master (equidistant),
+// its azimuth the direction, exactly as the hemisphere layer did in +68. Below the springline, or outside the inner
+// 180 of the master, the output is transparent so the theatre's drum wall shows; the rim is feathered one source
+// pixel. Output is premultiplied alpha for XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT.
+const char* kFSDome = R"(#version 300 es
+#extension GL_OES_EGL_image_external_essl3 : require
+precision highp float;
+uniform samplerExternalOES uTex;
+uniform vec3 uEye;          // (right, up, back) / R
+uniform vec2 uTilt;         // cos, sin of the tilt
+uniform float uHalfFov;     // radians, half the master's field of view
+uniform float uCircle;      // circle radius as a fraction of the frame's half-height
+uniform float uAspect;      // frame width / height
+uniform vec2 uLat;          // radians: latitude at the top row, at the bottom row
+uniform float uRadiusPx;    // the master circle's radius in source pixels (for the feather)
+in vec2 vUv;
+out vec4 oColor;
+vec3 srgbToLinear(vec3 c) {
+    return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));
+}
+void main() {
+    float lon = (vUv.x - 0.5) * 6.2831853;
+    float lat = uLat.x + (uLat.y - uLat.x) * vUv.y;
+    vec3 d = vec3(sin(lon) * cos(lat), sin(lat), -cos(lon) * cos(lat));   // right, up, back
+    float b = dot(uEye, d);
+    float c = dot(uEye, uEye) - 1.0;
+    float t = -b + sqrt(max(b * b - c, 0.0));
+    vec3 p = uEye + t * d;                                                 // on the sphere, room frame
+    vec3 q = vec3(p.x, p.y * uTilt.x - p.z * uTilt.y, p.y * uTilt.y + p.z * uTilt.x);   // dome frame
+    float theta = acos(clamp(q.y, -1.0, 1.0));                             // from the zenith
+    float a = clamp((1.5707963 - theta) / uHalfFov * uRadiusPx + 0.5, 0.0, 1.0);
+    if (a <= 0.0) { oColor = vec4(0.0); return; }
+    float r = min(theta / uHalfFov, 1.0);
+    float phi = atan(q.z, q.x);                                            // master up = dome back
+    float R = 0.5 * uCircle;
+    vec2 uv = vec2(0.5 + r * R * cos(phi) / uAspect, 0.5 - r * R * sin(phi));
+    vec3 col = srgbToLinear(clamp(texture(uTex, uv).rgb, 0.0, 1.0));
+    oColor = vec4(col * a, a);
+}
+)";
+
 GLuint compile(GLenum type, const char* src) {
     GLuint s = glCreateShader(type);
     glShaderSource(s, 1, &src, nullptr);
@@ -144,6 +189,24 @@ bool Gfx::init() {
         m_fiCircle = glGetUniformLocation(m_fisheye, "uCircle");
         m_fiAspect = glGetUniformLocation(m_fisheye, "uAspect");
     }
+    m_dome = glCreateProgram();
+    glAttachShader(m_dome, compile(GL_VERTEX_SHADER, kVS));
+    glAttachShader(m_dome, compile(GL_FRAGMENT_SHADER, kFSDome));
+    glLinkProgram(m_dome);
+    glGetProgramiv(m_dome, GL_LINK_STATUS, &ok);
+    if (!ok) {
+        LOGE("dome program link failed");
+        m_dome = 0;
+    } else {
+        m_doTex = glGetUniformLocation(m_dome, "uTex");
+        m_doEye = glGetUniformLocation(m_dome, "uEye");
+        m_doTilt = glGetUniformLocation(m_dome, "uTilt");
+        m_doHalfFov = glGetUniformLocation(m_dome, "uHalfFov");
+        m_doCircle = glGetUniformLocation(m_dome, "uCircle");
+        m_doAspect = glGetUniformLocation(m_dome, "uAspect");
+        m_doLat = glGetUniformLocation(m_dome, "uLat");
+        m_doRadiusPx = glGetUniformLocation(m_dome, "uRadiusPx");
+    }
     glGenVertexArrays(1, &m_vao);
     LOGI("GL: %s / %s", glGetString(GL_RENDERER), glGetString(GL_VERSION));
     return true;
@@ -170,7 +233,7 @@ void Gfx::dropImageCache() {
     m_images.clear();
 }
 
-bool Gfx::blitVideo(AHardwareBuffer* ahb, GLuint dstTex, int w, int h, const Fisheye* fisheye) {
+bool Gfx::blitVideo(AHardwareBuffer* ahb, GLuint dstTex, int w, int h, const Fisheye* fisheye, const Dome* dome) {
     uint64_t id = 0;
     if (AHardwareBuffer_getId(ahb, &id) != 0) id = (uint64_t)(uintptr_t)ahb;
     m_blits++;
@@ -218,7 +281,19 @@ bool Gfx::blitVideo(AHardwareBuffer* ahb, GLuint dstTex, int w, int h, const Fis
     glDisable(GL_CULL_FACE);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_EXTERNAL_OES, it->second.tex);
-    if (fisheye && m_fisheye) {
+    if (dome && m_dome) {
+        const float deg = 3.14159265f / 180.0f;
+        float sw = dome->srcW > 0 ? (float)dome->srcW : (float)w, sh = dome->srcH > 0 ? (float)dome->srcH : (float)h;
+        glUseProgram(m_dome);
+        glUniform1i(m_doTex, 0);
+        glUniform3f(m_doEye, dome->eye[0], dome->eye[1], dome->eye[2]);
+        glUniform2f(m_doTilt, std::cos(dome->tiltDeg * deg), std::sin(dome->tiltDeg * deg));
+        glUniform1f(m_doHalfFov, dome->fovDeg * 0.5f * deg);
+        glUniform1f(m_doCircle, dome->circle);
+        glUniform1f(m_doAspect, sw / sh);
+        glUniform2f(m_doLat, dome->latTopDeg * deg, dome->latBottomDeg * deg);
+        glUniform1f(m_doRadiusPx, 0.5f * dome->circle * sh);
+    } else if (fisheye && m_fisheye) {
         glUseProgram(m_fisheye);
         glUniform1i(m_fiTex, 0);
         glUniform1i(m_fiLayout, fisheye->layout);
@@ -238,14 +313,17 @@ bool Gfx::blitVideo(AHardwareBuffer* ahb, GLuint dstTex, int w, int h, const Fis
     return true;
 }
 
-void Gfx::upload(GLuint dstTex, const uint8_t* rgba, int w, int h) {
-    // `rgba` is top-row-first; OpenXR GL swapchains are bottom-row-first, so upload flipped.
-    std::vector<uint8_t> flipped((size_t)w * h * 4);
-    for (int y = 0; y < h; y++)
-        memcpy(&flipped[(size_t)(h - 1 - y) * w * 4], rgba + (size_t)y * w * 4, (size_t)w * 4);
+void Gfx::upload(GLuint dstTex, const uint8_t* rgba, int w, int h, bool bottomUp) {
+    // `rgba` is top-row-first; OpenXR GL swapchains are bottom-row-first, so upload flipped (unless already so).
+    std::vector<uint8_t> flipped;
+    if (!bottomUp) {
+        flipped.resize((size_t)w * h * 4);
+        for (int y = 0; y < h; y++)
+            memcpy(&flipped[(size_t)(h - 1 - y) * w * 4], rgba + (size_t)y * w * 4, (size_t)w * 4);
+    }
     glBindTexture(GL_TEXTURE_2D, dstTex);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, flipped.data());
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, bottomUp ? rgba : flipped.data());
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 

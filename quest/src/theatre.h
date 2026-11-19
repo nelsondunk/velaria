@@ -1,14 +1,24 @@
-// Dome theatre backgrounds (+68): a plain planetarium interior rendered in Blender from each of the five seats as a
+// Dome theatre backgrounds (+68, +69): a modern dome theatre rendered in Blender from each of the five seats as a
 // top/bottom stereo equirect (quest/tools/theatre_scene.py), shipped in the APK's assets and shown behind the dome
-// picture in the Dome projection, so a seat reads as a seat (Nelson, 18 Nov: "right now it doesn't have a lot of
-// context"). JPEG, decoded with stb_image.
+// picture in the Dome projection, so a seat reads as a seat. The dome and the drum wall are rendered at infinity,
+// the seats carry the stereo (Nelson, 19 Nov). JPEG, decoded with stb_image; 6144 x 6144, so the decode runs on a
+// worker thread and the render thread only uploads.
 #pragma once
 #include <cstdint>
-#include <vector>
 
 struct AAssetManager;
 
 namespace vrq {
-// RGBA8, sRGB; returns false when the asset is missing or will not decode
-bool loadTheatreSeat(AAssetManager* am, int seat, std::vector<uint8_t>& rgba, int& w, int& h);
+struct TheatreImage {
+    unsigned char* px = nullptr;   // RGBA8, sRGB
+    int w = 0, h = 0;
+    TheatreImage() = default;
+    TheatreImage(const TheatreImage&) = delete;
+    TheatreImage& operator=(const TheatreImage&) = delete;
+    ~TheatreImage() { release(); }
+    void release();
+};
+// Decodes theatre/seat<seat>.jpg into `out`; with bottomUp the rows are flipped into GL order (so the upload needs
+// no second copy). Returns false, with out.px null, when the asset is missing or will not decode.
+bool loadTheatreSeat(AAssetManager* am, int seat, TheatreImage& out, bool bottomUp);
 }

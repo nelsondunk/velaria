@@ -136,9 +136,8 @@ enum class HudButton {
     DomeTilt,       // arg = tilt preset in degrees
     DomeTiltDown, DomeTiltUp,   // 1 degree trim
     DomeSeat,       // arg 0 centre, 1 front, 2 rear, 3 left, 4 right
-    DomeSize,       // next dome diameter
     DomeFov,        // next master field of view (180 / 200 / 220); no chip since +68 (no evidence anyone masters wider)
-    DomeRim,        // next rim height above the seat (0 / 1.2 / 1.8 / 2.5 m)
+    DomeTheatre,    // show / hide the rendered theatre behind the dome picture
     PanelToggle,    // arg = PanelId: show / hide that panel altogether (dock chips on the Instance strip)
     // instance strip
     GroupPrev, GroupNext, Copy, Paste, PasteAll, Undo, Refresh,
@@ -209,9 +208,9 @@ struct HudInfo {
     bool audio = true;        // the mix is wanted in the headset
     bool audioLive = false;   // blocks are arriving and the output stream is open
     float fisheyeFov = 190;   // lens FOV used by the fisheye projection
-    float domeTilt = 0, domeDiameter = 16, domeFov = 180;   // dome preview: tilt (deg), diameter (m), master FOV (deg)
-    float domeRim = 1.8f;                                   // springline height above seated eyes (m)
-    int domeSeat = 0;         // 0 centre, 1 front, 2 rear, 3 left, 4 right
+    float domeTilt = 0, domeFov = 180;   // dome preview: tilt (deg), master FOV (deg)
+    int domeSeat = 0;         // 0 sweet spot, 1 front row, 2 rear row, 3 left, 4 right
+    bool domeTheatre = true;  // the rendered theatre is shown behind the picture
     std::string serverName;   // what we are connected to ("Resolve", "NDI · Adobe Premiere Pro")
     std::string notice;    // transient message after an action
     std::string warning;   // e.g. dropping frames

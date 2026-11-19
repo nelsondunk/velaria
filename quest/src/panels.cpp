@@ -755,10 +755,12 @@ void drawViewTab(Chrome& ch, float y) {
                 ch.chip3(HudButton::DomeTilt, tilts[i], pad + i * (tw + gap), y, tw, ch_h, std::lround(in.domeTilt) == tilts[i] ? ChipState::On : ChipState::Rest, b);
             }
             y += ch_h + gap;
-            // one row: 1 degree trim around the readout, then seat, dome size and master angle (each steps on a tap)
-            static const char* seats[] = {"centre", "front", "rear", "left", "right"};
-            float tr = 96, rest = inner - 2 * tr - 5 * gap, x0 = pad;
-            float ws[4] = {rest * 0.18f, rest * 0.28f, rest * 0.26f, rest * 0.28f};
+            // one row: 1 degree trim around the readout, then the seat (steps on a tap) and the theatre toggle.
+            // Dome size and rim height went in +69: the seat table carries the eye position, and at infinity the
+            // dome's real size changes nothing.
+            static const char* seats[] = {"sweet spot", "front row", "rear row", "left", "right"};
+            float tr = 96, rest = inner - 2 * tr - 4 * gap, x0 = pad;
+            float ws[3] = {rest * 0.24f, rest * 0.42f, rest * 0.34f};
             ch.chip3(HudButton::DomeTiltDown, 0, x0, y, tr, ch_h, ChipState::Rest, "1\xC2\xB0", (int)Icon::Minus);
             x0 += tr + gap;
             snprintf(b, sizeof b, "Tilt %.0f\xC2\xB0", in.domeTilt);
@@ -769,12 +771,7 @@ void drawViewTab(Chrome& ch, float y) {
             int seat = std::max(0, std::min(4, in.domeSeat));
             ch.chip3(HudButton::DomeSeat, (seat + 1) % 5, x0, y, ws[1], ch_h, seat ? ChipState::On : ChipState::Rest, std::string("Seat: ") + seats[seat]);
             x0 += ws[1] + gap;
-            snprintf(b, sizeof b, "Dome %.0f m", in.domeDiameter);
-            ch.chip3(HudButton::DomeSize, 0, x0, y, ws[2], ch_h, ChipState::Rest, b);
-            x0 += ws[2] + gap;
-            // rim height took the Master FOV chip's place (+68): seats sit below the springline, and nobody masters wider than 180
-            if (in.domeRim > 0.05f) snprintf(b, sizeof b, "Rim +%.1f m", in.domeRim); else snprintf(b, sizeof b, "Rim at eye level");
-            ch.chip3(HudButton::DomeRim, 0, x0, y, ws[3], ch_h, in.domeRim > 0.05f ? ChipState::On : ChipState::Rest, b);
+            ch.chip3(HudButton::DomeTheatre, 0, x0, y, ws[2], ch_h, in.domeTheatre ? ChipState::On : ChipState::Rest, "Theatre");
             y += ch_h + gap;
         }
         y += 8;

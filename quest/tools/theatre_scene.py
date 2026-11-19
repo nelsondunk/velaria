@@ -189,7 +189,7 @@ def chair(x, y, z, a, coll, mats):
     box("Ped", (x, y, z + 0.18), (0.40, 0.30, 0.36), coll, m_frame, rot)
     box("Cushion", (x, y, z + 0.44), (0.50, 0.48, 0.10), coll, m_seat, rot, bevel=0.03)
     bx, by = x - fx * 0.26, y - fy * 0.26
-    box("Back", (bx, by, z + 0.82), (0.50, 0.09, 0.78), coll, m_seat, rot, rot_x=math.radians(18), bevel=0.03)
+    box("Back", (bx, by, z + 0.72), (0.50, 0.08, 0.60), coll, m_seat, rot, rot_x=math.radians(18), bevel=0.03)   # top ~1.0 above the row floor: the row in front never blocks the screen
     for side in (-1, 1):
         ax, ay = x + side * (-fy) * 0.29, y + side * fx * 0.29
         box("Arm", (ax - fx * 0.04, ay - fy * 0.04, z + 0.64), (0.06, 0.42, 0.05), coll, m_arm, rot, bevel=0.015)
@@ -208,9 +208,9 @@ def build():
     m_floor = mat("Carpet", (0.045, 0.040, 0.050), 0.95)
     m_tier = mat("Tier", (0.055, 0.050, 0.060), 0.95)
     m_nose = mat("StepNose", (0.22, 0.20, 0.18), 0.6)
-    m_wall = mat("Wall", (0.030, 0.028, 0.030), 0.9)
+    m_wall = mat("Wall", (0.07, 0.065, 0.065), 0.9)
     m_dome = mat("Dome", (0.004, 0.004, 0.005), 1.0)
-    m_seat = mat("SeatFabric", (0.10, 0.13, 0.22), 0.85)
+    m_seat = mat("SeatFabric", (0.07, 0.09, 0.16), 0.85)
     m_frame = mat("SeatFrame", (0.015, 0.015, 0.016), 0.5, metal=0.4)
     m_arm = mat("Armrest", (0.09, 0.07, 0.05), 0.55)
     m_rail = mat("Rail", (0.45, 0.45, 0.47), 0.3, metal=1.0)
@@ -300,7 +300,7 @@ def build():
     sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0, 0, 0, 1)
     bpy.ops.object.light_add(type='AREA', location=(0, 2.0, SPRING + 2.5))
     fill = bpy.context.object
-    fill.data.energy = 900
+    fill.data.energy = 260
     fill.data.size = 9
     fill.data.color = (1.0, 0.9, 0.8)
     link(fill, near)
@@ -344,7 +344,7 @@ def build():
     sc.render.image_settings.views_format = 'STEREO_3D'
     sc.render.image_settings.stereo_3d_format.display_mode = 'TOPBOTTOM'
     sc.view_settings.view_transform = 'Standard'
-    sc.view_settings.exposure = 0.6
+    sc.view_settings.exposure = 0.5
     bpy.ops.object.select_all(action='DESELECT')
     for ob in near.objects:
         if ob.type == 'MESH' and ob.name.startswith(("Cushion", "Back", "Arm", "Post", "Rail", "Ped", "Lectern")):

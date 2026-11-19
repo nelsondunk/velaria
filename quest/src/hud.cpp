@@ -723,7 +723,7 @@ static std::string infoKey(const HudInfo& i) {
              i.arriveMs, i.decodeMs, i.rttMs, (unsigned long long)i.shown, (unsigned long long)i.dropped,
              (unsigned long long)i.uneven);
     char d[64];
-    snprintf(d, sizeof d, "|%.0f|%.0f|%d|%.0f|%.0f", i.fisheyeFov, i.domeTilt, i.domeSeat, i.domeDiameter, i.domeFov);
+    snprintf(d, sizeof d, "|%.0f|%.0f|%d|%d|%.0f", i.fisheyeFov, i.domeTilt, i.domeSeat, i.domeTheatre ? 1 : 0, i.domeFov);
     return std::string(b) + "|" + i.source + "|" + i.serverName + d;
 }
 
