@@ -2,6 +2,16 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## Unreleased — 180, stereo and dome output (18 Nov 2026, overnight)
+
+Headset app 1.1.0-dome+62 (installed on Nelson's Quest 18 Nov 20:30, **not yet seen by him**). Macros verified by rendering the labelled charts in the "Velaria Format Tests" project on Bruce; the headset half is UNTESTED.
+
+- **180 family (verified):** *Velaria 180 to 360* and *Velaria 360 to 180* adapters (VR180 side-by-side ↔ the 360 over/under frame the other macros work in; round trip is pixel-identical), *Velaria Orient 180* (tilt and roll on both eyes, same signs as Orient 360 and ffmpeg v360), and the existing Canvas Control card placed on a 180 plate through the adapter (centred card lands at the centre of both eyes; Yaw 60 lands on the 60° line).
+- **Velaria Stereo 180 / Stereo 360 (macro verified):** Convergence (−0.05..0.05 of the eye width; +0.02 moved the left eye +20 px and the right −20 px on a 1920-wide eye) and Swap Eyes. In the headset the bars sit on the Placement panel under STEREO, like Trim.
+- **Live convergence in the headset (UNTESTED):** while the Convergence bar is dragged the two eyes are yawed apart by the change, so the depth moves under your hand before Resolve re-renders; the offset is dropped 700 ms after release. The direction of the yaw has not been checked on a device: if dragging right makes things look *further* away in the headset and *nearer* once Resolve catches up, the sign is wrong (one line in `main.cpp`).
+- **Velaria Dome Output:** equirect 360 (or one eye of a stereo plate) to a fulldome master, zenith at the centre, front at the bottom of the frame, with Theatre Tilt, Horizon, Pan, Master FOV and source-eye controls. As a **DCTL** for the Color page (verified on Bruce against ffmpeg's v360 at tilt 0 and tilt 20) and as a **GPU Fuse** for the Fusion page (same formulas, UNTESTED: Resolve only registers Fuses at launch). Both ship only in a Dome package (`VELARIA_DOME=1 ./package.sh`).
+- Known gap: merging Canvas Control's output over the plate *inside one Fusion comp* misplaces the card in both 180 and 360; the shipped way (the card on its own track) is right. Matters only for future macros that merge internally.
+
 ## Unreleased — 1.1 work in progress (Dome preview)
 
 **UNTESTED on a headset.** Built on Linux only (13 Nov 2026); nothing below has been seen in a Quest.
