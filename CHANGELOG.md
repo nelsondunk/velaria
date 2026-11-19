@@ -52,6 +52,13 @@ Thu 19 Nov, after the third pass (+70, pending Nelson's choice of venues from th
 - **Seam at the back** (+73): both 360 layers now carry a one-texel wraparound margin, with the layer rectangle set inside it, so the compositor's edge sample at 180° lands on real content instead of drawing a hairline.
 - **Halation:** a bloom pass in the Blender compositor on the renders (exit signs, step lights, lectern screen).
 
+Thu 19 Nov afternoon (+74, driver rebuilt and installed 14:3x): **ambisonic sound, head-tracked, first order.**
+
+- Resolve side: a **Quad** track into a **Quad** bus, patched Bus 1-0…1-3 → Decklink 1–4 in Fairlight ▸ Patch Input/Output (un-patch Control Room from 1–2 first). Fairlight's own Ambisonics bus format refuses to patch ("source beds are not supported in Dolby Atmos"), and the Adaptive format is not offered; Quad passes the four AmbiX channels (ACN W Y Z X) untouched, which the driver's new per-channel meter confirmed. BMD16 is the format for third order later.
+- Driver: the hello carries `kCapAudio4`; such a headset gets the first four channels, others the stereo pair as before. A per-channel RMS meter line every two seconds in `driver.log`.
+- Headset: the **Sound** chip cycles *in headset* (stereo) → *ambisonic* → *off*. In ambisonic mode the field is rotated by the inverse head pose each render callback and decoded with a cardioid pair at ±45° (gains glide across the callback as the head turns). Left/right and head-tracking are right; front/back is a level cue only and elevation is flattened until the HRTF step (Resonance Audio, third order).
+- Test material on Baxter, `Sync test/`: `Velaria ambisonic test 1st order.wav` (tones by direction) and `… spoken.wav` (each direction announced by a voice placed where it says, then its tone; `macros/regression-rig/mkambix.py`, `mkambix_voice.py`). Confirmed by Nelson in the headset: "ambisonics and head tracking is working", "works great".
+
 ## Unreleased — 1.1 work in progress (Dome preview)
 
 **UNTESTED on a headset.** Built on Linux only (13 Nov 2026); nothing below has been seen in a Quest.
