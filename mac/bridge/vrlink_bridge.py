@@ -260,7 +260,7 @@ class Bridge:
                     continue
                 clips.append({"key": self.clip_key(v, it), "track": v, "name": name, "start": it.GetStart(),
                               "end": it.GetEnd(), "color": it.GetClipColor() or "",
-                              "fusion": it.GetFusionCompCount() > 0})
+                              "fusion": it.GetFusionCompCount() > 0, "enabled": self.clip_enabled(it)})
         markers = []
         for frame, m in (tl.GetMarkers() or {}).items():
             markers.append({"frame": tl.GetStartFrame() + int(frame), "name": m.get("name", ""),
@@ -274,8 +274,17 @@ class Bridge:
         sig = [tl.GetName(), tl.GetStartFrame(), tl.GetEndFrame(), repr(getattr(self, "format", None)), tuple(getattr(self, "warnings", []))]
         for v in range(1, tl.GetTrackCount("video") + 1):
             items = tl.GetItemListInTrack("video", v) or []
-            sig.append((v, len(items), items[-1].GetEnd() if items else 0))
+            sig.append((v, len(items), items[-1].GetEnd() if items else 0, sum(1 for it in items if not self.clip_enabled(it))))
         return tuple(sig)
+
+    @staticmethod
+    def clip_enabled(it):
+        """Resolve 18.5+ answers GetClipEnabled; older builds have no such call, and a clip is then taken as enabled."""
+        try:
+            v = it.GetClipEnabled()
+            return True if v is None else bool(v)
+        except Exception:
+            return True
 
     def current_frame(self):
         # Resolve reports no timecode on some pages (Fusion, Media, Deliver): keep the last known position.
@@ -828,6 +837,14 @@ class Bridge:
             log("undo -> %s" % (pid or "nothing"))
             self.broadcast(self.macro_params())
             self.broadcast({"type": "notice", "msg": ("Undid paste" if pid == "paste" else "Restored " + pid) if pid else "Nothing to undo"})
+        elif cmd == "hide":
+            # {"cmd":"hide","clips":[keys],"on":1} disables those clips in Resolve (the Edit page's Enable Clip, D key);
+            # on=0 enables them again. Resolve re-renders once per clip, like any timeline change.
+            keys = msg.get("clips") or ([msg["clip"]] if msg.get("clip") else [])
+            n = self.set_hidden(keys, bool(msg.get("on", 1)))
+            self.broadcast(self.timeline_snapshot())
+            if n:
+                self.broadcast({"type": "notice", "msg": ("Hidden %d" if msg.get("on", 1) else "Showing %d") % n + (" clip" if n == 1 else " clips")})
         elif cmd == "ping":
             self.send(client, {"type": "pong", "t": msg.get("t")})
 
@@ -859,6 +876,32 @@ class Bridge:
         if done:
             self.broadcast({"type": "notice", "msg": "Keyframe set at %s" % frame_to_tc(self.current_frame(), self.fps, self.drop)})
             self.broadcast(self.macro_params())
+
+    def set_hidden(self, keys, hidden):
+        """Enable or disable the timeline items with these clip keys (track:start). Returns how many changed."""
+        want = set(keys)
+        n = 0
+        tl = self.timeline
+        with self.lock:
+            for v in range(1, tl.GetTrackCount("video") + 1):
+                for it in tl.GetItemListInTrack("video", v) or []:
+                    try:
+                        key = self.clip_key(v, it)
+                    except TransientError:
+                        continue
+                    if key not in want:
+                        continue
+                    if self.clip_enabled(it) == (not hidden):
+                        continue
+                    try:
+                        if it.SetClipEnabled(not hidden):
+                            n += 1
+                        else:
+                            log("hide: SetClipEnabled refused for %s" % key)
+                    except Exception as e:
+                        log("hide: %s: %s" % (key, e))
+            self.tl_signature = None   # force the next re-scan to broadcast
+        return n
 
     def seek(self, frame):
         tl = self.timeline

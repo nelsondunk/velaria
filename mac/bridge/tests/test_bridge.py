@@ -567,3 +567,24 @@ if __name__ == "__main__":
                 traceback.print_exc()
     print("FAILED" if failed else "PASSED", failed, "failure(s)")
     sys.exit(1 if failed else 0)
+
+
+def test_hide_and_show_clips_from_the_headset():
+    b, sent = make_bridge()
+    card = [c for c in b.timeline_snapshot()["clips"] if c["name"] == "Card"][0]
+    assert card["enabled"] is True
+    sig_before = b.signature()
+    b.handle(Client(), {"cmd": "hide", "clips": [card["key"]], "on": 1})
+    snap = [m for m in sent if m.get("type") == "timeline"][-1]
+    assert [c["enabled"] for c in snap["clips"] if c["name"] == "Card"] == [False]
+    assert [c["enabled"] for c in snap["clips"] if c["name"] != "Card"] == [True, True]
+    assert sent[-1]["type"] == "notice" and sent[-1]["msg"] == "Hidden 1 clip"
+    assert b.signature() != sig_before          # a toggle made in Resolve itself would reach the headset the same way
+    b.handle(Client(), {"cmd": "hide", "clips": [card["key"]], "on": 0})
+    snap = [m for m in sent if m.get("type") == "timeline"][-1]
+    assert all(c["enabled"] for c in snap["clips"])
+    assert sent[-1]["msg"] == "Showing 1 clip"
+    # hiding something already hidden, or an unknown key, is quiet
+    n = len(sent)
+    b.handle(Client(), {"cmd": "hide", "clips": ["V9:1"], "on": 1})
+    assert [m["type"] for m in sent[n:]] == ["timeline"]

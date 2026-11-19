@@ -139,6 +139,7 @@ enum class HudButton {
     Jump,       // arg = timeline frame: seek there (the empty strip's "previous / next overlay")
     Layer,      // arg 0 OVERLAYS, 1 PATCHES, 2 PICTURE: which kind of group the strip and panels show
     Lock,       // make the current patch / picture group read-only in the headset (persisted)
+    Hide,       // arg 0: hide / show the current group's clip in Resolve (Enable Clip); arg 1: show every hidden clip on this layer
     GroupPick,  // arg = group index: the named chips on the strip
     ScopesView, // arg 0 waveform + vectorscope, 1 RGB parade, 2 histograms
     // deck

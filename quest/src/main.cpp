@@ -799,6 +799,27 @@ static void activate(HudButton b, int arg = 0) {
             return;
         }
         case HudButton::Undo: bridgeCmd("undo"); return;
+        case HudButton::Hide: {
+            // arg 0: toggle the current group's clip; arg 1: show every hidden clip on this layer
+            Json j = Json::object();
+            j["cmd"] = "hide";
+            Json keys = Json::array();
+            bool on = true;
+            if (arg == 1) {
+                for (auto& gr : g.edit.groups) if (g.edit.inLayer(gr) && g.edit.isHidden(gr)) keys.arr.push_back(Json(gr.clip));
+                on = false;
+            } else {
+                const EditGroup* cg = g.edit.current();
+                if (!cg) return;
+                keys.arr.push_back(Json(cg->clip));
+                on = !g.edit.isHidden(*cg);
+            }
+            if (keys.arr.empty()) return;
+            j["clips"] = keys;
+            j["on"] = on ? 1.0 : 0.0;
+            g.bridge.send(j);
+            return;
+        }
         case HudButton::Jump: {
             Json j = Json::object();
             j["cmd"] = "seek";
@@ -1444,6 +1465,7 @@ static int pickCard(const XrPosef& ray) {
     int best = -1;
     float bestAng = 1e9f;
     for (int i = 0; i < (int)g.edit.groups.size(); i++) {
+        if (g.edit.isHidden(g.edit.groups[i])) continue;   // nothing is drawn there to point at
         CardGeom c = cardGeom(g.edit.groups[i]);
         if (!c.valid) continue;
         XrVector3f cd = cardDir(c.pan, c.tilt);
@@ -2151,7 +2173,7 @@ static void pollDebugCommands(int64_t now) {
         {"PageUp", HudButton::PageUp}, {"PageDown", HudButton::PageDown}, {"Toggle", HudButton::Toggle},
         {"NudgeDown", HudButton::NudgeDown}, {"NudgeUp", HudButton::NudgeUp}, {"Key", HudButton::Key},
         {"Zoom", HudButton::Zoom}, {"Copy", HudButton::Copy}, {"Paste", HudButton::Paste}, {"PasteAll", HudButton::PasteAll},
-        {"Dial", HudButton::Dial}, {"Grid", HudButton::Grid}, {"Outline", HudButton::Outline}, {"Source", HudButton::Source}, {"FovDown", HudButton::FovDown}, {"FovUp", HudButton::FovUp}, {"PanelToggle", HudButton::PanelToggle}, {"Layer", HudButton::Layer}, {"Lock", HudButton::Lock}, {"GroupPick", HudButton::GroupPick}, {"ScopesView", HudButton::ScopesView}, {"Jump", HudButton::Jump}, {"FovPreset", HudButton::FovPreset},
+        {"Dial", HudButton::Dial}, {"Grid", HudButton::Grid}, {"Outline", HudButton::Outline}, {"Source", HudButton::Source}, {"FovDown", HudButton::FovDown}, {"FovUp", HudButton::FovUp}, {"PanelToggle", HudButton::PanelToggle}, {"Layer", HudButton::Layer}, {"Lock", HudButton::Lock}, {"Hide", HudButton::Hide}, {"GroupPick", HudButton::GroupPick}, {"ScopesView", HudButton::ScopesView}, {"Jump", HudButton::Jump}, {"FovPreset", HudButton::FovPreset},
         {"DomeTilt", HudButton::DomeTilt}, {"DomeTiltDown", HudButton::DomeTiltDown}, {"DomeTiltUp", HudButton::DomeTiltUp}, {"DomeSeat", HudButton::DomeSeat}, {"DomeSize", HudButton::DomeSize}, {"DomeFov", HudButton::DomeFov}};
     for (auto& l : lines) {
         std::istringstream ss(l);
@@ -2394,6 +2416,7 @@ static void renderFrame() {
         for (int k = 0; k < 2; k++) {
             int gi = show[k];
             if (gi < 0 || gi >= (int)g.edit.groups.size()) continue;
+            if (g.edit.isHidden(g.edit.groups[gi])) continue;   // a hidden card has no picture to outline
             CardGeom c = cardGeom(g.edit.groups[gi]);
             if (!c.valid) continue;
             bool anyPanel = false;

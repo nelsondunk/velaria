@@ -479,6 +479,23 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
             rx -= 10 + 60;
             ch.iconChip(HudButton::Copy, 0, rx, rowA, 60, ChipState::Rest, Icon::Copy, "Copy settings");
         }
+        // Hide / Show: the current group's clip is disabled in Resolve (Enable Clip), so it renders nothing and the
+        // plate shows through; "Show n" brings back everything hidden on this layer. Trim and Stereo passes hide too:
+        // that is the quickest before/after of a pass.
+        {
+            bool hidden = m->isHidden(*g);
+            std::string lbl = hidden ? "Show" : "Hide";
+            float w = Chrome::chipWidth(lbl, -1, "");
+            rx -= 10 + w;
+            ch.chip3(HudButton::Hide, 0, rx, rowA, w, 60, hidden ? ChipState::On : ChipState::Rest, lbl);
+            int nh = m->hiddenInLayer();
+            if (nh > (hidden ? 1 : 0)) {
+                std::string all = "Show " + std::to_string(nh);
+                float aw = Chrome::chipWidth(all, -1, "");
+                rx -= 10 + aw;
+                ch.chip3(HudButton::Hide, 1, rx, rowA, aw, 60, ChipState::Rest, all);
+            }
+        }
         float limit = rx - 24;
         float x = padL;
         bool many = idx.size() > 1;
@@ -508,7 +525,8 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
                 if (x + mw + nextW <= limit) ch.chip3(HudButton::GroupNext, 0, x, rowA, mw, 60, ChipState::Flat, more), x += mw + 10;
                 break;
             }
-            ch.chip3(HudButton::GroupPick, i, x, rowA, w, 60, i == m->group ? ChipState::On : ChipState::Rest, name, icon, tag);
+            // a hidden group's name is drawn in the Off state (dim) so the strip says at a glance what is not on screen
+            ch.chip3(HudButton::GroupPick, i, x, rowA, w, 60, i == m->group ? ChipState::On : (m->isHidden(gi) ? ChipState::Off : ChipState::Rest), name, icon, tag);
             x += w + 10;
             shown++;
         }

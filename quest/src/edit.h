@@ -17,6 +17,7 @@ struct EditClip {
     int track = 1;
     int64_t start = 0, end = 0;
     bool fusion = false;
+    bool enabled = true;     // Resolve's Enable Clip (D): a disabled clip renders nothing and is "hidden" in the headset
 };
 
 struct EditMarker {
@@ -98,6 +99,9 @@ struct EditModel {
         return -1;
     }
     bool isLocked(const EditGroup& g) const { return locked.count(g.key()) > 0; }
+    // hidden = the group's clip is disabled in Resolve (the headset's Hide chip, or D on the Edit page)
+    bool isHidden(const EditGroup& g) const { for (auto& c : clips) if (c.key == g.clip) return !c.enabled; return false; }
+    int hiddenInLayer() const { int n = 0; for (auto& g : groups) if (inLayer(g) && isHidden(g)) n++; return n; }
     bool currentLocked() const { const EditGroup* g = current(); return g && isLocked(*g); }
     void settle() { if (group < 0 || group >= (int)groups.size() || !inLayer(groups[group])) { int f = firstInLayer(); group = f < 0 ? 0 : f; } }
     int firstRow = 0;             // scrolling within a Look tab

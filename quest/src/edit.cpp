@@ -40,6 +40,7 @@ bool EditModel::apply(const Json& msg) {
             e.start = (int64_t)c.get("start").numberOr(0);
             e.end = (int64_t)c.get("end").numberOr(0);
             e.fusion = c.get("fusion").boolOr(false);
+            e.enabled = c.get("enabled").boolOr(true);
             clips.push_back(e);
         }
         markers.clear();

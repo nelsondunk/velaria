@@ -117,6 +117,10 @@ class Comp:
 class Item:
     def __init__(self, name, start, end, comp=None, color="Blue"):
         self.name, self.start, self.end, self.comp, self.color = name, start, end, comp, color
+        self.enabled = True
+
+    def GetClipEnabled(self): return self.enabled
+    def SetClipEnabled(self, on): self.enabled = bool(on); return True
 
     def GetName(self): return self.name
     def GetStart(self): return self.start

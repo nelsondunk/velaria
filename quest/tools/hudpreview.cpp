@@ -104,6 +104,10 @@ int main(int argc, char** argv) {
         writePpm(out + "/" + names[(int)id] + "-" + state + ".ppm", c);
     };
     dump(PanelId::Instance, "overlays");
+    // one card hidden (its clip disabled in Resolve): its name dims, the chips read Hide + "Show 1"
+    for (auto& cl : m.clips) if (cl.key == "fw") { cl.key = m.groups[1].clip; cl.enabled = false; }
+    dump(PanelId::Instance, "hidden");
+    for (auto& cl : m.clips) if (cl.key == m.groups[1].clip) { cl.key = "fw"; cl.enabled = true; }
     s.hover = HudButton::Copy; s.hoverArg = 0;
     dump(PanelId::Instance, "hover");
     s.hover = HudButton::Move;
