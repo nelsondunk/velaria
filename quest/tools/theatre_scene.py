@@ -313,9 +313,9 @@ def build(v):
     m_arm = mat("Armrest", (0.09, 0.07, 0.05), 0.55)
     m_rail = mat("Rail", (0.45, 0.45, 0.47), 0.3, metal=1.0)
     m_console = mat("Console", (0.035, 0.035, 0.04), 0.6)
-    m_screen = mat("Screen", (0.2, 0.3, 0.5), 0.4, emit=0.8, emit_rgb=(0.25, 0.40, 0.70))
-    m_step = mat("StepLight", (0.3, 0.6, 1.0), 0.5, emit=1.8, emit_rgb=(0.30, 0.50, 1.0))
-    m_exit = mat("Exit", (0.2, 1.0, 0.4), 0.5, emit=1.4, emit_rgb=(0.15, 1.0, 0.35))
+    m_screen = mat("Screen", (0.2, 0.3, 0.5), 0.4, emit=0.4, emit_rgb=(0.25, 0.40, 0.70))
+    m_step = mat("StepLight", (0.3, 0.6, 1.0), 0.5, emit=1.0, emit_rgb=(0.30, 0.50, 1.0))
+    m_exit = mat("Exit", (0.2, 1.0, 0.4), 0.5, emit=0.9, emit_rgb=(0.15, 1.0, 0.35))
     m_door = mat("Door", (0.05, 0.045, 0.04), 0.7)
 
     # ---- far set: the dome (black; the headset draws the picture there) and the skirt wall under its rim
@@ -374,7 +374,7 @@ def build(v):
             for ci, (cx, cy, _) in enumerate(cams):
                 d2 = (x - cx) ** 2 + (y - cy) ** 2
                 if d2 < 0.3 ** 2:
-                    own_back.setdefault(ci, []).append(back)          # the viewer's chair: no backrest behind the head
+                    own_back.setdefault(ci, []).extend(parts)         # the viewer's own chair: not drawn (distracting, eye-crossing; Nelson 12:44)
                 elif d2 < 0.95 ** 2:
                     neighbours.setdefault(ci, []).extend(parts)        # the seats either side stay empty (strain at 0.6 m)
     # the front rail
@@ -398,12 +398,12 @@ def build(v):
     # ---- light: the show, as one soft cool source from the dome above-front; a whisper of ambient
     sc.world = bpy.data.worlds.new("World")
     sc.world.use_nodes = True
-    sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0.0008, 0.001, 0.0018, 1)
+    sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0.0002, 0.00025, 0.00045, 1)
     lpos = Vector(v.to_world((0.0, -0.35 * R, 0.75 * R)))
     block = Vector((0.0, (v.rows[0][0] + v.rows[-1][0]) / 2, v.rows[nrows // 2][1] + 1.0))
     bpy.ops.object.light_add(type='AREA', location=lpos)
     show = bpy.context.object
-    show.data.energy = 1.6 * R * R   # "just barely able to see floors and walls" (Nelson, 19 Nov; halved again 12:35)
+    show.data.energy = 0.4 * R * R   # "just barely able to see floors and walls" (Nelson, 19 Nov; two stops down again 12:44)
     show.data.size = 0.25 * R
     show.data.color = (0.60, 0.68, 0.85)
     show.rotation_euler = (block - lpos).to_track_quat('-Z', 'Y').to_euler()
@@ -412,7 +412,7 @@ def build(v):
     zpos = Vector(v.to_world((0.0, 0.0, 0.9 * R)))
     bpy.ops.object.light_add(type='AREA', location=zpos)
     glow = bpy.context.object
-    glow.data.energy = 0.3 * R * R
+    glow.data.energy = 0.075 * R * R
     glow.data.size = 0.9 * R
     glow.data.color = (0.55, 0.62, 0.80)
     glow.rotation_euler = (block - zpos).to_track_quat('-Z', 'Y').to_euler()
