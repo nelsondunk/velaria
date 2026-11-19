@@ -4,7 +4,7 @@
 import json, os, time
 assert project.GetName().startswith("Velaria Format Tests"), "wrong project open: " + project.GetName()
 HERE = os.path.expanduser("~/VRLink/xfer/rq")
-COMPS, CHARTS, OUTDIR = os.path.join(HERE, "fmt180"), os.path.join(HERE, "charts"), os.path.join(HERE, "fmtout")
+COMPS, CHARTS, OUTDIR = os.environ.get("COMPS", os.path.join(HERE, "fmt180")), os.path.join(HERE, "charts"), os.path.join(HERE, "fmtout")
 LOG = os.path.expanduser("~/Library/Application Support/Blackmagic Design/DaVinci Resolve/logs/davinci_resolve.log")
 RESULT = os.path.join(HERE, "fmtresult.json")
 os.makedirs(OUTDIR, exist_ok=True)
