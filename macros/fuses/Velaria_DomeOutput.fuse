@@ -55,7 +55,9 @@ __KERNEL__ void DomeKernel(__CONSTANTREF__ DomeParams *params, __TEXTURE2D__ src
         float ny = ((float)y + 0.5f) / size * 2.0f - 1.0f;      // y is up: ny = -1 is the bottom = front
         float r = _sqrtf(nx * nx + ny * ny);
         float4 col = to_float4(0.0f, 0.0f, 0.0f, params->transparent ? 0.0f : 1.0f);
-        if (r <= 1.0f) {
+        float rim = _clampf((1.0f - r) * size * 0.5f + 0.5f, 0.0f, 1.0f);   // one pixel of feather at the circle's edge
+        if (rim > 0.0f) {
+            if (r > 1.0f) r = 1.0f;
             float phi = _atan2f(ny, nx);
             float theta = r * params->halfFov;                   // angle from the dome's zenith (equidistant)
             float st = _sinf(theta);
@@ -72,8 +74,9 @@ __KERNEL__ void DomeKernel(__CONSTANTREF__ DomeParams *params, __TEXTURE2D__ src
             float v = 0.5f + lat / 3.14159265f;
             if (params->eyes == 1) v = 0.5f + v * 0.5f;          // over-under, left eye on top
             else if (params->eyes == 2) u = u * 0.5f;            // side-by-side, left eye on the left
-            col = _tex2DVecN(src, u, v, params->compOrder);
-            col.w = 1.0f;
+            float4 s = _tex2DVecN(src, u, v, params->compOrder);
+            col.x = s.x * rim; col.y = s.y * rim; col.z = s.z * rim;
+            col.w = params->transparent ? rim : 1.0f;
         }
         _tex2DVec4Write(dst, x, y, col);
     }

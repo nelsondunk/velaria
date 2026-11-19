@@ -45,7 +45,10 @@ __DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, __TEXTU
     float nx = ((float)p_X + 0.5f - cx) / size * 2.0f;
     float ny = -(((float)p_Y + 0.5f - cy) / size * 2.0f);       // DCTL rows run top-down; ny = -1 is the bottom = front
     float r = _sqrtf(nx * nx + ny * ny);
-    if (r > 1.0f) return make_float3(0.0f, 0.0f, 0.0f);
+    // the rim: one output pixel of feather, so the circle's edge is not a staircase (Nelson, 18 Nov)
+    float rim = _clampf((1.0f - r) * size * 0.5f + 0.5f, 0.0f, 1.0f);
+    if (rim <= 0.0f) return make_float3(0.0f, 0.0f, 0.0f);
+    if (r > 1.0f) r = 1.0f;
 
     float halfFov = 0.5f * (fov == FOV220 ? 220.0f : (fov == FOV200 ? 200.0f : 180.0f)) * 0.017453292f;
     float phi = _atan2f(ny, nx);
@@ -66,5 +69,6 @@ __DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, __TEXTU
 
     float fx = (float)bx0 + u * (float)bw - 0.5f;
     float fy = (float)by0 + v * (float)bh - 0.5f;
-    return sampleEq(p_TexR, p_TexG, p_TexB, fx, fy, bx0, by0, bx0 + bw - 1, by0 + bh - 1);
+    float3 col = sampleEq(p_TexR, p_TexG, p_TexB, fx, fy, bx0, by0, bx0 + bw - 1, by0 + bh - 1);
+    return col * rim;
 }
