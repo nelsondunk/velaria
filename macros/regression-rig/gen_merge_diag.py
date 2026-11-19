@@ -8,7 +8,7 @@ import settingparse as sp, settingwrite as sw
 OUT = sys.argv[1] if len(sys.argv) > 1 else "fmtdiag"
 os.makedirs(OUT, exist_ok=True)
 RANGE = 59
-MAC = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Velaria Canvas Control.setting")
+MAC = os.environ.get("CC_MACRO") or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Velaria Canvas Control.setting")
 def I(v, **kw):
     d = {"__type": "Input", "Value": v}; d.update(kw); return d
 def link(op, out="Output"): return {"__type": "Input", "SourceOp": op, "Source": out}
