@@ -1,0 +1,99 @@
+{
+	Tools = ordered() {
+		Velaria_360to180 = MacroOperator {
+			Inputs = ordered() {
+				MainInput1 = InstanceInput { SourceOp = "In360_Full", Source = "Input", Name = "Stereo 360 (Top / Bottom)", },
+			},
+			Outputs = {
+				MainOutput1 = InstanceOutput { SourceOp = "Out180_SideBySide", Source = "Output", Name = "Stereo 180 (Side by Side)", },
+			},
+			Tools = ordered() {
+				In360_Full = SetDomain {
+					Inputs = {
+						Left = Input { Value = 0, },
+						Bottom = Input { Value = 0, },
+						Right = Input { Value = 1, },
+						Top = Input { Value = 1, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -520, 0 },
+					},
+				},
+				In360_Split = Splitter {
+					CustomData = { ToolVersion = 2, },
+					Inputs = {
+						Split = Input {
+							Value = FuID { "Vert", },
+						},
+						Input = Input { SourceOp = "In360_Full", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -400, 0 },
+					},
+				},
+				Eye1_Square = Background {
+					Inputs = {
+						UseFrameFormatSettings = Input { Value = 0, },
+						Width = Input { Value = 1024, Expression = "In360_Split.Image1.Width / 2", },
+						Height = Input { Value = 1024, Expression = "In360_Split.Image1.Height", },
+						TopLeftAlpha = Input { Value = 0, },
+						TopLeftRed = Input { Value = 0, },
+						TopLeftGreen = Input { Value = 0, },
+						TopLeftBlue = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 0, -140 },
+					},
+				},
+				Eye1_Centre = Merge {
+					Inputs = {
+						Background = Input { SourceOp = "Eye1_Square", Source = "Output", },
+						Foreground = Input { SourceOp = "In360_Split", Source = "Image1", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 100, -80 },
+					},
+				},
+				Eye2_Square = Background {
+					Inputs = {
+						UseFrameFormatSettings = Input { Value = 0, },
+						Width = Input { Value = 1024, Expression = "In360_Split.Image2.Width / 2", },
+						Height = Input { Value = 1024, Expression = "In360_Split.Image2.Height", },
+						TopLeftAlpha = Input { Value = 0, },
+						TopLeftRed = Input { Value = 0, },
+						TopLeftGreen = Input { Value = 0, },
+						TopLeftBlue = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 0, 20 },
+					},
+				},
+				Eye2_Centre = Merge {
+					Inputs = {
+						Background = Input { SourceOp = "Eye2_Square", Source = "Output", },
+						Foreground = Input { SourceOp = "In360_Split", Source = "Image2", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 100, 80 },
+					},
+				},
+				Out180_SideBySide = Combiner {
+					CustomData = { ToolVersion = 2, },
+					Inputs = {
+						Combine = Input {
+							Value = FuID { "Horiz", },
+						},
+						Image1 = Input { SourceOp = "Eye1_Centre", Source = "Output", },
+						Image2 = Input { SourceOp = "Eye2_Centre", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 400, 0 },
+					},
+				},
+			},
+			ViewInfo = GroupInfo {
+				Pos = { 0, 0 },
+			},
+		},
+	},
+}

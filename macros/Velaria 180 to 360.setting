@@ -1,0 +1,99 @@
+{
+	Tools = ordered() {
+		Velaria_180to360 = MacroOperator {
+			Inputs = ordered() {
+				MainInput1 = InstanceInput { SourceOp = "In180_Full", Source = "Input", Name = "Stereo 180 (Side by Side)", },
+			},
+			Outputs = {
+				MainOutput1 = InstanceOutput { SourceOp = "Out360_Stack", Source = "Output", Name = "Stereo 360 (Top / Bottom, padded)", },
+			},
+			Tools = ordered() {
+				In180_Full = SetDomain {
+					Inputs = {
+						Left = Input { Value = 0, },
+						Bottom = Input { Value = 0, },
+						Right = Input { Value = 1, },
+						Top = Input { Value = 1, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -520, 0 },
+					},
+				},
+				In180_Split = Splitter {
+					CustomData = { ToolVersion = 2, },
+					Inputs = {
+						Split = Input {
+							Value = FuID { "Horiz", },
+						},
+						Input = Input { SourceOp = "In180_Full", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -400, 0 },
+					},
+				},
+				Eye1_Canvas = Background {
+					Inputs = {
+						UseFrameFormatSettings = Input { Value = 0, },
+						Width = Input { Value = 2048, Expression = "In180_Split.Image1.Width * 2", },
+						Height = Input { Value = 1024, Expression = "In180_Split.Image1.Height", },
+						TopLeftAlpha = Input { Value = 0, },
+						TopLeftRed = Input { Value = 0, },
+						TopLeftGreen = Input { Value = 0, },
+						TopLeftBlue = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -200, -140 },
+					},
+				},
+				Eye1_Pad = Merge {
+					Inputs = {
+						Background = Input { SourceOp = "Eye1_Canvas", Source = "Output", },
+						Foreground = Input { SourceOp = "In180_Split", Source = "Image1", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -100, -80 },
+					},
+				},
+				Eye2_Canvas = Background {
+					Inputs = {
+						UseFrameFormatSettings = Input { Value = 0, },
+						Width = Input { Value = 2048, Expression = "In180_Split.Image2.Width * 2", },
+						Height = Input { Value = 1024, Expression = "In180_Split.Image2.Height", },
+						TopLeftAlpha = Input { Value = 0, },
+						TopLeftRed = Input { Value = 0, },
+						TopLeftGreen = Input { Value = 0, },
+						TopLeftBlue = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -200, 20 },
+					},
+				},
+				Eye2_Pad = Merge {
+					Inputs = {
+						Background = Input { SourceOp = "Eye2_Canvas", Source = "Output", },
+						Foreground = Input { SourceOp = "In180_Split", Source = "Image2", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -100, 80 },
+					},
+				},
+				Out360_Stack = Combiner {
+					CustomData = { ToolVersion = 2, },
+					Inputs = {
+						Combine = Input {
+							Value = FuID { "Vert", },
+						},
+						Image1 = Input { SourceOp = "Eye1_Pad", Source = "Output", },
+						Image2 = Input { SourceOp = "Eye2_Pad", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 400, 0 },
+					},
+				},
+			},
+			ViewInfo = GroupInfo {
+				Pos = { 0, 0 },
+			},
+		},
+	},
+}

@@ -1,0 +1,93 @@
+[
+ {
+  "id": "pad_180to360",
+  "timeline": "12 Chart 180 SBS",
+  "file": "pad_180to360.comp",
+  "desc": "180 SBS -> padded 360 TB (rendered into the 2:1 frame, so it will be squashed: geometry only)",
+  "expect": "each eye centred in a 2:1 row, black either side; L row on top"
+ },
+ {
+  "id": "roundtrip_180",
+  "timeline": "12 Chart 180 SBS",
+  "file": "roundtrip_180.comp",
+  "desc": "180 -> 360 -> 180",
+  "expect": "pixel-identical to the chart"
+ },
+ {
+  "id": "or180_tilt10",
+  "timeline": "12 Chart 180 SBS",
+  "file": "or180_tilt10.comp",
+  "desc": "Orient 180 Tilt 10",
+  "expect": "both eyes move the same way; compare with ffmpeg v360 hequirect pitch/roll"
+ },
+ {
+  "id": "or180_roll10",
+  "timeline": "12 Chart 180 SBS",
+  "file": "or180_roll10.comp",
+  "desc": "Orient 180 Roll 10",
+  "expect": "both eyes move the same way; compare with ffmpeg v360 hequirect pitch/roll"
+ },
+ {
+  "id": "st180_conv",
+  "timeline": "12 Chart 180 SBS",
+  "file": "st180_conv.comp",
+  "desc": "Velaria_Stereo180 Convergence=0.02",
+  "expect": "conv: eye1 content shifts +1% of eye width, eye2 -1% (opposite); swap: L and R exchange"
+ },
+ {
+  "id": "st180_swap",
+  "timeline": "12 Chart 180 SBS",
+  "file": "st180_swap.comp",
+  "desc": "Velaria_Stereo180 SwapEyes=1",
+  "expect": "conv: eye1 content shifts +1% of eye width, eye2 -1% (opposite); swap: L and R exchange"
+ },
+ {
+  "id": "st360_conv",
+  "timeline": "13 Chart 360 TB",
+  "file": "st360_conv.comp",
+  "desc": "Velaria_Stereo360 Convergence=0.02",
+  "expect": "conv: eye1 content shifts +1% of eye width, eye2 -1% (opposite); swap: L and R exchange"
+ },
+ {
+  "id": "st360_swap",
+  "timeline": "13 Chart 360 TB",
+  "file": "st360_swap.comp",
+  "desc": "Velaria_Stereo360 SwapEyes=1",
+  "expect": "conv: eye1 content shifts +1% of eye width, eye2 -1% (opposite); swap: L and R exchange"
+ },
+ {
+  "id": "cc180_centre",
+  "timeline": "12 Chart 180 SBS",
+  "file": "cc180_centre.comp",
+  "desc": "Canvas Control (stereo, default placement) -> 360 to 180 -> over the 180 chart",
+  "expect": "a card at the centre of both eyes, same size in each, slightly offset for depth"
+ },
+ {
+  "id": "cc180_yaw60",
+  "timeline": "12 Chart 180 SBS",
+  "file": "cc180_yaw60.comp",
+  "desc": "same, Yaw 60",
+  "expect": "card centred at the 60-degree line of each eye (two thirds of the way to the right edge)"
+ },
+ {
+  "id": "cc360_centre",
+  "timeline": "13 Chart 360 TB",
+  "file": "cc360_centre.comp",
+  "desc": "Canvas Control (stereo, default) over the 360 chart: the reference",
+  "expect": "card at the centre of both eyes"
+ },
+ {
+  "id": "cc180_alone",
+  "timeline": "12 Chart 180 SBS",
+  "file": "cc180_alone.comp",
+  "desc": "Canvas Control -> 360 to 180, straight to MediaOut (as on an overlay track)",
+  "expect": "a card at the centre of each eye on black"
+ },
+ {
+  "id": "cc180_alone_yaw60",
+  "timeline": "12 Chart 180 SBS",
+  "file": "cc180_alone_yaw60.comp",
+  "desc": "Canvas Control -> 360 to 180, straight to MediaOut (as on an overlay track)",
+  "expect": "a card at the centre of each eye on black"
+ }
+]

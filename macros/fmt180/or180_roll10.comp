@@ -1,0 +1,228 @@
+Composition {
+	CurrentTime = 0,
+	RenderRange = { 0, 59 },
+	GlobalRange = { 0, 59 },
+	HiQ = true,
+	PlaybackUpdateMode = 0,
+	Version = "DaVinci Resolve Studio 21.1.0.0017",
+	SavedOutputs = 1,
+	Resumable = true,
+	Tools = ordered() {
+		MediaIn1 = MediaIn {
+			Inputs = {
+				Layer = Input { Value = "0", },
+				GlobalIn = Input { Value = 0, },
+				GlobalOut = Input { Value = 59, },
+			},
+			ViewInfo = OperatorInfo {
+				Pos = { -700, 0 },
+			},
+		},
+		Velaria_Orient180 = MacroOperator {
+			Inputs = {
+				MainInput1 = InstanceInput { SourceOp = "Orient_Full", Name = "Stereo 180 (Side by Side)", Source = "Input", },
+				Roll = InstanceInput {
+					Page = "Placement",
+					MaxScale = 30,
+					Name = "Roll",
+					SourceOp = "Eye1_PanoMap",
+					MinScale = -30,
+					Default = 10,
+					Source = "Rotate.Z",
+				},
+				Tilt = InstanceInput {
+					Page = "Placement",
+					MaxScale = 30,
+					Name = "Tilt",
+					SourceOp = "Eye1_PanoMap",
+					MinScale = -30,
+					Default = 0,
+					Source = "Rotate.X",
+				},
+			},
+			Outputs = {
+				MainOutput1 = InstanceOutput { SourceOp = "Orient_Combine", Name = "Stereo 180 (Side by Side)", Source = "Output", },
+			},
+			ViewInfo = GroupInfo {
+				Pos = { 0, 0 },
+			},
+			Tools = {
+				Eye2_Pad = Merge {
+					ViewInfo = OperatorInfo {
+						Pos = { -100, 80 },
+					},
+					Inputs = {
+						Background = Input { SourceOp = "Eye2_Canvas", Source = "Output", },
+						Foreground = Input { SourceOp = "Orient_Split", Source = "Image2", },
+					},
+				},
+				Eye2_Centre = Merge {
+					ViewInfo = OperatorInfo {
+						Pos = { 400, 80 },
+					},
+					Inputs = {
+						Background = Input { SourceOp = "Eye2_Square", Source = "Output", },
+						Foreground = Input { SourceOp = "Eye2_PanoMap", Source = "Output", },
+					},
+				},
+				Eye1_Centre = Merge {
+					ViewInfo = OperatorInfo {
+						Pos = { 400, -80 },
+					},
+					Inputs = {
+						Background = Input { SourceOp = "Eye1_Square", Source = "Output", },
+						Foreground = Input { SourceOp = "Eye1_PanoMap", Source = "Output", },
+					},
+				},
+				Orient_Split = Splitter {
+					CustomData = { ToolVersion = 2, },
+					ViewInfo = OperatorInfo {
+						Pos = { -600, 0 },
+					},
+					Inputs = {
+						Input = Input { SourceOp = "Orient_Full", Source = "Output", },
+						Split = Input {
+							Value = FuID { "Horiz", },
+						},
+					},
+				},
+				Eye1_Canvas = Background {
+					ViewInfo = OperatorInfo {
+						Pos = { -200, -140 },
+					},
+					Inputs = {
+						TopLeftBlue = Input { Value = 0, },
+						TopLeftRed = Input { Value = 0, },
+						TopLeftAlpha = Input { Value = 0, },
+						TopLeftGreen = Input { Value = 0, },
+						Height = Input { Expression = "Orient_Split.Image1.Height", Value = 1024, },
+						Width = Input { Expression = "Orient_Split.Image1.Width * 2", Value = 2048, },
+						UseFrameFormatSettings = Input { Value = 0, },
+					},
+				},
+				Eye2_PanoMap = PanoMap {
+					ViewInfo = OperatorInfo {
+						Pos = { 100, 80 },
+					},
+					Inputs = {
+						["Rotate.Z"] = Input { Expression = "Eye1_PanoMap.Rotate.Z", Value = 0, },
+						["Rotate.X"] = Input { Expression = "Eye1_PanoMap.Rotate.X", Value = 0, },
+						Input = Input { SourceOp = "Eye2_Pad", Source = "Output", },
+						["Rotate.Y"] = Input { Expression = "Eye1_PanoMap.Rotate.Y", Value = 0, },
+					},
+				},
+				Eye1_PanoMap = PanoMap {
+					ViewInfo = OperatorInfo {
+						Pos = { 100, -80 },
+					},
+					Inputs = {
+						["Rotate.Z"] = Input { Value = 10, },
+						["Rotate.X"] = Input { Value = 0, },
+						Input = Input { SourceOp = "Eye1_Pad", Source = "Output", },
+						["Rotate.Y"] = Input { Value = 0, },
+					},
+				},
+				Eye2_Square = Background {
+					ViewInfo = OperatorInfo {
+						Pos = { 300, 20 },
+					},
+					Inputs = {
+						TopLeftBlue = Input { Value = 0, },
+						TopLeftRed = Input { Value = 0, },
+						TopLeftAlpha = Input { Value = 0, },
+						TopLeftGreen = Input { Value = 0, },
+						Height = Input { Expression = "Eye2_PanoMap.Output.Height", Value = 1024, },
+						Width = Input { Expression = "Eye2_PanoMap.Output.Width / 2", Value = 1024, },
+						UseFrameFormatSettings = Input { Value = 0, },
+					},
+				},
+				Eye1_Square = Background {
+					ViewInfo = OperatorInfo {
+						Pos = { 300, -140 },
+					},
+					Inputs = {
+						TopLeftBlue = Input { Value = 0, },
+						TopLeftRed = Input { Value = 0, },
+						TopLeftAlpha = Input { Value = 0, },
+						TopLeftGreen = Input { Value = 0, },
+						Height = Input { Expression = "Eye1_PanoMap.Output.Height", Value = 1024, },
+						Width = Input { Expression = "Eye1_PanoMap.Output.Width / 2", Value = 1024, },
+						UseFrameFormatSettings = Input { Value = 0, },
+					},
+				},
+				Eye1_Pad = Merge {
+					ViewInfo = OperatorInfo {
+						Pos = { -100, -80 },
+					},
+					Inputs = {
+						Background = Input { SourceOp = "Eye1_Canvas", Source = "Output", },
+						Foreground = Input { SourceOp = "Orient_Split", Source = "Image1", },
+					},
+				},
+				Orient_Combine = Combiner {
+					CustomData = { ToolVersion = 2, },
+					ViewInfo = OperatorInfo {
+						Pos = { 600, 0 },
+					},
+					Inputs = {
+						Image2 = Input { SourceOp = "Eye2_Centre", Source = "Output", },
+						Image1 = Input { SourceOp = "Eye1_Centre", Source = "Output", },
+						Combine = Input {
+							Value = FuID { "Horiz", },
+						},
+					},
+				},
+				Eye2_Canvas = Background {
+					ViewInfo = OperatorInfo {
+						Pos = { -200, 20 },
+					},
+					Inputs = {
+						TopLeftBlue = Input { Value = 0, },
+						TopLeftRed = Input { Value = 0, },
+						TopLeftAlpha = Input { Value = 0, },
+						TopLeftGreen = Input { Value = 0, },
+						Height = Input { Expression = "Orient_Split.Image2.Height", Value = 1024, },
+						Width = Input { Expression = "Orient_Split.Image2.Width * 2", Value = 2048, },
+						UseFrameFormatSettings = Input { Value = 0, },
+					},
+				},
+				Orient_Full = SetDomain {
+					ViewInfo = OperatorInfo {
+						Pos = { -720, 0 },
+					},
+					Inputs = {
+						Right = Input { Value = 1, },
+						Left = Input { Value = 0, },
+						Bottom = Input { Value = 0, },
+						Top = Input { Value = 1, },
+						Input = Input { SourceOp = "MediaIn1", Source = "Output", },
+					},
+				},
+			},
+		},
+		MediaOut1 = MediaOut {
+			Inputs = {
+				Index = Input { Value = "0", },
+				Input = Input { SourceOp = "Orient_Combine", Source = "Output", },
+			},
+			ViewInfo = OperatorInfo {
+				Pos = { 800, 0 },
+			},
+		},
+	},
+	Frames = { },
+	Prefs = {
+		Comp = {
+			FrameFormat = {
+				Width = 3840,
+				Height = 1920,
+				Rate = 30,
+				GuideRatio = 2.0,
+				DepthFull = 3,
+				DepthPreview = 3,
+				DepthInteractive = 3,
+			},
+			Unsorted = { GlobalEnd = 59, },
+		},
+	},
+}

@@ -1,0 +1,124 @@
+{
+	Tools = ordered() {
+		Velaria_Stereo360 = MacroOperator {
+			Inputs = ordered() {
+				MainInput1 = InstanceInput { SourceOp = "Stereo_Full", Source = "Input", Name = "Stereo 360 (Top / Bottom)", },
+				Convergence = InstanceInput {
+					SourceOp = "Velaria_StereoControls",
+					Source = "Convergence",
+					Name = "Convergence (+ = push into the screen)",
+					Page = "Stereo",
+					Default = 0,
+					MinScale = -0.05,
+					MaxScale = 0.05,
+				},
+				SwapEyes = InstanceInput {
+					SourceOp = "Stereo_Combine",
+					Source = "Swap",
+					Name = "Swap Eyes",
+					Page = "Stereo",
+					Default = 0,
+					MinScale = 0,
+					MaxScale = 1,
+				},
+			},
+			Outputs = {
+				MainOutput1 = InstanceOutput { SourceOp = "Stereo_Combine", Source = "Output", Name = "Stereo 360", },
+			},
+			Tools = ordered() {
+				Velaria_StereoControls = PipeRouter {
+					CtrlWZoom = false,
+					Inputs = {
+						Convergence = Input { Value = 0, },
+					},
+					ViewInfo = PipeRouterInfo {
+						Pos = { -400, -120 },
+					},
+					UserControls = ordered() {
+						Convergence = {
+							LINKID_DataType = "Number",
+							INPID_InputControl = "SliderControl",
+							INP_Default = 0,
+							INP_MinScale = -0.05,
+							INP_MaxScale = 0.05,
+							INP_MinAllowed = -0.05,
+							INP_MaxAllowed = 0.05,
+							LINKS_Name = "Convergence (+ = push into the screen)",
+							ICS_ControlPage = "Stereo",
+						},
+					},
+				},
+				Stereo_Full = SetDomain {
+					Inputs = {
+						Left = Input { Value = 0, },
+						Bottom = Input { Value = 0, },
+						Right = Input { Value = 1, },
+						Top = Input { Value = 1, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -520, 0 },
+					},
+				},
+				Stereo_Split = Splitter {
+					CustomData = { ToolVersion = 2, },
+					Inputs = {
+						Split = Input {
+							Value = FuID { "Vert", },
+						},
+						Input = Input { SourceOp = "Stereo_Full", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { -400, 0 },
+					},
+				},
+				Eye1_Shift = Transform {
+					Inputs = {
+						Input = Input { SourceOp = "Stereo_Split", Source = "Image1", },
+						Center = Input {
+							Value = { 0.5, 0.5 },
+							Expression = "Point(0.5 + Velaria_StereoControls.Convergence / 2, 0.5)",
+						},
+						Edges = Input {
+							Value = FuID { "Wrap", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 0, -80 },
+					},
+				},
+				Eye2_Shift = Transform {
+					Inputs = {
+						Input = Input { SourceOp = "Stereo_Split", Source = "Image2", },
+						Center = Input {
+							Value = { 0.5, 0.5 },
+							Expression = "Point(0.5 - Velaria_StereoControls.Convergence / 2, 0.5)",
+						},
+						Edges = Input {
+							Value = FuID { "Wrap", },
+						},
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 0, 80 },
+					},
+				},
+				Stereo_Combine = Combiner {
+					CustomData = { ToolVersion = 2, },
+					Inputs = {
+						Combine = Input {
+							Value = FuID { "Vert", },
+						},
+						Image1 = Input { SourceOp = "Eye1_Shift", Source = "Output", },
+						Image2 = Input { SourceOp = "Eye2_Shift", Source = "Output", },
+						Swap = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo {
+						Pos = { 400, 0 },
+					},
+				},
+			},
+			ViewInfo = GroupInfo {
+				Pos = { 0, 0 },
+			},
+		},
+	},
+}
