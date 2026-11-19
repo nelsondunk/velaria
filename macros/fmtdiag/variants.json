@@ -1,0 +1,51 @@
+[
+ {
+  "id": "mg_fg_bgtool",
+  "timeline": "13 Chart 360 TB",
+  "file": "mg_fg_bgtool.comp",
+  "desc": "Merge(chart, 400x400 red Background)",
+  "expect": "red square at the centre of the frame (Merge centres a smaller FG)"
+ },
+ {
+  "id": "mg_cc_alone360",
+  "timeline": "13 Chart 360 TB",
+  "file": "mg_cc_alone360.comp",
+  "desc": "CC stereo -> MediaOut",
+  "expect": "card centred in both eyes"
+ },
+ {
+  "id": "mg_cc_main2",
+  "timeline": "13 Chart 360 TB",
+  "file": "mg_cc_main2.comp",
+  "desc": "Merge(chart, CC.MainOutput2)",
+  "expect": "one card, centred in the top (L) eye or the frame centre"
+ },
+ {
+  "id": "mg_cc_bgin",
+  "timeline": "13 Chart 360 TB",
+  "file": "mg_cc_bgin.comp",
+  "desc": "CC window = green Background; Merge over chart",
+  "expect": "green card centred in both eyes"
+ },
+ {
+  "id": "mg_cc_setdom",
+  "timeline": "13 Chart 360 TB",
+  "file": "mg_cc_setdom.comp",
+  "desc": "CC -> SetDomain(full) -> Merge over chart",
+  "expect": "card centred in both eyes"
+ },
+ {
+  "id": "mg_cc_greybg",
+  "timeline": "13 Chart 360 TB",
+  "file": "mg_cc_greybg.comp",
+  "desc": "Merge(grey 3840x3840, CC)",
+  "expect": "card centred in both eyes on grey"
+ },
+ {
+  "id": "mg_cc_asbg",
+  "timeline": "13 Chart 360 TB",
+  "file": "mg_cc_asbg.comp",
+  "desc": "Merge(CC as BG, chart as FG at 50%)",
+  "expect": "card centred in both eyes under a half-transparent chart"
+ }
+]
