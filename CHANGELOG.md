@@ -32,6 +32,14 @@ Thu 19 Nov morning, after Nelson's first pass in the headset (+67, +68; driver r
 - **Dome:** the seat sits below the rim (**Rim +1.8 m**, a chip in place of Master FOV; 0 / 1.2 / 1.8 / 2.5 m), and a **rendered planetarium interior** (seats, cove light, aisle lights, rear console) shows behind the dome picture, one stereo render per seat, so the seat presets read as places in a room. Setting `domeTheatre 0` turns it off. The Dome Output DCTL and Fuse feather the circle's edge by a pixel.
 - **Sync test clip:** `Sync test/Velaria sync flash beep 30fps.mov` on Baxter and timeline **15 Sync flash beep** in the test project: a one-frame white flash and a 1 kHz beep start on every :00 frame, with a frame counter and a sweeping second hand.
 
+Thu 19 Nov, after the second pass (+69; driver with the pause fix installed, **sync test: flash and beep land together**, sound survives a pause):
+
+- **Dome theatre v2.** A modern dome theatre: seven raked rows in the rear half of the room, everyone facing the front, side-aisle stairs with step lights, a rail ahead of the first row, open floor and a lectern in front; nobody sits near the front wall. Seats are real places in it: **sweet spot** (row 3), **front row**, **rear row**, **left** and **right** (ends of row 4). Rendered at 6144 × 3072 per eye (three times +68's pixels per degree).
+- **Depth:** the dome, the drum wall and the cove light are at infinity, and so is the dome picture: the headset now warps the domemaster per pixel from the seat's eye position (GPU) onto an infinite sphere, so the picture's rim and the top of the wall come from the same geometry and never shift against each other. Floor, tiers, seats and rail carry the stereo, at a 90 mm eye spacing so the room reads big. The trade: leaning no longer moves you inside the dome (there is no parallax at infinity); turning your head is unchanged.
+- **Fewer chips:** Dome size and Rim are gone (the seat table carries the eye position, and at infinity the dome's real size changes nothing); a **Theatre** chip shows or hides the room. The dome row is now trim − · Tilt · trim + · Seat · Theatre.
+- Fixed from +68: the left and right seats were mirrored.
+- The 6144-pixel theatre decodes on a worker thread (a couple of seconds on the Quest; the picture keeps running) and lives in a single-image swapchain (151 MB, not three of them).
+
 ## Unreleased — 1.1 work in progress (Dome preview)
 
 **UNTESTED on a headset.** Built on Linux only (13 Nov 2026); nothing below has been seen in a Quest.

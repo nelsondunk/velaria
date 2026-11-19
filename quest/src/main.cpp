@@ -419,10 +419,12 @@ static void videoSwapchainSize(int& w, int& h) {
     }
 }
 
-static bool createSwapchain(Swapchain& sc, int w, int h) {
+// staticImage: one image, written once (the 6144 x 6144 theatre: 151 MB, not three of them); recreate to change it
+static bool createSwapchain(Swapchain& sc, int w, int h, bool staticImage = false) {
     if (sc.handle != XR_NULL_HANDLE) xrDestroySwapchain(sc.handle);
     sc = Swapchain();
     XrSwapchainCreateInfo ci{XR_TYPE_SWAPCHAIN_CREATE_INFO};
+    ci.createFlags = staticImage ? XR_SWAPCHAIN_CREATE_STATIC_IMAGE_BIT : 0;
     ci.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
     ci.format = g.swapchainFormat;
     ci.sampleCount = 1;
@@ -2489,8 +2491,7 @@ static void renderFrame() {
             if (g.theatreBusy.load() == false && g.theatreThread.joinable()) {   // a decode finished: upload it
                 g.theatreThread.join();
                 vrq::TheatreImage& im = g.theatreImage;
-                if (im.px && im.w > 0 && im.h == im.w) {
-                    if (g.theatre.handle == XR_NULL_HANDLE || g.theatre.width != im.w) createSwapchain(g.theatre, im.w, im.h);
+                if (im.px && im.w > 0 && im.h == im.w && createSwapchain(g.theatre, im.w, im.h, true)) {
                     renderInto(g.theatre, [&](GLuint tex) { g.gfx.upload(tex, im.px, im.w, im.h, true); });
                     g.theatreSeat = g.theatreLoading;
                 } else {
