@@ -12,6 +12,14 @@ Headset app 1.1.0-dome+62 (installed on Nelson's Quest 18 Nov 20:30, **not yet s
 - **Velaria Dome Output:** equirect 360 (or one eye of a stereo plate) to a fulldome master, zenith at the centre, front at the bottom of the frame, with Theatre Tilt, Horizon, Pan, Master FOV and source-eye controls. As a **DCTL** for the Color page (verified on Bruce against ffmpeg's v360 at tilt 0 and tilt 20) and as a **GPU Fuse** for the Fusion page (same formulas, UNTESTED: Resolve only registers Fuses at launch). Both ship only in a Dome package (`VELARIA_DOME=1 ./package.sh`).
 - Known gap: merging Canvas Control's output over the plate *inside one Fusion comp* misplaces the card in both 180 and 360; the shipped way (the card on its own track) is right. Matters only for future macros that merge internally.
 
+Later the same evening, with Nelson present (headset +63 → +66, all UNTESTED on the device):
+
+- **Hide / Show** (strip, eye icon in the icon cluster): disables the picked card's clip in Resolve (Enable Clip, D) so the plate shows through; "Show n" brings back everything hidden on the layer; hidden names dim; hidden cards are neither outlined nor pickable. A D pressed in Resolve reaches the headset within two seconds.
+- **Review notes** (Timeline panel, new row): ‹ Marker · Drop note · Marker ›. Drop note adds a Cyan marker at the playhead whose note says where you were looking, in Canvas Control's Yaw / Pitch, and which card was picked; on a marker the chip removes it and the row shows the marker's name and note. **Still** grabs a gallery still of the current frame.
+- **Sound in the headset:** Resolve's monitoring mix (first two channels, 48 kHz) plays through the Quest on the same clock and delay as the picture. "Sound: in headset / waiting / off" sits beside Source on the View tab. Needs the new Mac driver installed (it forwards the audio Resolve already sends the device); until then the chip reads "waiting".
+- **Sharper UI:** every UI quad asks the compositor for supersampling and sharpening (`XR_FB_composition_layer_settings`), Meta's fix for text and thin rules shimmering.
+- Not built, on purpose: a red/green "rendered" stripe. The API only says whether caching is switched on for a clip, not whether it is complete.
+
 ## Unreleased — 1.1 work in progress (Dome preview)
 
 **UNTESTED on a headset.** Built on Linux only (13 Nov 2026); nothing below has been seen in a Quest.
