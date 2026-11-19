@@ -350,6 +350,8 @@ class Bridge:
                 return "orient"
             if name.startswith(pre + "Trim"):
                 return "trim"
+            if name.startswith(pre + "Stereo"):
+                return "stereo"   # Velaria Stereo 360 / 180: convergence and eye swap on the whole picture
         return "card"
 
     def edit_tools(self, comp):
@@ -436,7 +438,7 @@ class Bridge:
                     groups.append({"clip": key, "clipName": it.GetName(), "track": v, "tool": tool.Name, "kind": gkind,
                                    "params": params, "source": self.comp_source(it, comp)})
                 self.comp_cache[key] = (it, comp, {t.Name: t for t, _, _ in tools})
-        order = {"card": 0, "orient": 1, "trim": 2, "patch": 3}
+        order = {"card": 0, "orient": 1, "trim": 2, "stereo": 2, "patch": 3}
         groups.sort(key=lambda g: order.get(g["kind"], 3))
         return {"type": "params", "frame": self.current_frame(), "groups": groups}
 
@@ -539,6 +541,7 @@ class Bridge:
         "Rotate.X": "Placement", "Rotate.Y": "Placement", "Rotate.Z": "Placement", "AoV": "Patch",
         "Exposure": "Trim", "Lift": "Trim", "Gamma": "Trim", "Gain": "Trim", "Contrast": "Trim", "Saturation": "Trim",
         "Temperature": "Trim", "Tint": "Trim", "Amount": "Trim",
+        "Convergence": "Stereo", "SwapEyes": "Stereo",
     }
 
     PLACEMENT = ("yaw", "pitch", "roll", "pan", "tilt", "distance", "depth", "rotate", "rotation", "spin",

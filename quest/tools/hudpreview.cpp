@@ -81,6 +81,10 @@ int main(int argc, char** argv) {
                    num("Saturation", "Saturation", "Trim", 1, 0, 2), num("Temperature", "Temperature", "Trim", 0.3, -1, 1), num("Tint", "Tint", "Trim", 0, -1, 1),
                    num("Amount", "Amount", "Trim", 1, 0, 1)};
     m.groups.push_back(trim);
+    EditGroup st = patch("Velaria_Stereo180", "C037_03122139", 2); st.kind = "stereo";
+    { EditParam swap; swap.id = "SwapEyes"; swap.name = "Swap Eyes"; swap.section = "Stereo"; swap.kind = "bool"; swap.value = 0; swap.min = 0; swap.max = 1;
+      st.params = {num("Convergence", "Convergence", "Stereo", 0.012, -0.05, 0.05), swap}; }
+    m.groups.push_back(st);
     m.locked.insert(m.groups[3].key());
     m.group = 0; m.layer = 0;
 
@@ -115,13 +119,16 @@ int main(int argc, char** argv) {
     dump(PanelId::Instance, "patches");
     dump(PanelId::Placement, "patch");
     // picture layer: Orient 360, then the Trim pass
-    m.layer = 2; m.group = (int)m.groups.size() - 2;
+    m.layer = 2; m.group = (int)m.groups.size() - 3;
     dump(PanelId::Instance, "picture");
     dump(PanelId::Placement, "picture");
-    m.group = (int)m.groups.size() - 1;
+    m.group = (int)m.groups.size() - 2;
     dump(PanelId::Instance, "trim");
     dump(PanelId::Placement, "trim");
     s.lookTab = 1; dump(PanelId::Look, "trim"); s.lookTab = 0;
+    m.group = (int)m.groups.size() - 1;   // the Stereo pass: bars-only like Trim, section "Stereo"
+    dump(PanelId::Instance, "stereo");
+    dump(PanelId::Placement, "stereo");
     m.layer = 0; m.group = 0;
     // look tabs
     s.lookTab = 2; dump(PanelId::Look, "glow");

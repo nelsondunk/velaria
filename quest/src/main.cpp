@@ -203,6 +203,12 @@ struct App {
     Swapchain video, strip, cursor, lift;   // lift: halo a few mm in front of the active control
     std::string liftKey = "160,160,34";     // box drawn in the lift texture (see drawLift)
     int64_t bridgeSinceNs = 0;   // when the bridge last connected (the "no picture" check waits a few seconds)
+    // Live convergence (+62, UNTESTED on device): while the Stereo macro's Convergence bar is dragged, the eyes are
+    // yawed apart by the change since the drag began, so the depth moves under the hand before Resolve re-renders.
+    // 700 ms after release the offset is dropped: by then the frame from Resolve carries the shift itself.
+    bool convDragging = false;
+    double convBase = 0, convLive = 0;    // Convergence value Resolve is showing; the live delta on top of it
+    int64_t convLiveUntilNs = 0;
     bool debugAimOn = false, debugAimPressed = false;   // cmd.txt "point": a fake hand ray for tests without hands
     XrPosef debugAim{};
     Swapchain grid;                         // horizon / level grid, an equirect layer over the picture
@@ -1225,6 +1231,12 @@ static void setValue(int row, double v, bool release) {
     EditParam* p = editParam(row);
     if (!p) return;
     if (v == p->value && !release) return;
+    const EditGroup* cg = g.edit.current();
+    if (cg && cg->kind == "stereo" && p->id == "Convergence") {
+        if (!g.convDragging) { g.convDragging = true; g.convBase = p->value; }
+        g.convLive = v - g.convBase;
+        if (release) { g.convDragging = false; g.convLiveUntilNs = monoNs() + 700000000LL; }
+    }
     p->value = v;
     g.edit.dragRow = release ? -1 : row;
     g.hudForce = true;
@@ -2277,6 +2289,7 @@ static void renderFrame() {
     flushPendingParam();   // timeout path: a render that never showed up must not hold a drag hostage
     chooseFrame(displayMono);
     int64_t now = monoNs();
+    if (!g.convDragging && g.convLive != 0 && now > g.convLiveUntilNs) g.convLive = 0;   // Resolve has caught up
 #ifndef VELARIA_NO_DEBUG_HOOK
     pollDebugCommands(now);
 #endif
@@ -2333,7 +2346,12 @@ static void renderFrame() {
             eq[e].subImage.swapchain = g.video.handle;
             eq[e].subImage.imageRect = e == 0 ? left : right;
             eq[e].subImage.imageArrayIndex = 0;
-            eq[e].pose.orientation = qYaw(g.settings.yawDeg * deg);   // recentre offset
+            // recentre offset, plus the live convergence delta: the macro shifts the left eye's content right by
+            // conv/2 of the eye's width and the right eye's left; +yaw moves content left (rotation about +Y), so the
+            // left eye gets -delta and the right eye +delta, delta = conv/2 of the eye's horizontal angle
+            float convYaw = 0;
+            if (stereo && g.convLive != 0) convYaw = (float)(g.convLive * 0.5) * hAngle * (e == 0 ? -1.0f : 1.0f);
+            eq[e].pose.orientation = qYaw(g.settings.yawDeg * deg + convYaw);
             eq[e].radius = 0;   // infinite sphere: no parallax from head translation
             if (dome && g.domeAnchorValid) {   // a real-sized hemisphere around the seat; until the head is tracked, level and infinite
                 eq[e].pose = domePose;

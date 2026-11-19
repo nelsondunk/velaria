@@ -529,6 +529,7 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         if (!m->notice.empty()) hint = m->notice;
         else if (locked) hint = "Locked. Tap Locked to edit this patch.";
         else if (g && g->kind == "trim") hint = "Trim pass on the whole picture: its bars are on the Placement panel.";
+        else if (g && g->kind == "stereo") hint = "Stereo: convergence and eye swap for the whole picture, on the Placement panel.";
         else if (patches) hint = "Patches aren't pickable in the picture. Tap a name, then use Placement.";
         else hint = "Pinch the card in the picture to pick it, or tap a name.";
         float avail = sp.w - padR - x - 24;
@@ -552,12 +553,14 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
     bool locked = g && m->isLocked(*g);
     // the bar names the clip being controlled (Nelson, 2 Nov: "just give me the name of the clip")
     if (g) ch.subtitle = g->clipName;
-    float y = ch.begin(g && g->kind == "patch" ? "PATCH WINDOW" : g && g->kind == "trim" ? "TRIM" : sphere ? "PICTURE \xC2\xB7 WHOLE SPHERE" : "PLACEMENT");
+    float y = ch.begin(g && g->kind == "patch" ? "PATCH WINDOW" : g && g->kind == "trim" ? "TRIM" : g && g->kind == "stereo" ? "STEREO" : sphere ? "PICTURE \xC2\xB7 WHOLE SPHERE" : "PLACEMENT");
     if (y < 0) return rects;
-    if (g && g->kind == "trim") {
-        // a trim has nothing to place: its bars take the panel (+50; they were a Look tab in +48/49)
-        c.text(40, y + 14, "TRIM PASS \xC2\xB7 WHOLE PICTURE", S16, kDim, 3);
-        sectionRows(ch, *m, *g, "Trim", y + 44, 40);
+    if (g && g->barsOnly()) {
+        // a trim or a stereo pass has nothing to place: its bars take the panel (+50; they were a Look tab in +48/49)
+        bool st = g->kind == "stereo";
+        c.text(40, y + 14, st ? "STEREO \xC2\xB7 CONVERGENCE AND EYES" : "TRIM PASS \xC2\xB7 WHOLE PICTURE", S16, kDim, 3);
+        sectionRows(ch, *m, *g, st ? "Stereo" : "Trim", y + 44, 40);
+        if (st) c.text(40, sp.h - 64, "Convergence previews live in the headset; Resolve catches up when you let go.", S20, Colour{1, 1, 1, 0.38f});
         return rects;
     }
     if (!g) {

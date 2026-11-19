@@ -339,6 +339,7 @@ def test_macro_kind_accepts_both_velaria_and_legacy_kalyx_prefixes():
     assert mk("Velaria_Trim") == "trim" and mk("Kalyx_Trim") == "trim" and mk("Kalyx_Trim_2") == "trim"
     assert mk("Velaria_Orient360") == "orient" and mk("Kalyx_Orient360") == "orient"
     assert mk("Velaria_CanvasControl") == "card" and mk("Kalyx_CanvasControl") == "card" and mk("Skylight_FactWindow") == "card"
+    assert mk("Velaria_Stereo180") == "stereo" and mk("Velaria_Stereo360_2") == "stereo" and mk("Velaria_Orient180") == "orient"
 
 
 # ---- the wire path: what a headset (or anything else that connects) can send ----

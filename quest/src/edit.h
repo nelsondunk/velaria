@@ -37,17 +37,20 @@ struct EditParam {
 
 struct EditGroup {
     std::string clip, clipName, tool, source;   // source: comp name / footage files the card is built from
-    std::string kind = "card";                  // card (Velaria macro) | patch (LatLong Patcher) | orient (PanoMap) | trim (Velaria Trim)
+    std::string kind = "card";                  // card (Velaria macro) | patch (LatLong Patcher) | orient (PanoMap) | trim (Velaria Trim) | stereo (Velaria Stereo)
     int track = 0;
     std::vector<EditParam> params;
     bool isCard() const { return kind == "card"; }
     // which strip layer it lives on: 0 OVERLAYS (titles and footage windows), 1 PATCHES, 2 PICTURE (whole sphere)
-    int layer() const { return kind == "patch" ? 1 : (kind == "orient" || kind == "trim") ? 2 : 0; }
+    // "bars only" kinds have nothing to place: their controls take the Placement panel as a list of bars
+    bool barsOnly() const { return kind == "trim" || kind == "stereo"; }
+    int layer() const { return kind == "patch" ? 1 : (kind == "orient" || barsOnly()) ? 2 : 0; }
     // what the strip calls it: FOOTAGE / TITLE / OVERLAY / PATCH / PICTURE / TRIM, from the macro's name
     std::string tag() const {
         if (kind == "patch") return "PATCH";
         if (kind == "orient") return "PICTURE";
         if (kind == "trim") return "TRIM";
+        if (kind == "stereo") return "STEREO";
         if (tool.find("FactWindow") != std::string::npos || tool.find("CanvasControl") != std::string::npos || tool.find("PIP") != std::string::npos) return "FOOTAGE";
         if (tool.find("FactCard") != std::string::npos || tool.find("Title") != std::string::npos || tool.find("Text") != std::string::npos) return "TITLE";
         return "OVERLAY";
