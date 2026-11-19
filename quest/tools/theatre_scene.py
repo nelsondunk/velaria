@@ -293,7 +293,7 @@ def build(v):
     m_tier = mat("Tier", (0.055, 0.050, 0.060), 0.95)
     m_nose = mat("StepNose", (0.22, 0.20, 0.18), 0.6)
     m_wall = mat("Wall", (0.05, 0.047, 0.047), 0.9)
-    m_dome = mat("Dome", (0.004, 0.004, 0.005), 1.0)
+    m_dome = mat("Dome", (0.0, 0.0, 0.0), 1.0)   # the picture goes here: black, reflects nothing
     m_seat = mat("SeatFabric", (0.07, 0.09, 0.16), 0.85)
     m_frame = mat("SeatFrame", (0.015, 0.015, 0.016), 0.5, metal=0.4)
     m_arm = mat("Armrest", (0.09, 0.07, 0.05), 0.55)
