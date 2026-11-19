@@ -100,13 +100,14 @@ uniform float uCircle;      // circle radius as a fraction of the frame's half-h
 uniform float uAspect;      // frame width / height
 uniform vec2 uLat;          // radians: latitude at the top row, at the bottom row
 uniform float uRadiusPx;    // the master circle's radius in source pixels (for the feather)
+uniform vec2 uLon;          // longitude = (vUv.x * uLon.x + uLon.y - 0.5) * 2 pi: the wraparound margin columns
 in vec2 vUv;
 out vec4 oColor;
 vec3 srgbToLinear(vec3 c) {
     return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));
 }
 void main() {
-    float lon = (vUv.x - 0.5) * 6.2831853;
+    float lon = (vUv.x * uLon.x + uLon.y - 0.5) * 6.2831853;
     float lat = uLat.x + (uLat.y - uLat.x) * vUv.y;
     vec3 d = vec3(sin(lon) * cos(lat), sin(lat), -cos(lon) * cos(lat));   // right, up, back
     float b = dot(uEye, d);
@@ -206,6 +207,7 @@ bool Gfx::init() {
         m_doAspect = glGetUniformLocation(m_dome, "uAspect");
         m_doLat = glGetUniformLocation(m_dome, "uLat");
         m_doRadiusPx = glGetUniformLocation(m_dome, "uRadiusPx");
+        m_doLon = glGetUniformLocation(m_dome, "uLon");
     }
     glGenVertexArrays(1, &m_vao);
     LOGI("GL: %s / %s", glGetString(GL_RENDERER), glGetString(GL_VERSION));
@@ -293,6 +295,8 @@ bool Gfx::blitVideo(AHardwareBuffer* ahb, GLuint dstTex, int w, int h, const Fis
         glUniform1f(m_doAspect, sw / sh);
         glUniform2f(m_doLat, dome->latTopDeg * deg, dome->latBottomDeg * deg);
         glUniform1f(m_doRadiusPx, 0.5f * dome->circle * sh);
+        float inner = (float)(w - 2 * dome->pad);   // the 360 spans the inner columns; the margins repeat the far side
+        glUniform2f(m_doLon, (float)w / inner, -(float)dome->pad / inner);
     } else if (fisheye && m_fisheye) {
         glUseProgram(m_fisheye);
         glUniform1i(m_fiTex, 0);
@@ -324,6 +328,25 @@ void Gfx::upload(GLuint dstTex, const uint8_t* rgba, int w, int h, bool bottomUp
     glBindTexture(GL_TEXTURE_2D, dstTex);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, bottomUp ? rgba : flipped.data());
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Gfx::uploadWrapped(GLuint dstTex, const uint8_t* rgba, int w, int h, bool bottomUp) {
+    std::vector<uint8_t> flipped;
+    const uint8_t* src = rgba;
+    if (!bottomUp) {
+        flipped.resize((size_t)w * h * 4);
+        for (int y = 0; y < h; y++)
+            memcpy(&flipped[(size_t)(h - 1 - y) * w * 4], rgba + (size_t)y * w * 4, (size_t)w * 4);
+        src = flipped.data();
+    }
+    glBindTexture(GL_TEXTURE_2D, dstTex);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, w);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 1, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, src);                      // the picture
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1, h, GL_RGBA, GL_UNSIGNED_BYTE, src + (size_t)(w - 1) * 4);   // left margin = last column
+    glTexSubImage2D(GL_TEXTURE_2D, 0, w + 1, 0, 1, h, GL_RGBA, GL_UNSIGNED_BYTE, src);                   // right margin = first column
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 

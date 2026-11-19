@@ -434,7 +434,7 @@ static void videoSwapchainSize(int& w, int& h) {
     w = (int)g.cfg.msg.width;
     h = (int)g.cfg.msg.height;
     if (effectiveProjection() == Projection::Dome && w > 0) {
-        w = std::min(2 * w, 8192);
+        w = std::min(2 * w, 8192) + 2;   // + the wraparound margin columns (gfx.h uploadWrapped)
         h = std::min(h, 4096);
     }
 }
@@ -2562,8 +2562,8 @@ static void renderFrame() {
             if (g.theatreBusy.load() == false && g.theatreThread.joinable()) {   // a decode finished: upload it
                 g.theatreThread.join();
                 vrq::TheatreImage& im = g.theatreImage;
-                if (im.px && im.w > 0 && im.h == im.w && createSwapchain(g.theatre, im.w, im.h, true)) {
-                    renderInto(g.theatre, [&](GLuint tex) { g.gfx.upload(tex, im.px, im.w, im.h, true); });
+                if (im.px && im.w > 0 && im.h == im.w && createSwapchain(g.theatre, im.w + 2, im.h, true)) {
+                    renderInto(g.theatre, [&](GLuint tex) { g.gfx.uploadWrapped(tex, im.px, im.w, im.h, true); });
                     g.theatreKey = g.theatreLoading;
                 } else {
                     g.theatreMissing.insert(g.theatreLoading);
@@ -2592,7 +2592,7 @@ static void renderFrame() {
                     t.eyeVisibility = e == 0 ? XR_EYE_VISIBILITY_LEFT : XR_EYE_VISIBILITY_RIGHT;
                     t.subImage.swapchain = g.theatre.handle;
                     // GL rows are bottom-up: the left eye (top of the image) is the upper half of the texture rows
-                    t.subImage.imageRect = {{0, e == 0 ? half : 0}, {g.theatre.width, half}};
+                    t.subImage.imageRect = {{1, e == 0 ? half : 0}, {g.theatre.width - 2, half}};   // inside the wrap margins
                     t.subImage.imageArrayIndex = 0;
                     t.pose.orientation = qYaw(g.settings.yawDeg * deg);   // level room; its front is the dome's front
                     t.radius = 0;
@@ -2622,6 +2622,7 @@ static void renderFrame() {
             eq[e].upperVerticalAngle = vHalf;
             eq[e].lowerVerticalAngle = -vHalf;
             if (dome) {   // the warp's level 360 view from the seat, transparent outside the dome so the theatre shows
+                eq[e].subImage.imageRect = {{1, 0}, {w - 2, h}};   // inside the wraparound margins (seam at the back, +73)
                 eq[e].layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
                 if (g.extColorScale) eq[e].next = &fadeScale;
                 eq[e].pose.orientation = qYaw(g.settings.yawDeg * deg);

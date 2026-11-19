@@ -459,6 +459,7 @@ def build(v):
     sc.render.image_settings.stereo_3d_format.display_mode = 'TOPBOTTOM'
     sc.view_settings.view_transform = 'Standard'
     sc.view_settings.exposure = 0.5
+    bloom()
     bpy.ops.object.select_all(action='DESELECT')
     for ob in near.objects:
         if ob.type == 'MESH' and ob.name.startswith(("Cushion", "Back", "Arm", "Post", "Rail", "Ped", "Lectern")):
@@ -473,6 +474,47 @@ def build(v):
     bpy.ops.object.select_all(action='DESELECT')
     v.per_seat_hidden = {ci: own_back.get(ci, []) + neighbours.get(ci, []) for ci in range(len(cams))}
     return cam, n
+
+
+def bloom():
+    """A faint halation on the step lights, exit signs and the lectern screen (Nelson, 19 Nov 12:49): a compositor
+    glare pass; nothing else in the room is bright enough to bloom. Written to survive Blender's compositor API
+    changing under us (4.4 moved the glare settings to sockets)."""
+    sc = bpy.context.scene
+    try:
+        sc.use_nodes = True
+    except Exception:
+        pass
+    tree = sc.node_tree
+    if tree is None:
+        return
+    for n in list(tree.nodes):
+        tree.nodes.remove(n)
+    rl = tree.nodes.new('CompositorNodeRLayers')
+    glare = tree.nodes.new('CompositorNodeGlare')
+    for t in ('BLOOM', 'FOG_GLOW'):
+        try:
+            glare.glare_type = t
+            break
+        except Exception:
+            continue
+    for key, val in (("Threshold", 0.35), ("Strength", 0.25), ("Mix", -0.5), ("Size", 0.55), ("Saturation", 1.0)):
+        try:
+            if key in glare.inputs:
+                glare.inputs[key].default_value = val
+        except Exception:
+            pass
+    for attr, val in (("threshold", 0.35), ("mix", -0.5), ("size", 7), ("quality", 'HIGH')):
+        try:
+            setattr(glare, attr, val)
+        except Exception:
+            pass
+    try:
+        out = tree.nodes.new('CompositorNodeComposite')
+    except Exception:
+        out = tree.nodes.new('NodeGroupOutput')
+    tree.links.new(rl.outputs['Image'], glare.inputs['Image'])
+    tree.links.new(glare.outputs['Image'], out.inputs[0])
 
 
 def place_far(far, eye, base):
