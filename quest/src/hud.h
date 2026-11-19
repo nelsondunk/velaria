@@ -144,6 +144,8 @@ enum class HudButton {
     ScopesView, // arg 0 waveform + vectorscope, 1 RGB parade, 2 histograms
     // deck
     ClipPrev, ClipNext, StepBack, StepFwd, Scrub, Zoom,
+    MarkerPrev, MarkerNext,     // seek to the previous / next marker
+    MarkerAdd,                  // arg 0: drop a review note at the playhead (with where you are looking); arg 1: remove the one under it
     // look panel
     Tab,            // arg = tab index (0 = View)
     PageUp, PageDown,

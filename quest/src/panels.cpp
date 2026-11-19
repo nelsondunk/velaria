@@ -36,7 +36,7 @@ const PanelSpec kSpecs[kPanelCount] = {
     {1280, 272, 1.00f, 28},   // Instance (v3: 1280 x 272)
     {900, 1000, 0.72f, 28},   // Placement
     {900, 1000, 0.72f, 28},   // Look
-    {1400, 340, 1.10f, 28},   // Deck
+    {1400, 410, 1.10f, 28},   // Deck (+64: marker row under the lanes)
     {1100, 560, 0.90f, 28},   // Scopes
 };
 
@@ -986,10 +986,34 @@ std::vector<ButtonRect> drawDeck(Canvas& c, const UiState& s) {
             if (under.empty() || clip.key == selKey) under = "V" + std::to_string(clip.track) + " \xC2\xB7 " + clip.name;
         }
     if (stacked > 1) under += "  (" + std::to_string(stacked) + " stacked)";
+    // markers: previous / next, and a note dropped at the playhead (Resolve gets the marker with where you were
+    // looking); on a marker the middle chip removes it and the row shows the marker's name and note instead
+    const EditMarker* here = m->markerAt(m->frame);
     if (py + 4 < sp.h) {
         c.text(pad, py, fitText(under.empty() ? "No clip under the playhead" : under, S20, lw - 420), S20, kDim);
         std::string tln = fitText(m->timelineName, S20, 400);
         c.text(sp.w - pad - Canvas::measure(tln, S20), py, tln, S20, kDim);
+    }
+    float my = py + 16, mh = 48;
+    if (my + mh + 8 <= sp.h) {
+        float mx = sp.w - pad;
+        mx -= mh;      ch.iconChip(HudButton::MarkerNext, 0, mx, my, mh, m->markers.empty() ? ChipState::Off : ChipState::Rest, Icon::Next, "Next marker");
+        std::string lbl = here ? "Remove note" : "Drop note";
+        float w = Chrome::chipWidth(lbl, -1, "");
+        mx -= 10 + w;  ch.chip3(HudButton::MarkerAdd, here ? 1 : 0, mx, my, w, mh, here ? ChipState::On : ChipState::Rest, lbl);
+        mx -= 10 + mh; ch.iconChip(HudButton::MarkerPrev, 0, mx, my, mh, m->markers.empty() ? ChipState::Off : ChipState::Rest, Icon::Previous, "Previous marker");
+        // what the row is about: the marker under the playhead (name, first line of its note), else a count
+        std::string line;
+        if (here) {
+            line = here->name;
+            std::string first = here->note.substr(0, here->note.find('\n'));
+            if (!first.empty()) line += "  \xC2\xB7  " + first;
+        } else if (!m->markers.empty()) {
+            line = std::to_string(m->markers.size()) + (m->markers.size() == 1 ? " marker" : " markers");
+        } else {
+            line = "No markers yet";
+        }
+        c.text(pad, my + 32, fitText(line, S20, mx - 24 - pad), S20, here ? kText : kDim);
     }
     return rects;
 }

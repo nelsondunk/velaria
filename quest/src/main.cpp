@@ -770,6 +770,7 @@ static void placeAll(bool place) {
 }
 
 static void bridgeCmd(const char* cmd);
+static void rayAngles(const XrVector3f& d, float& panDeg, float& tiltDeg);
 static EditParam* editParam(int row);
 static void sendParam(int row);
 static void nudge(int row, int dir);
@@ -799,6 +800,30 @@ static void activate(HudButton b, int arg = 0) {
             return;
         }
         case HudButton::Undo: bridgeCmd("undo"); return;
+        case HudButton::MarkerPrev:
+        case HudButton::MarkerNext: {
+            Json j = Json::object();
+            j["cmd"] = "marker"; j["action"] = "jump"; j["dir"] = b == HudButton::MarkerNext ? 1.0 : -1.0;
+            g.bridge.send(j);
+            return;
+        }
+        case HudButton::MarkerAdd: {
+            // a review note at the playhead: Resolve gets the marker, its note says where the reviewer was looking
+            // (in Canvas Control's Yaw / Pitch) and which card was picked, so the editor can aim a fix at it
+            Json j = Json::object();
+            j["cmd"] = "marker";
+            if (arg == 1) { j["action"] = "remove"; g.bridge.send(j); return; }
+            j["action"] = "add";
+            j["color"] = "Cyan";
+            if (g.headValid) {
+                float pan = 0, tilt = 0;
+                rayAngles(qRotate(g.head.orientation, {0, 0, -1}), pan, tilt);
+                j["pan"] = (double)pan; j["tilt"] = (double)tilt;
+            }
+            if (const EditGroup* cg = g.edit.current()) j["card"] = cg->clipName.empty() ? cg->tool : cg->clipName;
+            g.bridge.send(j);
+            return;
+        }
         case HudButton::Hide: {
             // arg 0: toggle the current group's clip; arg 1: show every hidden clip on this layer
             Json j = Json::object();
@@ -2168,7 +2193,7 @@ static void pollDebugCommands(int64_t now) {
         {"Projection", HudButton::Projection}, {"DelayDown", HudButton::DelayDown}, {"DelayAuto", HudButton::DelayAuto},
         {"DelayUp", HudButton::DelayUp}, {"ResetView", HudButton::ResetView}, {"PinAll", HudButton::PinAll},
         {"Pin", HudButton::PinAll}, {"Tab", HudButton::Tab}, {"ClipPrev", HudButton::ClipPrev}, {"ClipNext", HudButton::ClipNext},
-        {"StepBack", HudButton::StepBack}, {"StepFwd", HudButton::StepFwd}, {"Undo", HudButton::Undo},
+        {"StepBack", HudButton::StepBack}, {"StepFwd", HudButton::StepFwd}, {"Undo", HudButton::Undo}, {"MarkerPrev", HudButton::MarkerPrev}, {"MarkerNext", HudButton::MarkerNext}, {"MarkerAdd", HudButton::MarkerAdd},
         {"Refresh", HudButton::Refresh}, {"GroupPrev", HudButton::GroupPrev}, {"GroupNext", HudButton::GroupNext},
         {"PageUp", HudButton::PageUp}, {"PageDown", HudButton::PageDown}, {"Toggle", HudButton::Toggle},
         {"NudgeDown", HudButton::NudgeDown}, {"NudgeUp", HudButton::NudgeUp}, {"Key", HudButton::Key},

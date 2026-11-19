@@ -264,7 +264,8 @@ class Bridge:
         markers = []
         for frame, m in (tl.GetMarkers() or {}).items():
             markers.append({"frame": tl.GetStartFrame() + int(frame), "name": m.get("name", ""),
-                            "color": m.get("color", "")})
+                            "color": m.get("color", ""), "note": m.get("note", "")})
+        markers.sort(key=lambda x: x["frame"])
         return {"type": "timeline", "name": tl.GetName(), "start": tl.GetStartFrame(), "end": tl.GetEndFrame(),
                 "fps": self.fps, "drop": self.drop, "tracks": tl.GetTrackCount("video"), "clips": clips,
                 "markers": markers, "format": getattr(self, "format", {}), "warnings": getattr(self, "warnings", [])}
@@ -845,6 +846,17 @@ class Bridge:
             self.broadcast(self.timeline_snapshot())
             if n:
                 self.broadcast({"type": "notice", "msg": ("Hidden %d" if msg.get("on", 1) else "Showing %d") % n + (" clip" if n == 1 else " clips")})
+        elif cmd == "marker":
+            # add: a review note at the playhead, carrying where the reviewer was looking (Canvas Control yaw / pitch)
+            # remove: the marker under the playhead; jump: previous / next marker
+            action = msg.get("action", "add")
+            if action == "jump":
+                self.jump_marker(int(msg.get("dir", 1)))
+            else:
+                text = self.marker(msg) if action == "add" else self.remove_marker()
+                self.broadcast(self.timeline_snapshot())
+                if text:
+                    self.broadcast({"type": "notice", "msg": text})
         elif cmd == "ping":
             self.send(client, {"type": "pong", "t": msg.get("t")})
 
@@ -902,6 +914,57 @@ class Bridge:
                         log("hide: %s: %s" % (key, e))
             self.tl_signature = None   # force the next re-scan to broadcast
         return n
+
+    # ---------------------------------------------------------------- markers (review notes from the headset)
+    MARKER_COLOURS = ("Blue", "Cyan", "Green", "Yellow", "Red", "Pink", "Purple", "Fuchsia", "Rose", "Lavender", "Sky", "Mint", "Lemon", "Sand", "Cocoa", "Cream")
+
+    def marker(self, msg):
+        tl = self.timeline
+        frame = self.current_frame()
+        rel = frame - tl.GetStartFrame()
+        colour = msg.get("color") or "Cyan"
+        if colour not in self.MARKER_COLOURS:
+            colour = "Cyan"
+        name = (msg.get("name") or "Headset note")[:80]
+        note = msg.get("note") or ""
+        custom = ""
+        if "pan" in msg and "tilt" in msg:
+            try:
+                pan, tilt = float(msg["pan"]), float(msg["tilt"])
+                gaze = "Looking at yaw %+.0f\u00b0, pitch %+.0f\u00b0 (Canvas Control Yaw / Pitch)" % (pan, tilt)
+                note = (note + "\n" if note else "") + gaze
+                custom = "velaria:pan=%.1f;tilt=%.1f" % (pan, tilt)
+            except (TypeError, ValueError):
+                pass
+        if msg.get("card"):
+            note += "\nPicked: %s" % msg["card"]
+        existing = tl.GetMarkers() or {}
+        if rel in existing or str(rel) in existing:
+            # Resolve keeps one marker per frame: refresh the note instead of failing quietly
+            tl.DeleteMarkerAtFrame(rel)
+        ok = tl.AddMarker(rel, colour, name, note, 1, custom)
+        log("marker %s at %d -> %s" % (colour, frame, ok))
+        return ("%s marker at %s" % (colour, frame_to_tc(frame, self.fps, self.drop))) if ok else "Resolve refused the marker"
+
+    def remove_marker(self):
+        tl = self.timeline
+        frame = self.current_frame()
+        rel = frame - tl.GetStartFrame()
+        ok = tl.DeleteMarkerAtFrame(rel)
+        return ("Marker removed at %s" % frame_to_tc(frame, self.fps, self.drop)) if ok else "No marker under the playhead"
+
+    def jump_marker(self, direction):
+        tl = self.timeline
+        frame = self.current_frame()
+        frames = sorted(tl.GetStartFrame() + int(f) for f in (tl.GetMarkers() or {}).keys())
+        if direction > 0:
+            nxt = [f for f in frames if f > frame]
+            if nxt:
+                self.seek(nxt[0])
+        else:
+            prv = [f for f in frames if f < frame]
+            if prv:
+                self.seek(prv[-1])
 
     def seek(self, frame):
         tl = self.timeline

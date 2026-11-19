@@ -49,6 +49,7 @@ bool EditModel::apply(const Json& msg) {
             e.frame = (int64_t)m.get("frame").numberOr(0);
             e.name = m.get("name").stringOr("");
             e.colour = m.get("color").stringOr("");
+            e.note = m.get("note").stringOr("");
             markers.push_back(e);
         }
         return true;

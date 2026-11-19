@@ -588,3 +588,33 @@ def test_hide_and_show_clips_from_the_headset():
     n = len(sent)
     b.handle(Client(), {"cmd": "hide", "clips": ["V9:1"], "on": 1})
     assert [m["type"] for m in sent[n:]] == ["timeline"]
+
+
+def test_markers_from_the_headset():
+    b, sent = make_bridge()
+    tl = b.timeline
+    # playhead at 108350: a note with the gaze lands at relative frame 350, Cyan by default
+    b.handle(Client(), {"cmd": "marker", "action": "add", "pan": 35.2, "tilt": -10.4, "card": "Title card"})
+    mk = tl.markers[350]
+    assert mk["color"] == "Cyan" and mk["name"] == "Headset note"
+    assert "yaw +35\u00b0, pitch -10\u00b0" in mk["note"] and "Picked: Title card" in mk["note"]
+    assert mk["customData"] == "velaria:pan=35.2;tilt=-10.4"
+    assert sent[-1] == {"type": "notice", "msg": "Cyan marker at 01:00:11:20"}
+    snap = [m for m in sent if m.get("type") == "timeline"][-1]
+    assert [m["frame"] for m in snap["markers"]] == [108120, 108350]
+    # a second note on the same frame replaces the first (Resolve keeps one per frame)
+    b.handle(Client(), {"cmd": "marker", "action": "add", "color": "Red"})
+    assert tl.markers[350]["color"] == "Red" and len(tl.markers) == 2
+    # jump: previous marker, then next
+    b.handle(Client(), {"cmd": "marker", "action": "jump", "dir": -1})
+    assert tl.frame == 108120
+    b.handle(Client(), {"cmd": "marker", "action": "jump", "dir": 1})
+    assert tl.frame == 108350
+    # remove under the playhead
+    b.handle(Client(), {"cmd": "marker", "action": "remove"})
+    assert 350 not in tl.markers and sent[-1]["msg"] == "Marker removed at 01:00:11:20"
+    b.handle(Client(), {"cmd": "marker", "action": "remove"})
+    assert sent[-1]["msg"] == "No marker under the playhead"
+    # an unknown colour falls back to Cyan
+    b.handle(Client(), {"cmd": "marker", "action": "add", "color": "Octarine"})
+    assert tl.markers[350]["color"] == "Cyan"

@@ -165,6 +165,14 @@ class Timeline:
     def GetSetting(self, k): return "30" if k == "timelineFrameRate" else "0"
     def GetMarkers(self): return dict(self.markers)
 
+    def AddMarker(self, frame, color, name, note, duration, custom=""):
+        if frame in self.markers: return False
+        self.markers[int(frame)] = {"name": name, "color": color, "note": note, "duration": duration, "customData": custom}
+        return True
+
+    def DeleteMarkerAtFrame(self, frame):
+        return self.markers.pop(int(frame), None) is not None
+
     def GetCurrentTimecode(self):
         if self.page_fusion:
             return None

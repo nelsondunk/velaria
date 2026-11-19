@@ -22,7 +22,7 @@ struct EditClip {
 
 struct EditMarker {
     int64_t frame = 0;
-    std::string name, colour;
+    std::string name, colour, note;
 };
 
 struct EditParam {
@@ -102,6 +102,7 @@ struct EditModel {
     // hidden = the group's clip is disabled in Resolve (the headset's Hide chip, or D on the Edit page)
     bool isHidden(const EditGroup& g) const { for (auto& c : clips) if (c.key == g.clip) return !c.enabled; return false; }
     int hiddenInLayer() const { int n = 0; for (auto& g : groups) if (inLayer(g) && isHidden(g)) n++; return n; }
+    const EditMarker* markerAt(int64_t f) const { for (auto& m : markers) if (m.frame == f) return &m; return nullptr; }
     bool currentLocked() const { const EditGroup* g = current(); return g && isLocked(*g); }
     void settle() { if (group < 0 || group >= (int)groups.size() || !inLayer(groups[group])) { int f = firstInLayer(); group = f < 0 ? 0 : f; } }
     int firstRow = 0;             // scrolling within a Look tab
