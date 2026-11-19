@@ -47,6 +47,10 @@ Thu 19 Nov, after the third pass (+70, pending Nelson's choice of venues from th
 - **Room light:** cove off; one soft cool source from the dome above-front standing in for the show, plus a faint dome glow, step lights and exit signs. Deep shadows.
 - **Eye spacing** back to 64 mm (90 mm read cross-eyed on the neighbour chair). **Default seat** is row 5 of 7 in the medium room (0.6 of the block).
 - Theatre renders are named `<size><tilt>_seat<n>.jpg`; a missing venue render falls back to the picture on black.
+- **Fade** (+70): a seat, venue or tilt-preset change fades the room and the picture to black together (¼ s), swaps while black, and fades up (⅓ s) once the new room is decoded and the picture re-warped (`XR_KHR_composition_layer_color_scale_bias`; a hard cut where the runtime lacks it). The 1° trim stays live.
+- **Tuning with Nelson in the headset (+71, +72):** eye spacing 64 mm; the chairs either side of the viewer are left empty (the neighbour's near armrest at 0.6 m was the eye-crossing object) and the viewer's own chair is not drawn; the room went four stops darker in all — "just barely able to see floors and walls"; step lights and exit signs are the brightest things in it.
+- **Seam at the back** (+73): both 360 layers now carry a one-texel wraparound margin, with the layer rectangle set inside it, so the compositor's edge sample at 180° lands on real content instead of drawing a hairline.
+- **Halation:** a bloom pass in the Blender compositor on the renders (exit signs, step lights, lectern screen).
 
 ## Unreleased — 1.1 work in progress (Dome preview)
 
