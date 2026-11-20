@@ -395,20 +395,34 @@ public:
             return std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, m, pcm.data(), pcm.size()));
         };
         auto stereo = pack(2);
-        MsgPtr quad;
-        if (m_server.anyAudioClient4()) {
-            quad = tapQuad(a, frames, streamNs);   // the Velaria Tap plugin's bus, aligned by timecode, when it is running
-            if (!quad) quad = pack(4);
+        if (!m_server.anyAudioClient4()) {
+            m_server.broadcastAudio(stereo, nullptr);
+            return;
         }
-        m_server.broadcastAudio(stereo, quad);
+        // Four-channel receivers: the Velaria Tap plugin's bus when it is running, else Decklink 1-4. Resolve hands
+        // us a block a little before the plugin has processed the same moment, so blocks wait in a short queue
+        // until the plugin's audio for them has arrived (or their deadline passes, when Decklink's copy goes).
+        m_server.broadcastAudioSplit(stereo, nullptr);
+        tapQueue(a, frames, streamNs, pack(4));
         if ((a.seq % 300) == 0) VLOGD("audio: block %llu, %u frames, pts %+.3f s ahead", (unsigned long long)a.seq, frames, (a.ptsNs - nowNs()) / 1e9);
     }
 
-    // The headset's four-channel message from the Velaria Tap plugin instead of Decklink channels 1-4: the plugin
-    // stamps its audio with the timeline position, the video frames carry timecode, so the block that plays at
-    // stream time S is the bus at timeline time tc(S). Returns nullptr when the plugin is not running, nothing
-    // aligns yet, or the plugin's channel count is not a first-order bus (anything else still comes from Decklink).
-    MsgPtr tapQuad(const AudioMsg& a, uint32_t frames, int64_t streamNs) {
+    // Four-channel audio for the headset, from the Velaria Tap plugin when it is running. The plugin stamps its
+    // audio with the timeline position and the video frames carry timecode, so the block Resolve schedules for
+    // stream time S is the bus at timeline time tc(S). Resolve delivers a block some milliseconds before the plugin
+    // has processed that moment (measured 10-15 ms on Bruce, 20 Nov), so each block waits in m_tapPending until the
+    // plugin's samples for it are in the ring, then goes out with its original pts. A block whose deadline passes
+    // (its play time is close) goes out with Decklink's copy instead, so the headset never starves. Without the
+    // plugin, or without timecode on the picture, Decklink's copy goes straight away as before.
+    struct PendingQuad {
+        AudioMsg a;
+        int64_t at;          // first timeline sample wanted from the tap
+        uint32_t frames;
+        MsgPtr fallback;     // Decklink channels 1-4, already packed
+        int64_t queuedNs;
+    };
+
+    void tapQueue(const AudioMsg& a, uint32_t frames, int64_t streamNs, MsgPtr fallback) {
         int64_t now = nowNs();
         bool live = m_tap.live(now) && m_tap.channels() >= 4 && streamNs >= 0;
         int64_t tcStream, tcHost;
@@ -420,34 +434,54 @@ public:
         bool aligned = live && tcHost > 0 && now - tcHost < 2000000000LL;
         if (!aligned) {
             if (m_tapActive) { VLOGI("audio: ambisonic back to Decklink 1-4 (%s)", live ? "no timecode on the picture" : "Velaria Tap plugin gone"); m_tapActive = false; }
-            return nullptr;
+            flushTapPending(now, true);
+            m_server.broadcastAudioSplit(nullptr, fallback);
+            return;
         }
         double tl = tcSec + (double)(streamNs - tcStream) / 1e9;
-        int64_t at = (int64_t)std::llround(tl * m_tap.sampleRate());
-        std::vector<uint8_t> pcm((size_t)frames * 4 * 2);
-        uint32_t have = m_tap.read(at, frames, reinterpret_cast<int16_t*>(pcm.data()), 4);
-        if (have < frames / 2) {
-            // the plugin's audio for this moment is not in the ring (plugin behind, or the position maps elsewhere)
-            if (m_tapActive || (m_tapMissLog++ % 200) == 0) {
-                int64_t first, end;
-                m_tap.held(first, end);
-                VLOGI("audio: Velaria Tap has no audio for timeline %.3f s (holds %.3f..%.3f s); using Decklink 1-4",
-                      tl, first / (double)m_tap.sampleRate(), end / (double)m_tap.sampleRate());
+        PendingQuad p{a, (int64_t)std::llround(tl * m_tap.sampleRate()), frames, std::move(fallback), now};
+        if (a.flags & kAudioDiscontinuity) flushTapPending(now, true);   // a seek: whatever waited belongs to the old run
+        m_tapPending.push_back(std::move(p));
+        flushTapPending(now, false);
+    }
+
+    // Send, in order, every waiting block the plugin has now covered; stop at the first that is still missing unless
+    // its deadline has passed (then Decklink's copy goes) or `all` is set.
+    void flushTapPending(int64_t now, bool all) {
+        const int64_t kDeadlineNs = 25000000LL;   // send something no later than this before the block's play time
+        while (!m_tapPending.empty()) {
+            PendingQuad& p = m_tapPending.front();
+            std::vector<uint8_t> pcm((size_t)p.frames * 4 * 2);
+            uint32_t have = m_tap.read(p.at, p.frames, reinterpret_cast<int16_t*>(pcm.data()), 4);
+            bool due = all || now > p.a.ptsNs - kDeadlineNs || m_tapPending.size() > 12;
+            if (have >= p.frames - p.frames / 16) {
+                if (!m_tapActive) {
+                    int64_t first, end;
+                    m_tap.held(first, end);
+                    VLOGI("audio: ambisonic from Velaria Tap (%d ch, %s); block waited %.0f ms, plugin %.0f ms ahead of the picture",
+                          m_tap.channels(), m_tap.ambisonic() ? "ambisonic" : "speakers",
+                          (now - p.queuedNs) / 1e6, (end - p.at) * 1000.0 / m_tap.sampleRate());
+                    m_tapActive = true;
+                }
+                AudioMsg m = p.a;
+                m.channels = 4;
+                m.flags |= kAudioFromTap;
+                m_server.broadcastAudioSplit(nullptr, std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, m, pcm.data(), pcm.size())));
+                m_tapPending.pop_front();
+            } else if (due) {
+                if (m_tapActive || (m_tapMissLog++ % 500) == 0) {
+                    int64_t first, end;
+                    m_tap.held(first, end);
+                    VLOGI("audio: Velaria Tap has no audio for timeline %.3f s (holds %.3f..%.3f s) by its deadline; Decklink 1-4 for this block",
+                          p.at / (double)m_tap.sampleRate(), first / (double)m_tap.sampleRate(), end / (double)m_tap.sampleRate());
+                }
+                m_tapActive = false;
+                m_server.broadcastAudioSplit(nullptr, p.fallback);
+                m_tapPending.pop_front();
+            } else {
+                break;
             }
-            m_tapActive = false;
-            return nullptr;
         }
-        if (!m_tapActive) {
-            int64_t first, end;
-            m_tap.held(first, end);
-            VLOGI("audio: ambisonic from Velaria Tap (%d ch, %s); plugin runs %.0f ms ahead of the picture",
-                  m_tap.channels(), m_tap.ambisonic() ? "ambisonic" : "speakers", (end - at) * 1000.0 / m_tap.sampleRate());
-            m_tapActive = true;
-        }
-        AudioMsg m = a;
-        m.channels = 4;
-        m.flags |= kAudioFromTap;
-        return std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, m, pcm.data(), pcm.size()));
     }
 
 private:
@@ -787,6 +821,7 @@ private:
     double m_tcSeconds = 0;                      // and its timecode as timeline seconds
     bool m_tapActive = false;
     uint64_t m_tapMissLog = 0;
+    std::deque<PendingQuad> m_tapPending;        // four-channel blocks waiting for the plugin's audio (onAudio thread only)
     double m_meterSq[16] = {};          // level meter accumulators (see meterLocked)
     uint32_t m_meterCh = 0, m_meterFrames = 0;
     double m_speed = 1.0;

@@ -35,6 +35,7 @@ public:
     void broadcastControl(const MsgPtr& msg);
     // audio goes only to clients whose hello asked for it (kCapAudio); a client that falls behind loses old blocks
     void broadcastAudio(const MsgPtr& stereo, const MsgPtr& quad);   // each client gets the one it asked for
+    void broadcastAudioSplit(const MsgPtr& stereo, const MsgPtr& quad);   // as above, but a null half sends nothing to its group
     bool anyAudioClient() const;
     bool anyAudioClient4() const;   // someone wants four channels
     int clientCount() const { return m_clientCount.load(); }

@@ -514,6 +514,21 @@ void StreamServer::broadcastAudio(const MsgPtr& stereo, const MsgPtr& quad) {
         if (c->alive() && c->ready()) c->sendAudio(c->wantsAudio4() && quad ? quad : stereo);
 }
 
+void StreamServer::broadcastAudioSplit(const MsgPtr& stereo, const MsgPtr& quad) {
+    // stereo to the clients that take two channels, quad to the ones that asked for four; either may be null,
+    // and a null message sends nothing to that group (the caller sends the other half later)
+    std::vector<std::shared_ptr<Client>> cs;
+    {
+        std::lock_guard<std::mutex> lk(m_mutex);
+        cs = m_clients;
+    }
+    for (auto& c : cs) {
+        if (!c->alive() || !c->ready()) continue;
+        const MsgPtr& m = c->wantsAudio4() ? quad : stereo;
+        if (m) c->sendAudio(m);
+    }
+}
+
 bool StreamServer::anyAudioClient() const {
     std::lock_guard<std::mutex> lk(const_cast<std::mutex&>(m_mutex));
     for (auto& c : m_clients)
