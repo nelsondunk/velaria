@@ -29,3 +29,24 @@ Identical on all ten. "Leftovers" checks the framework, bridge, platform-tools, 
 - Never leave an `rq.py` attached to Resolve; kill strays before any API call.
 - Quit Resolve through the API only when it is idle at a project; otherwise AppleScript quit, and expect a recovery dialog after any kill.
 - Resolve appends to `davinci_resolve.log` (rotates at 2 MB, archives into `LogArchive` on some launches); detect new lines by byte offset with a reset when the file shrinks, not by inode.
+
+## 1.1.0-rc1 — hardware-free tests and the build Mac (20 Nov 2026, evening)
+
+Run from the branch tip (`d773621` and after) on the build Mac; nothing installed by sudo (the driver and plugin swap waits for Monday, `mac/install/dev/monday-swap.sh`).
+
+| Suite | Where | Result |
+|---|---|---|
+| Bridge `pytest mac/bridge/tests` | Linux + build Mac | **51 passed** (output-scaling transactional/Deliver/grace/None cases, folding and labels, driver notice) |
+| Driver `tests/tap_test.sh` | Linux + build Mac | passed (header validation, NaN, ring invalidation, insert selection) |
+| Driver `build/selftest` against the fresh framework | build Mac | **PASSED: 0 failure(s)** |
+| Driver `chain_test`, `server_test`, `area_test` | build Mac | passed (in `build.sh`) |
+| Velaria Sound: VST3 validator | build Mac | **47 tests passed, 0 failed**; universal (`lipo -archs`: x86_64 arm64) |
+| Velaria Sound `tap_test` (null buffers, pass-through, log worker) | build Mac | all checks passed |
+| Headset `hrirtest` | Linux | kernel sane, 1 s decoded in 21 ms |
+| `hudpreview` renders of every panel | Linux | regenerated into `quest/host/ref/` (+87 layout) |
+| `package.sh 1.1.0-rc1` with `VELARIA_VST3_LICENSED=1` | build Mac | built, 52 MB, `~/VRLink/release/Velaria-1.1.0-rc1/` |
+| `check_release.sh` | build Mac | **clean** apart from the legal placeholders ([LEGAL ENTITY NAME], [MAILING ADDRESS], [SUPPORT EMAIL], the [VERIFY] items in THIRD-PARTY-NOTICES) — "do not sell this build" until those are filled |
+
+Not run tonight: `tests/e2e.sh` (needs the UDP/TCP ports the installed driver inside Resolve holds), the NYC install soak (Resolve on NYC not running; no relaunch unattended), the macro regression rig, and anything with the headset on.
+
+**The RC package is not for a customer yet** (the VST 3 licence agreement is not signed; `VELARIA_VST3_LICENSED=1` was set only to exercise the path), and the legal placeholders stand. It is the install candidate for the NYC clean-install test on Monday.
