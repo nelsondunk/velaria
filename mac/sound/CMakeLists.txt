@@ -48,4 +48,7 @@ endif()
 # Host-side checks (null buffers, pass-through, log worker): build/tap/tap_test
 add_executable(tap_test tests/tap_test.cpp src/tap.cpp)
 target_link_libraries(tap_test PRIVATE sdk)
+if(SMTG_MAC)
+    target_link_libraries(tap_test PRIVATE "-framework CoreFoundation")
+endif()
 target_compile_features(tap_test PRIVATE cxx_std_17)
