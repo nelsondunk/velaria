@@ -41,7 +41,8 @@ os.environ.setdefault("RESOLVE_SCRIPT_LIB",
                       "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so")
 sys.path.append(RESOLVE_API + "/Modules")
 
-BRIDGE_VERSION = "1.0.12"
+BRIDGE_VERSION = "1.0.13"
+RESTORE_GRACE_S = 5.0   # headset gone this long before a scaled timeline is put back
 PORT = int(os.environ.get("VRLINK_BRIDGE_PORT", "47812"))
 LOG = os.path.expanduser("~/Library/Logs/Velaria/bridge.log")
 CONFIG = os.path.expanduser("~/Library/Application Support/Velaria/config.plist")
@@ -224,6 +225,7 @@ class Bridge:
         self.last_set = 0.0        # when a change was last applied (the periodic re-scan stays out of a drag's way)
         self.scaled = {}           # timeline key -> original output settings while the bridge has scaled it, see autoscale_*
         self.scaled_loaded = False
+        self.clients_empty_since = None
 
     # ---------------------------------------------------------------- resolve
     def versions(self):
@@ -365,6 +367,14 @@ class Bridge:
             pass
         return None
 
+    def autoscale_put(self, put, match, w, h):
+        """Write the three output-scaling settings; True only if all three took."""
+        ok = bool(put("timelineOutputResMatchTimelineRes", str(match)))
+        if w and h:
+            ok = bool(put("timelineOutputResolutionWidth", str(w))) and ok
+            ok = bool(put("timelineOutputResolutionHeight", str(h))) and ok
+        return ok
+
     def autoscale_apply(self):
         """Headset connected and the current timeline's output does not fit: set the scaling (once)."""
         tl = self.timeline
@@ -379,12 +389,11 @@ class Bridge:
             rec = self.scaled[key]
             get, put = self.settings_target(tl)
             now = (str(get("timelineOutputResolutionWidth")), str(get("timelineOutputResolutionHeight")))
-            if now == (str(rec["setW"]), str(rec["setH"])):
+            match = str(get("timelineOutputResMatchTimelineRes") or "0")
+            if now == (str(rec["setW"]), str(rec["setH"])) and match == "0":
                 return
-            if now == (str(rec["ow"]), str(rec["oh"])) or (get("timelineOutputResMatchTimelineRes") or "0") == "1":
-                ok = put("timelineOutputResMatchTimelineRes", "0")
-                ok = put("timelineOutputResolutionWidth", str(rec["setW"])) and ok
-                ok = put("timelineOutputResolutionHeight", str(rec["setH"])) and ok
+            if now == (str(rec["ow"]), str(rec["oh"])) or match == "1":
+                ok = self.autoscale_put(put, 0, rec["setW"], rec["setH"])
                 log("output scaling: '%s' had reverted to %sx%s (Resolve re-applied its settings); set %dx%d again%s"
                     % (rec["name"], now[0], now[1], rec["setW"], rec["setH"], "" if ok else " -- Resolve refused"))
                 if ok:
@@ -407,21 +416,24 @@ class Bridge:
                "match": get("timelineOutputResMatchTimelineRes") or "1",
                "ow": get("timelineOutputResolutionWidth") or "", "oh": get("timelineOutputResolutionHeight") or "",
                "setW": fit[0], "setH": fit[1]}
-        ok = put("timelineOutputResMatchTimelineRes", "0")
-        ok = put("timelineOutputResolutionWidth", str(fit[0])) and ok
-        ok = put("timelineOutputResolutionHeight", str(fit[1])) and ok
-        if not ok:
-            log("output scaling: Resolve refused to set %dx%d on '%s'" % (fit[0], fit[1], rec["name"]))
-            return
+        # the record is saved before the writes: if the bridge dies between them, the next start restores
         self.scaled[key] = rec
         self.save_sidecar()
+        ok = self.autoscale_put(put, 0, fit[0], fit[1])
+        if not ok:
+            # one of the three writes failed: put back whatever did take, and keep nothing (review finding 7)
+            self.autoscale_put(put, rec["match"], rec["ow"], rec["oh"])
+            del self.scaled[key]
+            self.save_sidecar()
+            log("output scaling: Resolve refused to set %dx%d on '%s'; original settings put back" % (fit[0], fit[1], rec["name"]))
+            return
         log("output scaling: '%s' %dx%d -> %dx%d for the headset (was match=%s %sx%s)"
             % (rec["name"], fmt["outWidth"], fmt["outHeight"], fit[0], fit[1], rec["match"], rec["ow"], rec["oh"]))
         self.refresh_timeline()
 
-    def autoscale_restore(self, only=None):
+    def autoscale_restore(self, only=None, reason=None):
         """Put back every scaled timeline (or one key). A timeline whose scaling the user changed since is left as
-        the user left it."""
+        the user left it. A record whose restore Resolve refuses is kept and tried again next tick."""
         here = None
         try:
             here = self.project.GetName() if self.project else None
@@ -430,6 +442,9 @@ class Bridge:
         waiting = getattr(self, "scaled_waiting", None)
         if waiting is None:
             waiting = self.scaled_waiting = set()
+        failed = getattr(self, "scaled_failed", None)
+        if failed is None:
+            failed = self.scaled_failed = set()
         for key in list(self.scaled):
             if only and key != only:
                 continue
@@ -446,25 +461,49 @@ class Bridge:
             waiting.discard(key)
             get, put = self.settings_target(tl)
             now_w, now_h = get("timelineOutputResolutionWidth"), get("timelineOutputResolutionHeight")
-            if (str(now_w), str(now_h)) != (str(rec["setW"]), str(rec["setH"])):
-                log("output scaling: '%s' was changed by hand (%sx%s); leaving it" % (rec["name"], now_w, now_h))
+            match = str(get("timelineOutputResMatchTimelineRes") or "0")
+            if (str(now_w), str(now_h)) != (str(rec["setW"]), str(rec["setH"])) or match != "0":
+                # the size or the match checkbox is not what the bridge set: the user's choice, left alone
+                log("output scaling: '%s' was changed by hand (match=%s %sx%s); leaving it" % (rec["name"], match, now_w, now_h))
             else:
-                put("timelineOutputResMatchTimelineRes", rec["match"])
-                if rec["ow"] and rec["oh"]:
-                    put("timelineOutputResolutionWidth", str(rec["ow"]))
-                    put("timelineOutputResolutionHeight", str(rec["oh"]))
-                log("output scaling: '%s' restored (match=%s %sx%s)" % (rec["name"], rec["match"], rec["ow"], rec["oh"]))
+                if not self.autoscale_put(put, rec["match"], rec["ow"], rec["oh"]):
+                    if key not in failed:
+                        failed.add(key)
+                        log("output scaling: Resolve refused to restore '%s' (match=%s %sx%s); trying again"
+                            % (rec["name"], rec["match"], rec["ow"], rec["oh"]))
+                    continue   # record kept; next tick tries again
+                log("output scaling: '%s' restored (match=%s %sx%s)%s" % (rec["name"], rec["match"], rec["ow"], rec["oh"],
+                                                                        " -- %s" % reason if reason else ""))
+            failed.discard(key)
             del self.scaled[key]
         self.save_sidecar()
         if self.timeline:
             self.refresh_timeline()   # the format and the preflight line follow the restored settings
 
-    def autoscale_tick(self):
+    def delivering(self):
+        """On the Deliver page or rendering: the output scaling is the user's render size, never the headset's."""
+        try:
+            if self.resolve and self.resolve.GetCurrentPage() == "deliver":
+                return True
+            if self.project and self.project.IsRenderingInProgress():
+                return True
+        except Exception:
+            pass
+        return False
+
+    def autoscale_tick(self, now=None):
         """Called from the main loop after each timeline refresh, with the lock held."""
         if not self.scaled_loaded:
             self.load_sidecar()
+        now = time.time() if now is None else now
         connected = bool(self.clients)
         if connected:
+            self.clients_empty_since = None
+            if self.delivering():
+                # a render must go out at the user's size: restore now, scale again when they leave the Deliver page
+                if self.scaled:
+                    self.autoscale_restore(reason="Deliver page / rendering")
+                return
             if self.timeline:
                 here = self.timeline_key(self.timeline)
                 for key in list(self.scaled):     # the user moved to another timeline: put the old one back
@@ -472,7 +511,13 @@ class Bridge:
                         self.autoscale_restore(only=key)
             self.autoscale_apply()
         elif self.scaled:
-            self.autoscale_restore()
+            # the headset reconnects within a few seconds all the time (app restarts, USB re-enumeration): restore
+            # only once it has been gone for 5 s, so the timeline does not flap
+            if getattr(self, "clients_empty_since", None) is None:
+                self.clients_empty_since = now
+                return
+            if now - self.clients_empty_since >= RESTORE_GRACE_S:
+                self.autoscale_restore()
 
     def clip_key(self, track, item):
         start = item.GetStart()

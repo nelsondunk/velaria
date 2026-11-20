@@ -663,6 +663,13 @@ SQUARE = {"useCustomSettings": "1", "timelineResolutionWidth": "5760", "timeline
           "timelineOutputResMatchTimelineRes": "1", "timelineOutputResolutionWidth": "5760", "timelineOutputResolutionHeight": "5760"}
 
 
+def _gone(b):
+    """The headset disconnects and stays away past the 5 s restore grace."""
+    b.clients = []
+    b.autoscale_tick(now=1000.0)
+    b.autoscale_tick(now=1000.0 + vb.RESTORE_GRACE_S + 0.1)
+
+
 def _scaling_bridge(tmp_path, tl):
     b, sent = make_bridge()
     vb.SIDECAR = str(tmp_path / "output-scaling.json")
@@ -694,8 +701,7 @@ def test_autoscale_sets_square_on_connect_and_restores_on_disconnect(tmp_path):
     assert os.path.exists(vb.SIDECAR)
     b.autoscale_tick()                       # idempotent while connected
     assert len(tl.writes) == 3
-    b.clients = []
-    b.autoscale_tick()
+    _gone(b)
     assert tl.d["timelineOutputResMatchTimelineRes"] == "1"
     assert (tl.d["timelineOutputResolutionWidth"], tl.d["timelineOutputResolutionHeight"]) == ("5760", "5760")
     assert b.scaled == {} and not os.path.exists(vb.SIDECAR)
@@ -721,8 +727,7 @@ def test_autoscale_wide_fit_and_project_level_settings(tmp_path):
     b.autoscale_tick()
     assert tl.writes == []
     assert (b.project.d["timelineOutputResolutionWidth"], b.project.d["timelineOutputResolutionHeight"]) == ("7680", "3840")
-    b.clients = []
-    b.autoscale_tick()
+    _gone(b)
     assert b.project.d["timelineOutputResMatchTimelineRes"] == "1"
 
 
@@ -746,8 +751,7 @@ def test_autoscale_respects_a_hand_change(tmp_path):
     b.clients = [object()]
     b.autoscale_tick()
     tl.d["timelineOutputResolutionWidth"] = tl.d["timelineOutputResolutionHeight"] = "4320"   # the user's own choice
-    b.clients = []
-    b.autoscale_tick()
+    _gone(b)
     assert tl.d["timelineOutputResolutionWidth"] == "4320" and tl.d["timelineOutputResMatchTimelineRes"] == "0"
     assert b.scaled == {}
 
@@ -765,8 +769,7 @@ def test_autoscale_reapplies_when_resolve_reverts_the_scaling(tmp_path):
     b.autoscale_tick()
     assert (tl.d["timelineOutputResolutionWidth"], tl.d["timelineOutputResMatchTimelineRes"]) == ("3840", "0")
     assert list(b.scaled)                                   # still managed
-    b.clients = []
-    b.autoscale_tick()
+    _gone(b)
     assert tl.d["timelineOutputResolutionWidth"] == "5760" and b.scaled == {}
 
 
@@ -778,6 +781,83 @@ def test_autoscale_hand_change_while_connected_drops_the_record(tmp_path):
     tl.d["timelineOutputResolutionWidth"] = tl.d["timelineOutputResolutionHeight"] = "4320"   # the user's own choice
     b.autoscale_tick()
     assert tl.d["timelineOutputResolutionWidth"] == "4320" and b.scaled == {} and not os.path.exists(vb.SIDECAR)
+
+
+def test_autoscale_restore_waits_out_a_short_disconnect(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick(now=100.0)
+    b.clients = []
+    b.autoscale_tick(now=101.0)
+    b.autoscale_tick(now=103.0)
+    assert tl.d["timelineOutputResolutionWidth"] == "3840"          # still scaled: it may be a reconnect
+    b.clients = [object()]
+    b.autoscale_tick(now=104.0)
+    assert tl.d["timelineOutputResolutionWidth"] == "3840" and len(tl.writes) == 3   # no flap
+    _gone(b)
+    assert tl.d["timelineOutputResolutionWidth"] == "5760"
+
+
+def test_autoscale_partial_apply_rolls_back(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    real = tl.SetSetting
+    def flaky(k, v):
+        if k == "timelineOutputResolutionHeight" and v == "3840":
+            return False
+        return real(k, v)
+    tl.SetSetting = flaky
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick()
+    assert (tl.d["timelineOutputResMatchTimelineRes"], tl.d["timelineOutputResolutionWidth"], tl.d["timelineOutputResolutionHeight"]) == ("1", "5760", "5760")
+    assert b.scaled == {} and not os.path.exists(vb.SIDECAR)
+
+
+def test_autoscale_refused_restore_keeps_the_record(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick()
+    real = tl.SetSetting
+    tl.SetSetting = lambda k, v: False
+    _gone(b)
+    assert list(b.scaled) and os.path.exists(vb.SIDECAR)          # not forgotten
+    tl.SetSetting = real
+    b.autoscale_tick(now=2000.0)
+    assert tl.d["timelineOutputResolutionWidth"] == "5760" and b.scaled == {}
+
+
+def test_autoscale_match_checkbox_counts_as_a_hand_change_on_restore(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick()
+    tl.d["timelineOutputResMatchTimelineRes"] = "1"      # the user ticked it back on, size left at 3840
+    writes = len(tl.writes)
+    _gone(b)
+    assert len(tl.writes) == writes and b.scaled == {}
+
+
+def test_autoscale_deliver_page_restores_and_reapplies(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    page = {"p": "edit"}
+    class R:
+        def GetCurrentPage(self): return page["p"]
+    b.resolve = R()
+    b.project.IsRenderingInProgress = lambda: False
+    b.clients = [object()]
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResolutionWidth"] == "3840"
+    page["p"] = "deliver"
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResolutionWidth"] == "5760" and b.scaled == {}
+    b.autoscale_tick()                                   # stays put while delivering
+    assert tl.d["timelineOutputResolutionWidth"] == "5760"
+    page["p"] = "edit"
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResolutionWidth"] == "3840"
 
 
 def test_autoscale_switching_timelines_restores_the_old_one(tmp_path):
@@ -815,7 +895,7 @@ def test_autoscale_waits_for_the_timeline_s_own_project(tmp_path):
     b.refresh_timeline()
     b.clients = []
     with open(vb.LOG) as f: before = f.read().count("is not open")
-    b.autoscale_tick(); b.autoscale_tick(); b.autoscale_tick()
+    b.autoscale_tick(now=1.0); b.autoscale_tick(now=10.0); b.autoscale_tick(now=20.0); b.autoscale_tick(now=30.0)
     with open(vb.LOG) as f: after = f.read().count("is not open")
     assert after - before == 1                       # said once
     assert list(b.scaled) == ["sw"] and json.load(open(vb.SIDECAR))["scaled"]["sw"]["project"] == "Strange Worlds Teaser copy"
