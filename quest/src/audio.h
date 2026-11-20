@@ -42,7 +42,9 @@ public:
     void push(AudioBlock&& b);     // any thread; blocks with a due time more than 2 s off are ignored
     void flush();                  // drop everything queued (stop, seek)
     AudioStats stats();
-    bool running() const { return m_stream != nullptr; }
+    // Open and healthy. An AAudio error leaves the stream object to be closed by start()/stop() on the main thread
+    // (closing inside the error callback is not allowed); running() goes false at once so the owner reopens.
+    bool running() const { return m_stream.load() != nullptr && !m_errored.load(); }
     // The head's orientation in the room (OpenXR: x right, y up, -z forward), from the render thread each frame;
     // used only for 4-channel blocks.
     void setHead(float qx, float qy, float qz, float qw);
@@ -59,8 +61,9 @@ private:
     int64_t playTimeNs(int64_t framesAhead);
     void headRotation(float m[3][3]);  // head-relative (Y' Z' X') = m * (Y Z X) at the current head orientation
     void clearHrir();
+    void resetFifoLocked(int64_t dueNs);   // drop everything playing and the HRIR history (seek, stop, error)
 
-    AAudioStreamStruct* m_stream = nullptr;
+    std::atomic<AAudioStreamStruct*> m_stream{nullptr};   // read by running() off the lock
     std::mutex m_mutex;
     std::deque<AudioBlock> m_queue;        // from the network thread
     // the FIFO the callback plays from: samples are contiguous from fifoDueNs

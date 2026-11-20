@@ -44,7 +44,12 @@ void errorCb(AAudioStream*, void* user, aaudio_result_t err) {
 }  // namespace
 
 bool AudioOut::start() {
-    if (m_stream) return true;
+    if (m_stream.load() && !m_errored.load()) return true;
+    if (AAudioStream* old = m_stream.exchange(nullptr)) {   // an errored stream: close it here, never in the callback
+        AAudioStream_requestStop(old);
+        AAudioStream_close(old);
+        LOGI("audio: errored stream closed; reopening");
+    }
     AAudioStreamBuilder* b = nullptr;
     if (AAudio_createStreamBuilder(&b) != AAUDIO_OK || !b) return false;
     AAudioStreamBuilder_setDirection(b, AAUDIO_DIRECTION_OUTPUT);
@@ -82,9 +87,13 @@ bool AudioOut::start() {
     }
     {
         std::lock_guard<std::mutex> lk(m_mutex);
+        // a fresh stream starts from nothing: queued network blocks and the HRIR history belong to the old one
+        m_queue.clear();
+        resetFifoLocked(0);
+        m_fifoValid = false;
+        m_lastRotValid = false;
         m_stream = s;
         m_errored = false;
-        m_fifo.clear(); m_fifoPos = 0; m_fifoValid = false;
         m_stats.running = true;
     }
     LOGI("audio: stream open, burst %d frames, buffer %d", burst, AAudioStream_getBufferSizeInFrames(s));
@@ -95,8 +104,8 @@ void AudioOut::stop() {
     AAudioStream* s = nullptr;
     {
         std::lock_guard<std::mutex> lk(m_mutex);
-        s = m_stream;
-        m_stream = nullptr;
+        s = m_stream.exchange(nullptr);
+        m_errored = false;
         m_stats.running = false;
     }
     if (s) {
@@ -109,7 +118,14 @@ void AudioOut::stop() {
 void AudioOut::flush() {
     std::lock_guard<std::mutex> lk(m_mutex);
     m_queue.clear();
-    m_fifo.clear(); m_fifoPos = 0; m_fifoValid = false;
+    resetFifoLocked(0);
+    m_fifoValid = false;
+}
+
+void AudioOut::resetFifoLocked(int64_t dueNs) {
+    m_fifo.clear();
+    m_fifoPos = 0;
+    m_fifoDueNs = dueNs;
     clearHrir();
 }
 
@@ -194,21 +210,23 @@ AudioStats AudioOut::stats() {
 }
 
 void AudioOut::onError() {
-    m_errored = true;   // the owner notices running() going false on its next check and reopens
+    // AAudio forbids closing the stream from its own error callback; flag it and let start() (main thread) close
+    // and reopen. Everything queued is dropped there as well (review finding 6).
+    m_errored = true;
     std::lock_guard<std::mutex> lk(m_mutex);
-    if (m_stream) { AAudioStream_close(m_stream); m_stream = nullptr; }
     m_stats.running = false;
 }
 
 // local time at which the sample we are about to write (framesAhead past what has been written) will be heard
 int64_t AudioOut::playTimeNs(int64_t framesAhead) {
     int64_t framePos = 0, timeNs = 0;
-    if (m_stream && AAudioStream_getTimestamp(m_stream, CLOCK_MONOTONIC, &framePos, &timeNs) == AAUDIO_OK && timeNs > 0) {
-        int64_t written = AAudioStream_getFramesWritten(m_stream);
+    AAudioStream* st = m_stream.load();
+    if (st && AAudioStream_getTimestamp(st, CLOCK_MONOTONIC, &framePos, &timeNs) == AAUDIO_OK && timeNs > 0) {
+        int64_t written = AAudioStream_getFramesWritten(st);
         return timeNs + (written + framesAhead - framePos) * kNs / kRate;
     }
     // before the first timestamp is available: assume two bursts of latency
-    int32_t buf = m_stream ? AAudioStream_getBufferSizeInFrames(m_stream) : 0;
+    int32_t buf = st ? AAudioStream_getBufferSizeInFrames(st) : 0;
     return nowNs() + (buf + framesAhead) * kNs / kRate;
 }
 
@@ -234,7 +252,12 @@ void AudioOut::pullBlocksLocked() {
             follows = true;
         }
         if (!m_fifoValid || !follows) {
-            if (m_fifoValid && m_fifo.size() > m_fifoPos) {
+            if (b.discontinuity) {
+                // the sender says this block does not continue the last one (seek, stop/resume, gap): nothing already
+                // queued may play first, and the HRIR history of the old passage must not bleed in (review finding 5)
+                resetFifoLocked(b.dueLocalNs);
+                if (m_fifoValid) m_stats.resets++;
+            } else if (m_fifoValid && m_fifo.size() > m_fifoPos) {
                 // keep what is still unplayed only if the new block is later: a seek backwards starts fresh
                 if (b.dueLocalNs > fifoEnd && b.dueLocalNs - fifoEnd < kNs) {
                     // a gap under a second: pad with silence so the join stays in time
@@ -242,15 +265,11 @@ void AudioOut::pullBlocksLocked() {
                     m_fifo.insert(m_fifo.end(), gap, 0);
                     m_stats.silenceFrames += gap / kChannels;
                 } else {
-                    m_fifo.erase(m_fifo.begin(), m_fifo.end());
-                    m_fifoPos = 0;
-                    m_fifoDueNs = b.dueLocalNs;
+                    resetFifoLocked(b.dueLocalNs);
                     m_stats.resets++;
                 }
             } else {
-                m_fifo.clear();
-                m_fifoPos = 0;
-                m_fifoDueNs = b.dueLocalNs;
+                resetFifoLocked(b.dueLocalNs);
             }
             m_fifoValid = true;
         }

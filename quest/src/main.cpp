@@ -2046,6 +2046,9 @@ static void chooseFrame(int64_t displayMono) {
     if (pb.generation != g.playbackGen) {
         g.playbackGen = pb.generation;
         g.framesSincePlay = 0;
+        // a stop: the picture below drops frames past the stop point; the sound queued past it goes the same way
+        // (+85; it used to play out for up to a second after the picture froze)
+        if (!pb.playing) g.audio.flush();
     }
     // Resolve flushed frames scheduled after the stop point: never show them.
     if (!pb.playing && pb.stopPtsSender) {
