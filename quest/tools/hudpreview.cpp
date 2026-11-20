@@ -187,6 +187,10 @@ int main(int argc, char** argv) {
     s.info.projection = "dome"; s.info.layout = "mono"; s.info.domeTilt = 27; s.info.domeSeat = 2; s.info.domeVenue = 2;
     s.lookTab = 1; dump(PanelId::Look, "dome"); s.lookTab = 0; dump(PanelId::Look, "dome-view");
     s.info.projection = "360"; s.info.layout = "TB";
+    // the View tab with an ambisonic bus live from Velaria Sound and the sound map on (+83)
+    s.info.audio = true; s.info.audioAmbi = true; s.info.audioLive = true; s.info.audioTap = true; s.info.soundMap = true;
+    s.lookTab = 0; dump(PanelId::Look, "sound");
+    s.info.audioAmbi = false; s.info.soundMap = false;
     // nothing on this layer
     m.layer = 0; m.groups.clear(); m.frame = m.start + 1500; m.tc = "01:01:47:22";
     dump(PanelId::Instance, "empty");

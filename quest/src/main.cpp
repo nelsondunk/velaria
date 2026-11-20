@@ -69,6 +69,7 @@ struct Settings {
     bool outline = true;   // thin outline on the selected / pointed-at card
     bool audio = true;     // Resolve's monitoring mix plays in the headset (+65)
     bool ambisonic = false; // the mix is a first-order AmbiX bus on channels 1-4 (W Y Z X), decoded with head tracking (+74)
+    bool soundMap = false;  // paint where the ambisonic sound comes from over the sphere (+83)
     float fisheyeFov = 190; // lens field of view for the dual-fisheye projection (Canon RF 5.2: 190)
     // Dome preview: the theatre the domemaster is judged in
     float domeTilt = 0;        // degrees the dome's front edge drops below level (0 = classic level dome, up to 30)
@@ -104,6 +105,7 @@ struct Settings {
             else if (k == "outline") outline = v == "1";
             else if (k == "audio") audio = v == "1";
             else if (k == "ambisonic") ambisonic = v == "1";
+            else if (k == "soundMap") soundMap = v == "1";
             else if (k == "fisheyeFov") fisheyeFov = (float)atof(v.c_str());
             else if (k == "domeTilt") domeTilt = std::max(0.0f, std::min(30.0f, (float)atof(v.c_str())));
             else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
@@ -138,7 +140,7 @@ struct Settings {
         std::ofstream f(path);
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
-          << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nambisonic " << (ambisonic ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
+          << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nambisonic " << (ambisonic ? 1 : 0) << "\nsoundMap " << (soundMap ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
           << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeVenue " << domeVenue << "\ndomeFov " << domeFov << "\ndomeTheatre " << (domeTheatre ? 1 : 0)
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
@@ -226,6 +228,10 @@ struct App {
     XrPosef debugAim{};
     Swapchain grid;                         // horizon / level grid, an equirect layer over the picture
     Swapchain outline;                      // thin card outline (quiet cousin of the lift halo)
+    Swapchain soundMap;                     // ambisonic sound map, an equirect layer over the picture (+83)
+    std::vector<uint8_t> soundMapPx;        // its pixels, rebuilt on the render thread
+    float soundMapPeak = 0;                 // slow-decaying normaliser so the map does not flicker
+    int64_t soundMapNs = 0;                 // last rebuild
     Swapchain theatre;                      // dome theatre background: top/bottom stereo equirect for the current seat (+68)
     std::string theatreKey;                 // which render is in the swapchain ("M15_seat2"); empty = none
     std::set<std::string> theatreMissing;   // assets absent or undecodable: don't retry every frame
@@ -648,6 +654,7 @@ static bool initXr() {
     }
     createSwapchain(g.grid, kGridW, kGridH);
     createSwapchain(g.outline, kOutlineW, kOutlineH);
+    createSwapchain(g.soundMap, kSoundMapW, kSoundMapH);
     {
         Canvas c;
         drawGrid(c);
@@ -1149,6 +1156,11 @@ static void activate(HudButton b, int arg = 0) {
         case HudButton::Grid:
             g.settings.grid = !g.settings.grid;
             showNotice(g.settings.grid ? "Level grid on" : "Level grid off");
+            break;
+        case HudButton::SoundMap:
+            g.settings.soundMap = !g.settings.soundMap;
+            g.settings.save();
+            showNotice(g.settings.soundMap ? "Sound map: where the first-order bus is loudest, on the sphere" : "Sound map off");
             break;
         case HudButton::Outline:
             g.settings.outline = !g.settings.outline;
@@ -2092,7 +2104,12 @@ static void locateHead(XrTime time) {
         (loc.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)) {
         g.head = loc.pose;
         g.headValid = true;
-        g.audio.setHead(loc.pose.orientation.x, loc.pose.orientation.y, loc.pose.orientation.z, loc.pose.orientation.w);
+        {
+            // the picture is yawed by the recentre offset; give the decoder the head relative to the picture so
+            // the sound field turns with it (before +83 the field stayed at room front after a recentre)
+            XrQuaternionf rel = qMul(qConj(qYaw(g.settings.yawDeg * (float)M_PI / 180)), loc.pose.orientation);
+            g.audio.setHead(rel.x, rel.y, rel.z, rel.w);
+        }
         XrVector3f f = qRotate(g.head.orientation, {0, 0, -1});
         g.headYaw = std::atan2(-f.x, -f.z);
         g.headPitch = std::asin(std::max(-1.0f, std::min(1.0f, f.y)));
@@ -2163,6 +2180,7 @@ static void updateHud(int64_t now, bool playing) {
     in.hudOn = g.settings.strip;
     in.pinned = g.panelsPlaced;
     in.grid = g.settings.grid;
+    in.soundMap = g.settings.soundMap;
     in.outline = g.settings.outline;
     in.audio = g.settings.audio;
     in.audioAmbi = g.settings.ambisonic;
@@ -2664,6 +2682,82 @@ static void renderFrame() {
             }
             layers.push_back((XrCompositionLayerBaseHeader*)&eq[e]);
         }
+    }
+    // Sound map (+83): where the first-order bus is loudest, painted on the sphere in the picture's frame. For each
+    // direction d the power of a cardioid beam, g'Cg with g = (1, dy, dz, dx) (SN3D) and C the field's covariance;
+    // first order makes a ~90 degree blob, so this shows direction, not spread. Rebuilt every other frame, bilinear
+    // in the compositor; normalised by a slowly decaying peak so it reads steadily.
+    XrCompositionLayerEquirect2KHR mapLayer{XR_TYPE_COMPOSITION_LAYER_EQUIRECT2_KHR};
+    bool mapLive = false;
+    if (fs.shouldRender && g.video.hasContent && g.settings.soundMap && g.settings.audio && g.settings.ambisonic) {
+        float C[4][4];
+        if (g.audio.soundField(C, now)) {
+            mapLive = true;
+            if (now - g.soundMapNs > 22000000LL) {   // ~45 Hz is plenty for a 120 ms-smoothed field
+                g.soundMapNs = now;
+                static std::vector<float> dirs;       // (dy, dz, dx) per texel, built once
+                if (dirs.empty()) {
+                    dirs.resize((size_t)kSoundMapW * kSoundMapH * 3);
+                    for (int j = 0; j < kSoundMapH; j++) {
+                        float el = ((float)M_PI / 2) - ((float)j + 0.5f) / kSoundMapH * (float)M_PI;   // row 0 = +90
+                        for (int i = 0; i < kSoundMapW; i++) {
+                            float yawRight = (((float)i + 0.5f) / kSoundMapW - 0.5f) * 2 * (float)M_PI;   // + = right of front
+                            float az = -yawRight;                                                         // AmbiX: + = left
+                            float* d = &dirs[((size_t)j * kSoundMapW + i) * 3];
+                            d[0] = std::cos(el) * std::sin(az);   // y
+                            d[1] = std::sin(el);                  // z
+                            d[2] = std::cos(el) * std::cos(az);   // x
+                        }
+                    }
+                }
+                std::vector<float> p((size_t)kSoundMapW * kSoundMapH);
+                float peak = 0;
+                for (size_t k = 0; k < p.size(); k++) {
+                    const float* d = &dirs[k * 3];
+                    float gv[4] = {1.0f, d[0], d[1], d[2]};
+                    float acc = 0;
+                    for (int a = 0; a < 4; a++) {
+                        float row = 0;
+                        for (int b = 0; b < 4; b++) row += C[a][b] * gv[b];
+                        acc += gv[a] * row;
+                    }
+                    p[k] = acc > 0 ? acc : 0;
+                    if (acc > peak) peak = acc;
+                }
+                // omni floor: an all-W field (reverb, mono) is flat everywhere; show only what stands above the average
+                double mean = 0;
+                for (float v : p) mean += v;
+                mean /= (double)p.size();
+                g.soundMapPeak = std::max(peak, g.soundMapPeak * 0.985f);   // decays ~2 s to a new quieter peak
+                float range = std::max(g.soundMapPeak - (float)mean, 1e-9f);
+                g.soundMapPx.resize(p.size() * 4);
+                for (size_t k = 0; k < p.size(); k++) {
+                    float t = (p[k] - (float)mean) / range;
+                    t = t < 0 ? 0 : t;
+                    t = t * t * t;                       // display sharpening: the peak stays where it is, the skirt fades
+                    // graphite -> copper -> near white; premultiplied alpha for the compositor's source-alpha blend
+                    float a = 0.72f * t;
+                    float r = (0.55f + 0.45f * t) * a, gch = (0.30f + 0.55f * t) * a, b = (0.15f + 0.65f * t) * a;
+                    uint8_t* o = &g.soundMapPx[k * 4];
+                    o[0] = (uint8_t)(r * 255); o[1] = (uint8_t)(gch * 255); o[2] = (uint8_t)(b * 255); o[3] = (uint8_t)(a * 255);
+                }
+                renderInto(g.soundMap, [&](GLuint tex) { g.gfx.upload(tex, g.soundMapPx.data(), kSoundMapW, kSoundMapH); });
+            }
+        }
+    }
+    if (mapLive && g.soundMap.hasContent) {
+        mapLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+        mapLayer.space = g.localSpace;
+        mapLayer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+        mapLayer.subImage.swapchain = g.soundMap.handle;
+        mapLayer.subImage.imageRect = {{0, 0}, {kSoundMapW, kSoundMapH}};
+        mapLayer.subImage.imageArrayIndex = 0;
+        mapLayer.pose.orientation = qYaw(g.settings.yawDeg * deg);
+        mapLayer.radius = 0;
+        mapLayer.centralHorizontalAngle = 2.0f * (float)M_PI;
+        mapLayer.upperVerticalAngle = (float)M_PI / 2;
+        mapLayer.lowerVerticalAngle = -(float)M_PI / 2;
+        layers.push_back((XrCompositionLayerBaseHeader*)&mapLayer);
     }
     // Level grid: a world-level equirect sphere drawn over the picture (same recentre yaw, so its 0 deg tick is
     // the footage's centre). The horizon line is true level in the room; a wonky horizon in the footage shows

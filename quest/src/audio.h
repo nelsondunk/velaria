@@ -46,6 +46,9 @@ public:
     // The head's orientation in the room (OpenXR: x right, y up, -z forward), from the render thread each frame;
     // used only for 4-channel blocks.
     void setHead(float qx, float qy, float qz, float qw);
+    // Sound map (+83): the 4x4 covariance of the world-frame first-order components (W Y Z X, SN3D), smoothed over
+    // ~120 ms, for the heatmap on the sphere. Returns false when no ambisonic audio has played lately.
+    bool soundField(float cov[4][4], int64_t nowNs);
 
     // AAudio data callback entry (public for the C trampoline)
     int onRender(int16_t* out, int32_t frames);
@@ -70,6 +73,8 @@ private:
     // HRIR state: per ACN component, the last 256 rotated samples, written twice so a contiguous window always exists
     std::vector<float> m_hist;             // 4 * 2 * kHrirTaps
     int m_histPos = 0;
+    float m_cov[4][4] = {};                // sound field covariance, EMA (written in the callback under m_mutex)
+    int64_t m_covNs = 0;                   // when it was last fed
     int64_t m_fifoDueNs = 0;
     bool m_fifoValid = false;
     AudioStats m_stats;

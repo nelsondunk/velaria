@@ -2,6 +2,12 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## Headset +83: sound map on the sphere (20 Nov 2026, afternoon)
+
+- **Sound map** (Nelson: "wouldn't an ambisonic heatmap be so cool as a scope in headset… an overlay over the whole sphere"). With an ambisonic bus live, a **Map** chip appears beside the Sound chip on the View tab. On, the headset paints where the first-order field is loudest over the picture: the 4×4 covariance of the world-frame W Y Z X (120 ms smoothing, computed in the audio callback) is steered by a cardioid beam per direction on a 512×256 equirect, normalised against the mean (an all-W field paints nothing) and a slowly decaying peak, sharpened for display (peak position untouched), graphite→copper→near-white at 72 % alpha, bilinear in the compositor. First order makes a ~90° blob, so it shows direction, not spread. Host check (`quest/tools/soundmaptest.cpp`): front/left/right/back/up/45° sources peak within half a texel of their direction. Rebuilt at ~45 Hz; costs about a millisecond every other frame.
+- **Fix:** the ambisonic decode now takes the head pose relative to the picture's recentre yaw, so the sound field turns with the picture after Recentre view (before, it stayed at room front).
+- Setting `soundMap` persists; the desktop preview (`hudpreview`) has a `look-sound` render.
+
 ## Head-tracked binaural decode, installer and bridge fixes (20 Nov 2026, later)
 
 - **Headset +81: the ambisonic bus is decoded through an HRTF.** The first-order field is still rotated by the inverse head pose, but each component now goes through Resonance Audio's SADIE II spherical-harmonic HRIR (256 taps, 48 kHz) instead of a pair of cardioids: left ear = W+Y+Z+X filtered, right ear = W−Y+Z+X. Sounds sit outside the head and front/back differ by spectrum, not just level. Kernel checked on the host (`quest/tools/hrirtest.cpp`): a front source lands at −0.8 dB, a lateral one at +3 / −7.7 dB between the ears; 1 s of audio decodes in ~20 ms. Not yet heard by Nelson.

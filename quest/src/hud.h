@@ -130,6 +130,7 @@ enum class HudButton {
     Roll,                                                 // roll a panel up to its title bar / down again
     // view tab (settings)
     Hud, SwapEyes, Layout, Projection, DelayDown, DelayAuto, DelayUp, ResetView, PinAll, Grid, Outline, Source, FovDown, FovUp,
+    SoundMap,       // the ambisonic sound map painted over the sphere (+83)
     Audio,          // Resolve's mix in the headset: on / off
     FovPreset,      // arg = lens field of view in degrees (View tab presets for the fisheye projection)
     // dome preview (View tab, shown with the dome projection)
@@ -189,6 +190,7 @@ constexpr int kStripW = 1600, kStripH = 96;
 constexpr int kCursorW = 128, kCursorH = 64;   // two 64x64 states: idle | pinching
 constexpr int kLiftW = 256, kLiftH = 256;      // halo: a 160x160 rounded box with a 48 px glow margin
 constexpr int kOutlineW = 1024, kOutlineH = 576, kOutlineM = 16;   // card outline: 16:9, drawn to the card's size (+50)
+constexpr int kSoundMapW = 512, kSoundMapH = 256;   // ambisonic sound map, equirectangular, bilinear in the compositor (+83)
 constexpr int kGridW = 2048, kGridH = 1024;    // level grid, equirectangular (one texel = 0.176 deg)
 
 struct HudInfo {
@@ -209,6 +211,7 @@ struct HudInfo {
     bool audio = true;        // the mix is wanted in the headset
     bool audioAmbi = false;   // ...as a head-tracked first-order ambisonic bus (+74)
     bool audioTap = false;    // ...and the bus is coming from the Velaria Sound plugin, not Decklink 1-4 (+76)
+    bool soundMap = false;    // the sound map overlay is on (+83)
     bool audioLive = false;   // blocks are arriving and the output stream is open
     float fisheyeFov = 190;   // lens FOV used by the fisheye projection
     float domeTilt = 0, domeFov = 180;   // dome preview: tilt (deg), master FOV (deg)

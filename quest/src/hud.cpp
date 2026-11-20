@@ -723,7 +723,7 @@ static std::string infoKey(const HudInfo& i) {
              i.arriveMs, i.decodeMs, i.rttMs, (unsigned long long)i.shown, (unsigned long long)i.dropped,
              (unsigned long long)i.uneven);
     char d[64];
-    snprintf(d, sizeof d, "|%.0f|%.0f|%d|%d|%.0f|%d|%d%d", i.fisheyeFov, i.domeTilt, i.domeSeat, i.domeTheatre ? 1 : 0, i.domeFov, i.domeVenue, i.audioAmbi ? 1 : 0, i.audioTap ? 1 : 0);
+    snprintf(d, sizeof d, "|%.0f|%.0f|%d|%d|%.0f|%d|%d%d", i.fisheyeFov, i.domeTilt, i.domeSeat, i.domeTheatre ? 1 : 0, i.domeFov, i.domeVenue, i.audioAmbi ? 1 : 0, (i.audioTap ? 1 : 0) + (i.soundMap ? 2 : 0));
     return std::string(b) + "|" + i.source + "|" + i.serverName + d;
 }
 

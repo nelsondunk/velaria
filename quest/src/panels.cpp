@@ -769,14 +769,22 @@ void drawViewTab(Chrome& ch, float y) {
         std::string src = in.source == "ndi" ? "Premiere / After Effects" : in.source == "resolve" ? "Resolve" : "Auto";
         std::string label = "Source: " + src;
         if (!in.serverName.empty() && in.connected) label += "  \xC2\xB7  " + in.serverName;
-        float sw = (inner - gap) * 0.64f;
+        bool mapRow = in.audio && in.audioAmbi;        // the Sound chip shares its row with "Map" (+83)
+        float sw = (inner - gap) * (mapRow ? 0.46f : 0.64f);
         ch.chip(HudButton::Source, 0, pad, y, sw, ch_h, fitText(label, S20, sw - 30), in.source != "auto");
         // the mix follows the picture into the headset (+65); "live" once blocks are arriving
         // "· bus" = the sound is coming from the Velaria Sound plugin on a Fairlight bus rather than Decklink channels
         std::string snd = !in.audio ? "Sound: off"
                         : in.audioAmbi ? (in.audioLive ? (in.audioTap ? "Sound: ambisonic \xC2\xB7 bus" : "Sound: ambisonic") : "Sound: ambisonic, waiting")
                                        : (in.audioLive ? (in.audioTap ? "Sound: in headset \xC2\xB7 bus" : "Sound: in headset") : "Sound: waiting");
-        ch.chip(HudButton::Audio, 0, pad + sw + gap, y, inner - sw - gap, ch_h, snd, in.audio);
+        if (mapRow) {
+            // "Map": where the bus is loudest, painted on the sphere
+            float mw = 96, rest = inner - sw - gap;
+            ch.chip(HudButton::Audio, 0, pad + sw + gap, y, rest - mw - gap, ch_h, fitText(snd, S20, rest - mw - gap - 30), in.audio);
+            ch.chip(HudButton::SoundMap, 0, pad + sw + gap + rest - mw, y, mw, ch_h, "Map", in.soundMap);
+        } else {
+            ch.chip(HudButton::Audio, 0, pad + sw + gap, y, inner - sw - gap, ch_h, snd, in.audio);
+        }
         y += ch_h + gap + 8;
     }
     group("PICTURE");

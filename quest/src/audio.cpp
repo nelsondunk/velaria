@@ -148,6 +148,14 @@ void AudioOut::headRotation(float m[3][3]) {
     m[2][0] = cy[0]; m[2][1] = cz[0]; m[2][2] = cx[0];
 }
 
+bool AudioOut::soundField(float cov[4][4], int64_t now) {
+    std::unique_lock<std::mutex> lk(m_mutex, std::try_to_lock);
+    if (!lk.owns_lock()) return false;
+    if (m_covNs == 0 || now - m_covNs > 1500000000LL) return false;
+    std::memcpy(cov, m_cov, sizeof m_cov);
+    return true;
+}
+
 void AudioOut::clearHrir() {
     m_hist.assign((size_t)4 * 2 * kHrirTaps, 0.0f);
     m_histPos = 0;
@@ -322,6 +330,24 @@ int AudioOut::onRender(int16_t* out, int32_t frames) {
             int16_t* o = out + (size_t)done * kOut;
             float inv = frames > 1 ? 1.0f / (float)(frames - 1) : 0.0f;
             float* hist = m_hist.data();
+            // sound map: covariance of this run of samples in the world (picture) frame, folded into the EMA
+            {
+                double c[4][4] = {};
+                for (size_t i = 0; i < n; i++) {
+                    float v[4] = {in[i * 4] / 32768.0f, in[i * 4 + 1] / 32768.0f, in[i * 4 + 2] / 32768.0f, in[i * 4 + 3] / 32768.0f};
+                    for (int a = 0; a < 4; a++)
+                        for (int b = a; b < 4; b++) c[a][b] += (double)v[a] * v[b];
+                }
+                // time constant ~120 ms: alpha per block from the block length
+                float alpha = 1.0f - std::exp(-(float)n / (0.12f * kRate));
+                for (int a = 0; a < 4; a++)
+                    for (int b = a; b < 4; b++) {
+                        float blk = (float)(c[a][b] / (double)n);
+                        m_cov[a][b] += (blk - m_cov[a][b]) * alpha;
+                        m_cov[b][a] = m_cov[a][b];
+                    }
+                m_covNs = nowNs();
+            }
             for (size_t i = 0; i < n; i++) {
                 float t = (float)(done + (int32_t)i) * inv;
                 float w = in[i * 4], yy = in[i * 4 + 1], zz = in[i * 4 + 2], xx = in[i * 4 + 3];
