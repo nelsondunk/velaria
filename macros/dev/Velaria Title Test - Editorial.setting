@@ -134,7 +134,7 @@
 				Title = Text3D {
 					Inputs = {
 						StyledText = Input { Value = "THE REEF AT NIGHT", },
-						Font = Input { Value = "Barlow Condensed", },
+						Font = Input { Value = "Montserrat", },
 						Style = Input { Value = "ExtraBold", },
 						Size = Input { Value = 0.34, },
 						CharacterSpacing = Input { Value = 0.98, },
