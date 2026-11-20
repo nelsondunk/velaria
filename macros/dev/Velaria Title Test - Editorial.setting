@@ -1,0 +1,209 @@
+{
+	Tools = ordered() {
+		VelariaTitleTest_Editorial = MacroOperator {
+			-- Velaria Titles material test (20 Nov 2026): one Editorial headline on a slab, lit by a back-left key, a low
+			-- front fill and the shot itself (the Environment input is the equirect frame; a blurred copy becomes the
+			-- sphere map the slab reflects). Plugs into Velaria Canvas Control's "3D Scene" input. Not a product template:
+			-- fixed plate size, textures read from the project folder on Bruce.
+			Inputs = ordered() {
+				MainInput1 = InstanceInput { SourceOp = "Env_Square", Source = "Input", Name = "Environment (the 360 frame)", },
+				TitleText = InstanceInput { SourceOp = "Title", Source = "StyledText", Name = "Title", Page = "Text", },
+				TitleSize = InstanceInput { SourceOp = "Title", Source = "Size", Name = "Size", Default = 0.34, MinScale = 0.05, MaxScale = 1, Page = "Text", },
+				FaceR = InstanceInput { SourceOp = "Title", Source = "Red1", Name = "Face Colour", ControlGroup = 1, Default = 0.08, Page = "Text", },
+				FaceG = InstanceInput { SourceOp = "Title", Source = "Green1", ControlGroup = 1, Default = 0.09, Page = "Text", },
+				FaceB = InstanceInput { SourceOp = "Title", Source = "Blue1", ControlGroup = 1, Default = 0.11, Page = "Text", },
+				SideR = InstanceInput { SourceOp = "Title", Source = "RedBevel", Name = "Side / Bevel Colour", ControlGroup = 2, Default = 0.88, Page = "Text", },
+				SideG = InstanceInput { SourceOp = "Title", Source = "GreenBevel", ControlGroup = 2, Default = 0.28, Page = "Text", },
+				SideB = InstanceInput { SourceOp = "Title", Source = "BlueBevel", ControlGroup = 2, Default = 0.12, Page = "Text", },
+				Extrude = InstanceInput { SourceOp = "Title", Source = "ExtrusionDepth", Name = "Extrusion Depth", Default = 0.06, MinScale = 0, MaxScale = 0.3, Page = "Text", },
+				TextForward = InstanceInput { SourceOp = "Title", Source = "Transform3DOp.Translate.Z", Name = "Text Forward Of Slab", Default = 0.04, MinScale = 0, MaxScale = 0.2, Page = "Text", },
+				PlateW = InstanceInput { SourceOp = "Plate", Source = "SurfaceCubeInputs.Width", Name = "Slab Width", Default = 2.6, MinScale = 0.5, MaxScale = 5, Page = "Slab", },
+				PlateH = InstanceInput { SourceOp = "Plate", Source = "SurfaceCubeInputs.Height", Name = "Slab Height", Default = 0.72, MinScale = 0.2, MaxScale = 2, Page = "Slab", },
+				PlateD = InstanceInput { SourceOp = "Plate", Source = "SurfaceCubeInputs.Depth", Name = "Slab Thickness", Default = 0.09, MinScale = 0.01, MaxScale = 0.3, Page = "Slab", },
+				PlateR = InstanceInput { SourceOp = "Plate_Mtl", Source = "Diffuse.Color.Red", Name = "Slab Colour", ControlGroup = 3, Default = 0.93, Page = "Slab", },
+				PlateG = InstanceInput { SourceOp = "Plate_Mtl", Source = "Diffuse.Color.Green", ControlGroup = 3, Default = 0.93, Page = "Slab", },
+				PlateB = InstanceInput { SourceOp = "Plate_Mtl", Source = "Diffuse.Color.Blue", ControlGroup = 3, Default = 0.92, Page = "Slab", },
+				PlateRough = InstanceInput { SourceOp = "Plate_Mtl", Source = "Specular.Roughness", Name = "Slab Roughness", Default = 0.55, MinScale = 0.05, MaxScale = 1, Page = "Slab", },
+				PlateSpec = InstanceInput { SourceOp = "Plate_Mtl", Source = "Specular.Intensity", Name = "Slab Specular", Default = 0.25, MinScale = 0, MaxScale = 1, Page = "Slab", },
+				Reflect = InstanceInput { SourceOp = "CTRL", Source = "NumberIn1", Name = "Reflect The Shot (slab)", Default = 0.18, MinScale = 0, MaxScale = 1, Page = "Slab", },
+				Bump = InstanceInput { SourceOp = "Plate_Bump", Source = "HeightScale", Name = "Texture Strength (Plastic010 normal)", Default = 0.35, MinScale = 0, MaxScale = 2, Page = "Slab", },
+				KeyYaw = InstanceInput { SourceOp = "CTRL", Source = "NumberIn2", Name = "Key Light Yaw (deg, + = from the left)", Default = 55, MinScale = -180, MaxScale = 180, Page = "Light", },
+				KeyPitch = InstanceInput { SourceOp = "CTRL", Source = "NumberIn3", Name = "Key Light Pitch (deg, + = from above)", Default = 60, MinScale = -90, MaxScale = 90, Page = "Light", },
+				KeyBehind = InstanceInput { SourceOp = "CTRL", Source = "NumberIn4", Name = "Key From Behind (0 front, 1 back)", Default = 0.7, MinScale = 0, MaxScale = 1, Page = "Light", },
+				KeyInt = InstanceInput { SourceOp = "Key", Source = "Intensity", Name = "Key Intensity", Default = 1.6, MinScale = 0, MaxScale = 4, Page = "Light", },
+				FillInt = InstanceInput { SourceOp = "FrontFill", Source = "Intensity", Name = "Front Fill Intensity", Default = 0.35, MinScale = 0, MaxScale = 2, Page = "Light", },
+				AmbInt = InstanceInput { SourceOp = "Ambient", Source = "Intensity", Name = "Ambient (tinted by the shot)", Default = 0.18, MinScale = 0, MaxScale = 1, Page = "Light", },
+				EnvOverUnder = InstanceInput { SourceOp = "CTRL", Source = "NumberIn5", Name = "Environment is over/under stereo (1) or mono (0)", Default = 1, MinScale = 0, MaxScale = 1, Page = "Light", },
+			},
+			Outputs = {
+				MainOutput1 = InstanceOutput { SourceOp = "Scene", Source = "Output", },
+			},
+			ViewInfo = GroupInfo { Pos = { 0, 0 }, },
+			Tools = ordered() {
+				CTRL = Custom {
+					CtrlWShown = false,
+					Inputs = {
+						NumberIn1 = Input { Value = 0.18, },
+						NumberIn2 = Input { Value = 55, },
+						NumberIn3 = Input { Value = 60, },
+						NumberIn4 = Input { Value = 0.7, },
+						NumberIn5 = Input { Value = 1, },
+						NameforNumber1 = Input { Value = "Reflect", },
+						NameforNumber2 = Input { Value = "KeyYaw", },
+						NameforNumber3 = Input { Value = "KeyPitch", },
+						NameforNumber4 = Input { Value = "KeyBehind", },
+						NameforNumber5 = Input { Value = "EnvOverUnder", },
+						ShowNumber6 = Input { Value = 0, }, ShowNumber7 = Input { Value = 0, }, ShowNumber8 = Input { Value = 0, },
+						ShowPoint1 = Input { Value = 0, }, ShowPoint2 = Input { Value = 0, }, ShowPoint3 = Input { Value = 0, }, ShowPoint4 = Input { Value = 0, },
+						ShowLUT1 = Input { Value = 0, }, ShowLUT2 = Input { Value = 0, }, ShowLUT3 = Input { Value = 0, }, ShowLUT4 = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 0, -200 }, },
+				},
+				-- ===== environment: the frame -> square -> one eye -> small -> blurred -> sphere map =====
+				Env_Square = BetterResize {
+					Inputs = { Width = Input { Value = 1024, }, Height = Input { Value = 1024, }, PixelAspect = Input { Value = { 1, 1 }, }, HiQOnly = Input { Value = 0, }, },
+					ViewInfo = OperatorInfo { Pos = { 0, 0 }, },
+				},
+				Env_TopEye = Crop {
+					Inputs = {
+						Input = Input { SourceOp = "Env_Square", Source = "Output", },
+						XOffset = Input { Value = 0, }, XSize = Input { Value = 1024, },
+						YOffset = Input { Expression = "iif(CTRL.NumberIn5 > 0.5, 512, 0)", },
+						YSize = Input { Expression = "iif(CTRL.NumberIn5 > 0.5, 512, 1024)", },
+					},
+					ViewInfo = OperatorInfo { Pos = { 110, 0 }, },
+				},
+				Env_Small = BetterResize {
+					Inputs = { Input = Input { SourceOp = "Env_TopEye", Source = "Output", }, Width = Input { Value = 1024, }, Height = Input { Value = 512, }, PixelAspect = Input { Value = { 1, 1 }, }, HiQOnly = Input { Value = 0, }, },
+					ViewInfo = OperatorInfo { Pos = { 220, 0 }, },
+				},
+				Env_Blur = Blur {
+					Inputs = { Input = Input { SourceOp = "Env_Small", Source = "Output", }, Filter = Input { Value = FuID { "Fast Gaussian", }, }, XBlurSize = Input { Value = 0.75, }, },
+					ViewInfo = OperatorInfo { Pos = { 330, 0 }, },
+				},
+				Env_Sphere = SphereMap {
+					Inputs = { Image = Input { SourceOp = "Env_Blur", Source = "Output", }, ["Rotate.X"] = Input { Value = -40, }, MaterialID = Input { Value = 3, }, },
+					ViewInfo = OperatorInfo { Pos = { 440, 0 }, },
+				},
+				-- ===== slab: matte paint (Cook-Torrance) with the Plastic010 normal map, reflecting the shot a little =====
+				Plate_NrmTex = Loader {
+					Inputs = {
+						Clip = Input { Value = "/Users/nelsondunk/Documents/Claude/Projects/Diversified Revenue/Velaria/textures/Plastic010/Plastic010_4K-PNG_NormalGL.png", },
+					},
+					Clips = { Clip { ID = "Clip1", Filename = "/Users/nelsondunk/Documents/Claude/Projects/Diversified Revenue/Velaria/textures/Plastic010/Plastic010_4K-PNG_NormalGL.png", FormatID = "PNGFormat", StartFrame = -1, LengthSetManually = true, TrimIn = 0, TrimOut = 0, ExtendFirst = 0, ExtendLast = 0, Loop = 1, AspectMode = 0, Depth = 0, GlobalStart = -1000000000, GlobalEnd = 1000000000, }, },
+					CtrlWShown = false,
+					ViewInfo = OperatorInfo { Pos = { 0, 150 }, },
+				},
+				Plate_Bump = BumpMap {
+					Inputs = { Input = Input { SourceOp = "Plate_NrmTex", Source = "Output", }, SourceImageType = Input { Value = 1, }, HeightScale = Input { Value = 0.35, }, MaterialID = Input { Value = 5, }, },
+					ViewInfo = OperatorInfo { Pos = { 110, 150 }, },
+				},
+				Plate_Mtl = MtlCookTorrance {
+					Inputs = {
+						["Diffuse.Color.Red"] = Input { Value = 0.93, }, ["Diffuse.Color.Green"] = Input { Value = 0.93, }, ["Diffuse.Color.Blue"] = Input { Value = 0.92, },
+						["Specular.Roughness"] = Input { Value = 0.55, }, ["Specular.Intensity"] = Input { Value = 0.25, },
+						["Bumpmap.Material"] = Input { SourceOp = "Plate_Bump", Source = "MaterialOutput", },
+						MaterialID = Input { Value = 4, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 220, 150 }, },
+				},
+				Plate_Reflect = MtlReflect {
+					Inputs = {
+						BackgroundMaterial = Input { SourceOp = "Plate_Mtl", Source = "MaterialOutput", },
+						["Reflection.Color.Material"] = Input { SourceOp = "Env_Sphere", Source = "MaterialOutput", },
+						["Reflection.FaceOnStrength"] = Input { Expression = "CTRL.NumberIn1", },
+						["Reflection.GlancingStrength"] = Input { Expression = "math.min(1, CTRL.NumberIn1*3)", },
+						MaterialID = Input { Value = 6, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 330, 150 }, },
+				},
+				Plate = Shape3D {
+					Inputs = {
+						Shape = Input { Value = FuID { "SurfaceCubeInputs", }, },
+						["SurfaceCubeInputs.SizeLock"] = Input { Value = 0, },
+						["SurfaceCubeInputs.Width"] = Input { Value = 2.6, },
+						["SurfaceCubeInputs.Height"] = Input { Value = 0.72, },
+						["SurfaceCubeInputs.Depth"] = Input { Value = 0.09, },
+						["Transform3DOp.Translate.Z"] = Input { Expression = "-Plate.SurfaceCubeInputs.Depth/2", },
+						MaterialInput = Input { SourceOp = "Plate_Reflect", Source = "MaterialOutput", },
+						["MtlStdInputs.MaterialID"] = Input { Value = 1, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 440, 150 }, },
+				},
+				-- ===== the type: Text3D, matte face, contrasting bevel and sides, a crisp bevel profile =====
+				Title = Text3D {
+					Inputs = {
+						StyledText = Input { Value = "THE REEF AT NIGHT", },
+						Font = Input { Value = "Barlow Condensed", },
+						Style = Input { Value = "ExtraBold", },
+						Size = Input { Value = 0.34, },
+						CharacterSpacing = Input { Value = 0.98, },
+						AdvancedFontControls = Input { Value = 1, },
+						HorizontalJustificationNew = Input { Value = 3, },
+						VerticalJustificationNew = Input { Value = 3, },
+						UseOneMaterial = Input { Value = 0, },
+						Red1 = Input { Value = 0.08, }, Green1 = Input { Value = 0.09, }, Blue1 = Input { Value = 0.11, },
+						RedBevel = Input { Value = 0.88, }, GreenBevel = Input { Value = 0.28, }, BlueBevel = Input { Value = 0.12, },
+						Extrusion = Input { Value = 1, },
+						ExtrusionDepth = Input { Value = 0.06, },
+						ExtrusionSubdivisions = Input { Value = 2, },
+						ExtrusionProfile = Input { SourceOp = "Title_Bevel", Source = "Value", },
+						SmoothingAngle = Input { Value = 45, },
+						["Transform3DOp.Translate.Z"] = Input { Value = 0.04, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 220, 300 }, },
+				},
+				Title_Bevel = LUTBezier {
+					-- the extrusion profile: a short chamfer at each end of the depth, flat sides between (0.0 -> 1.0 over 8 %)
+					KeyColorSplines = { {
+						[0] = { 0, Flags = { Linear = true, }, RH = { 0.0266, 0.3333 }, },
+						[0.08] = { 1, Flags = { Linear = true, }, LH = { 0.0533, 0.6667 }, RH = { 0.36, 1 }, },
+						[0.92] = { 1, Flags = { Linear = true, }, LH = { 0.64, 1 }, RH = { 0.9466, 0.6667 }, },
+						[1] = { 0, Flags = { Linear = true, }, LH = { 0.9733, 0.3333 }, },
+					} },
+					SplineColor = { Red = 0, Green = 180, Blue = 255, },
+					CtrlWZoom = false,
+				},
+				-- ===== lights: a back-left key that rakes the bevels, a weak front fill, ambient tinted like the shot =====
+				Key = LightDirectional {
+					Inputs = {
+						Intensity = Input { Value = 1.6, },
+						-- a directional light points down -Z; yaw/pitch turn it, "behind" swings it past the title toward the camera
+						["Transform3DOp.Rotate.X"] = Input { Expression = "-CTRL.NumberIn3", },
+						["Transform3DOp.Rotate.Y"] = Input { Expression = "CTRL.NumberIn2 + 180*CTRL.NumberIn4", },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 1, },
+						["ShadowLightInputs3D.ShadowMapSize"] = Input { Value = 2048, },
+						["ShadowLightInputs3D.SoftnessType"] = Input { Value = FuID { "Constant", }, },
+						["ShadowLightInputs3D.ConstantSoftness"] = Input { Value = 0.012, },
+						["ShadowLightInputs3D.Nest"] = Input { Value = 1, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 0, 450 }, },
+				},
+				FrontFill = LightDirectional {
+					Inputs = {
+						Intensity = Input { Value = 0.35, },
+						["Transform3DOp.Rotate.X"] = Input { Value = 12, },
+						["Transform3DOp.Rotate.Y"] = Input { Value = -20, },
+						["ShadowLightInputs3D.ShadowsEnabled"] = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 110, 450 }, },
+				},
+				Ambient = LightAmbient {
+					Inputs = { Intensity = Input { Value = 0.18, }, Red = Input { Value = 0.9, }, Green = Input { Value = 0.93, }, Blue = Input { Value = 1.0, }, },
+					ViewInfo = OperatorInfo { Pos = { 220, 450 }, },
+				},
+				Scene = Merge3D {
+					Inputs = {
+						SceneInput1 = Input { SourceOp = "Plate", Source = "Output", },
+						SceneInput2 = Input { SourceOp = "Title", Source = "Output", },
+						SceneInput3 = Input { SourceOp = "Key", Source = "Output", },
+						SceneInput4 = Input { SourceOp = "FrontFill", Source = "Output", },
+						SceneInput5 = Input { SourceOp = "Ambient", Source = "Output", },
+					},
+					ViewInfo = OperatorInfo { Pos = { 440, 450 }, },
+				},
+			},
+		}
+	},
+	ActiveTool = "VelariaTitleTest_Editorial"
+}
