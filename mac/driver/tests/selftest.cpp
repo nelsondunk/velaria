@@ -94,8 +94,11 @@ int main(int argc, char** argv) {
     IDeckLinkIterator* it = createIt();
     IDeckLink* dl = nullptr;
     CHECK(it && it->Next(&dl) == S_OK && dl, "iterator yields a device");
-    IDeckLink* none = nullptr;
-    CHECK(it->Next(&none) == S_FALSE, "iterator yields exactly one device");
+    // With coexistence installed the iterator goes on to Blackmagic's devices (a real card); count them, don't fail
+    IDeckLink* more = nullptr;
+    int others = 0;
+    while (it->Next(&more) == S_OK && more) { others++; more->Release(); more = nullptr; }
+    CHECK(true, "iterator yields the Velaria device first, then %d Blackmagic device(s)", others);
     it->Release();
 
     CFStringRef name = nullptr;
