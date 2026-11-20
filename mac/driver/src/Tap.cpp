@@ -33,7 +33,7 @@ void TapReceiver::start() {
     a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     if (bind(m_sock, (sockaddr*)&a, sizeof a) != 0) {
         // another Resolve-hosted process (or an old driver) has the port: not fatal, the Decklink path still works
-        VLOGW("tap: cannot listen on 127.0.0.1:%u (%s); the Velaria Tap plugin will not reach this process", (unsigned)kTapPort, strerror(errno));
+        VLOGW("tap: cannot listen on 127.0.0.1:%u (%s); the Velaria Sound plugin will not reach this process", (unsigned)kTapPort, strerror(errno));
         close(m_sock);
         m_sock = -1;
         m_run = false;
@@ -42,7 +42,7 @@ void TapReceiver::start() {
     timeval tv{0, 250000};
     setsockopt(m_sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
     m_thread = std::thread([this] { loop(); });
-    VLOGI("tap: listening on 127.0.0.1:%u for the Velaria Tap plugin", (unsigned)kTapPort);
+    VLOGI("tap: listening on 127.0.0.1:%u for the Velaria Sound plugin", (unsigned)kTapPort);
 }
 
 void TapReceiver::stop() {
@@ -76,7 +76,7 @@ void TapReceiver::store(const TapHeader& h, const float* pcm) {
     m_ambi = (h.flags & 4) != 0;
     m_playing = (h.flags & 1) != 0;
     if (first || !wasLive)
-        VLOGI("tap: Velaria Tap plugin %s: %u channel(s) at %u Hz, %s, project time %s", first ? "found" : "back",
+        VLOGI("tap: Velaria Sound plugin %s: %u channel(s) at %u Hz, %s, project time %s", first ? "found" : "back",
               h.channels, h.sampleRate, (h.flags & 4) ? "ambisonic" : "speakers", (h.flags & 2) ? "valid" : "MISSING");
     if (!(h.flags & 2) || h.projectTime < 0) return;     // without a timeline position we cannot align it
     if (h.seq != m_lastSeq + 1 && m_packets > 1) m_lost += (uint32_t)(h.seq - m_lastSeq - 1);
@@ -125,7 +125,7 @@ uint32_t TapReceiver::read(int64_t at, uint32_t frames, int16_t* out, uint32_t o
         have++;
         const float* s = &m_ring[(size_t)(t % m_capacity) * kTapMaxChannels];
         for (uint32_t c = 0; c < outChannels; c++) {
-            float v = (int)c < ch ? s[c] : 0.0f;
+            float v = (int)c < ch ? s[c] : (ch == 1 ? s[0] : 0.0f);   // a mono bus goes to both ears
             v = v > 1.0f ? 1.0f : v < -1.0f ? -1.0f : v;
             o[c] = (int16_t)(v * 32767.0f);
         }

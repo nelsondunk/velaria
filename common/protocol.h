@@ -94,7 +94,7 @@ enum HelloCaps : uint32_t {
 
 enum AudioFlags : uint32_t {
     kAudioDiscontinuity = 1u << 0,   // this block does not follow the previous one (seek, stop, flush): restart the clock
-    kAudioFromTap = 1u << 1,         // the channels came from the Velaria Tap plugin (a Fairlight bus), not Decklink 1-4
+    kAudioFromTap = 1u << 1,         // the channels came from the Velaria Sound plugin (a Fairlight bus), not Decklink 1-4
 };
 
 // AUDIO (sender -> receiver, +65): Resolve's monitoring mix as it hands it to the device, reduced to the first two

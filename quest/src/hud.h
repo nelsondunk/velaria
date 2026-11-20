@@ -208,7 +208,7 @@ struct HudInfo {
     std::string source;       // preference: auto | resolve | ndi
     bool audio = true;        // the mix is wanted in the headset
     bool audioAmbi = false;   // ...as a head-tracked first-order ambisonic bus (+74)
-    bool audioTap = false;    // ...and the bus is coming from the Velaria Tap plugin, not Decklink 1-4 (+76)
+    bool audioTap = false;    // ...and the bus is coming from the Velaria Sound plugin, not Decklink 1-4 (+76)
     bool audioLive = false;   // blocks are arriving and the output stream is open
     float fisheyeFov = 190;   // lens FOV used by the fisheye projection
     float domeTilt = 0, domeFov = 180;   // dome preview: tilt (deg), master FOV (deg)

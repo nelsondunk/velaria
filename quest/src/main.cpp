@@ -341,9 +341,9 @@ struct App {
     // timing stats
     int64_t autoDelayNs = 0;
     vrltime::RollingStat lateness{300};      // arrival - scanout (ms), last ~10 s of playback; negative = early
-    vrltime::RollingStat audioLateness{400}; // audio block arrival - its sender pts (ms): the Velaria Tap's bus can trail the picture
+    vrltime::RollingStat audioLateness{400}; // audio block arrival - its sender pts (ms): the Velaria Sound's bus can trail the picture
     std::mutex audioLatenessMx;              // added on the network thread, read by updateAutoDelay
-    std::atomic<int64_t> audioTapNs{0};      // when a block from the Velaria Tap plugin last arrived
+    std::atomic<int64_t> audioTapNs{0};      // when a block from the Velaria Sound plugin last arrived
     vrltime::RollingStat photonOffset{240};  // photon time - scanout (ms); ~delay when on time
     int framesSincePlay = 0;
     int64_t lastMotionNs = 0;                // last time a new (non-parked) frame went on screen
@@ -1982,7 +1982,7 @@ static void updateAutoDelay(bool playing) {
     // margin: at p97 alone Wi-Fi jitter still dropped ~2% of frames.
     double want = std::max(0.0, g.lateness.percentile(98) + g.decoder.decodeMsP95() + refreshMs + 8.0);
     // Sound has to be here before it is due as well. Decklink audio arrives well ahead of its pts; a bus tapped in
-    // Fairlight by the Velaria Tap plugin trails the picture by up to ~150 ms, so the presentation delay (picture
+    // Fairlight by the Velaria Sound plugin trails the picture by up to ~150 ms, so the presentation delay (picture
     // and sound alike, lip sync kept) stretches to cover it.
     // Sound needs every block in time, not 98% of them (each late block is an audible hole), so it is the worst
     // arrival in the window plus a margin, and the figure is logged with the step.

@@ -772,9 +772,10 @@ void drawViewTab(Chrome& ch, float y) {
         float sw = (inner - gap) * 0.64f;
         ch.chip(HudButton::Source, 0, pad, y, sw, ch_h, fitText(label, S20, sw - 30), in.source != "auto");
         // the mix follows the picture into the headset (+65); "live" once blocks are arriving
+        // "· bus" = the sound is coming from the Velaria Sound plugin on a Fairlight bus rather than Decklink channels
         std::string snd = !in.audio ? "Sound: off"
-                        : in.audioAmbi ? (in.audioLive ? (in.audioTap ? "Sound: ambisonic \xC2\xB7 tap" : "Sound: ambisonic") : "Sound: ambisonic, waiting")
-                                       : (in.audioLive ? "Sound: in headset" : "Sound: waiting");
+                        : in.audioAmbi ? (in.audioLive ? (in.audioTap ? "Sound: ambisonic \xC2\xB7 bus" : "Sound: ambisonic") : "Sound: ambisonic, waiting")
+                                       : (in.audioLive ? (in.audioTap ? "Sound: in headset \xC2\xB7 bus" : "Sound: in headset") : "Sound: waiting");
         ch.chip(HudButton::Audio, 0, pad + sw + gap, y, inner - sw - gap, ch_h, snd, in.audio);
         y += ch_h + gap + 8;
     }

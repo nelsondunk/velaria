@@ -1,4 +1,4 @@
-# Velaria Tap (VST3)
+# Velaria Sound (VST3)
 
 An insert for DaVinci Resolve's Fairlight page. Audio passes through untouched; a copy of every channel, with the
 host's timeline position, goes to the Velaria driver on this Mac so the headset can hear a bus Fairlight will not
@@ -12,9 +12,9 @@ seen feeding the plugin four channels and a timeline position.
 
 Build on the Mac (SDK cloned to `~/VRLink/sdk/vst3sdk`, submodules base, pluginterfaces, public.sdk, cmake):
 
-    cmake -S mac/tap -B build/tap -G Ninja -Dvst3sdk_SOURCE_DIR=$HOME/VRLink/sdk/vst3sdk -DCMAKE_BUILD_TYPE=Release
+    cmake -S mac/sound -B build/tap -G Ninja -Dvst3sdk_SOURCE_DIR=$HOME/VRLink/sdk/vst3sdk -DCMAKE_BUILD_TYPE=Release
     cmake --build build/tap
-    sudo ditto "build/tap/VST3/Release/Velaria Tap.vst3" "/Library/Audio/Plug-Ins/VST3/Velaria Tap.vst3"
+    sudo ditto "build/tap/VST3/Release/Velaria Sound.vst3" "/Library/Audio/Plug-Ins/VST3/Velaria Sound.vst3"
 
 Then relaunch Resolve, tick it under Preferences › System › Audio Plugins (VST3), and drag it from Effects › VST
 Effects onto the bus. Resolve scans `/Library/Audio/Plug-Ins/VST3` only (its FXScan.xml), not the per-user folder.

@@ -13,11 +13,11 @@
 #define FULL_VERSION_STR MAJOR_VERSION_STR "." SUB_VERSION_STR "." RELEASE_NUMBER_STR "." BUILD_NUMBER_STR
 #define VERSION_STR MAJOR_VERSION_STR "." SUB_VERSION_STR "." RELEASE_NUMBER_STR
 
-#define stringOriginalFilename "Velaria Tap.vst3"
+#define stringOriginalFilename "Velaria Sound.vst3"
 #if SMTG_PLATFORM_64
-#define stringFileDescription "Velaria Tap (64Bit)"
+#define stringFileDescription "Velaria Sound (64Bit)"
 #else
-#define stringFileDescription "Velaria Tap"
+#define stringFileDescription "Velaria Sound"
 #endif
 #define stringCompanyName "Skylight Visual Media\0"
 #define stringCompanyWeb "https://velaria.ca"

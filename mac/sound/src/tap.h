@@ -1,4 +1,4 @@
-// Velaria Tap — VST3 insert: audio passes through untouched; a copy of every channel plus the host's timeline
+// Velaria Sound — VST3 insert: audio passes through untouched; a copy of every channel plus the host's timeline
 // position goes to the Velaria driver over UDP on this Mac (127.0.0.1:47813), and a level line goes to
 // ~/Library/Logs/Velaria/tap.log every two seconds so a first insert can be judged without the headset.
 //

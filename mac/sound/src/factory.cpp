@@ -4,7 +4,7 @@
 #include "public.sdk/source/main/pluginfactory.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 
-#define stringPluginName "Velaria Tap"
+#define stringPluginName "Velaria Sound"
 
 using namespace Steinberg::Vst;
 

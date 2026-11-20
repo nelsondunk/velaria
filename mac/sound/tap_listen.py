@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Listen for Velaria Tap datagrams on 127.0.0.1:47813 and print one line a second: channels, rate, frames,
+"""Listen for Velaria Sound datagrams on 127.0.0.1:47813 and print one line a second: channels, rate, frames,
 host playing flag, timeline position, packet loss, per-channel RMS. The stand-in for the driver while the plugin
-is being judged in Fairlight.  python3 mac/tap/tap_listen.py"""
+is being judged in Fairlight.  python3 mac/sound/tap_listen.py"""
 import math
 import socket
 import struct

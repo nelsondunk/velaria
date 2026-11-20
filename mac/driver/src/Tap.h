@@ -1,4 +1,4 @@
-// Velaria Tap receiver: the VST3 insert (mac/tap) copies a Fairlight bus's channels, with the host's timeline
+// Velaria Sound receiver: the VST3 insert (mac/sound) copies a Fairlight bus's channels, with the host's timeline
 // position, to UDP 127.0.0.1:47813. This keeps the last few seconds indexed by timeline sample, so onAudio can
 // replace the Decklink channels in the headset's ambisonic message with the bus's own channels, aligned to the
 // picture by timecode. Nothing here touches Resolve; if no plugin is running the receiver just idles.
@@ -16,7 +16,7 @@ constexpr uint16_t kTapPort = 47813;
 constexpr uint32_t kTapMagic = 0x50415456;   // 'VTAP'
 constexpr int kTapMaxChannels = 16;
 
-struct TapHeader {                           // == velaria::TapPacket in mac/tap/src/tap.h
+struct TapHeader {                           // == velaria::TapPacket in mac/sound/src/tap.h
     uint32_t magic;
     uint16_t version;
     uint16_t channels;

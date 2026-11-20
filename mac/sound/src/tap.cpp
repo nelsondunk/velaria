@@ -125,13 +125,13 @@ void Processor::openSink() {
         mkdir(path, 0755);
         snprintf(path, sizeof path, "%s/Library/Logs/Velaria/tap.log", home ? home : "/tmp");
         m_log = fopen(path, "a");
-        logLine("Velaria Tap active (sending to 127.0.0.1:%u)", (unsigned)kTapPort);
+        logLine("Velaria Sound active (sending to 127.0.0.1:%u)", (unsigned)kTapPort);
     }
 }
 
 void Processor::closeSink() {
     if (m_sock >= 0) { close(m_sock); m_sock = -1; }
-    if (m_log) { logLine("Velaria Tap inactive"); fclose(m_log); m_log = nullptr; }
+    if (m_log) { logLine("Velaria Sound inactive"); fclose(m_log); m_log = nullptr; }
 }
 
 void Processor::sendBlock(const float* const* in, int channels, int frames, const ProcessContext* ctx) {
