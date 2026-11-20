@@ -156,6 +156,13 @@ void Processor::openSink() {
         snprintf(path, sizeof path, "%s/Library/Logs/Velaria", home ? home : "/tmp");
         mkdir(path, 0755);
         snprintf(path, sizeof path, "%s/Library/Logs/Velaria/tap.log", home ? home : "/tmp");
+        // a level line every two seconds adds up: past 4 MB the file steps aside as tap.log.1 (one generation kept)
+        struct stat sb;
+        if (stat(path, &sb) == 0 && sb.st_size > 4 * 1024 * 1024) {
+            char old[520];
+            snprintf(old, sizeof old, "%s.1", path);
+            rename(path, old);
+        }
         m_log = fopen(path, "a");
         startLogger();
         logLine("Velaria Sound active (sending to 127.0.0.1:%u)", (unsigned)kTapPort);

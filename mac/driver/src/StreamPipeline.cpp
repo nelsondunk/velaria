@@ -461,6 +461,16 @@ public:
             tcHost = m_tcHostNs;
         }
         if (tcHost <= 0 || now - tcHost > 2000000000LL) return 0;
+        // the headset plays 48 kHz and nothing in between resamples: a project at 44.1 or 96 kHz keeps Decklink's
+        // copy (which Resolve already hands over at 48 kHz) and says so once (review, 20 Nov)
+        if (m_tap.sampleRate() != 48000) {
+            if (!m_tapRateSaid) {
+                VLOGW("audio: Velaria Sound runs at %u Hz; the headset takes 48 kHz only, so Decklink's copy is used (set the project to 48 kHz)", m_tap.sampleRate());
+                m_tapRateSaid = true;
+            }
+            return 0;
+        }
+        m_tapRateSaid = false;
         return m_tap.channels();
     }
 
@@ -880,6 +890,7 @@ private:
     double m_tcSeconds = 0;                      // and its timecode as timeline seconds
     bool m_tapActive = false;
     bool m_tapSpeakerBusSaid = false;
+    bool m_tapRateSaid = false;
     std::mutex m_audioMutex;                     // onAudio and the stop-time flush, one at a time
     uint64_t m_tapMissLog = 0;
     std::deque<PendingBlock> m_tapPending;       // blocks waiting for the plugin's audio (onAudio thread only)
