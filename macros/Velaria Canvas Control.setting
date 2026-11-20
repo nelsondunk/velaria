@@ -162,6 +162,7 @@
 				Render_RightEye = Renderer3D {
 					Inputs = {
 						["RendererOpenGL.LightingEnabled"] = Input { Value = 1, },
+						UseFrameFormatSettings = Input { Value = 0, },   -- never the timeline's square frame: each eye must be 2:1 (20 Nov: eyes were cropped at the horizon on a 3840x3840 timeline)
 						["RendererSoftware.LightingEnabled"] = Input { Value = 1, },
 						Width = Input { Expression = "Render_LeftEye.Width", },
 						Height = Input { Expression = "Render_LeftEye.Width/2", },
@@ -337,6 +338,7 @@
 				Render_LeftEye = Renderer3D {
 					Inputs = {
 						["RendererOpenGL.LightingEnabled"] = Input { Value = 1, },
+						UseFrameFormatSettings = Input { Value = 0, },   -- never the timeline's square frame: each eye must be 2:1 (20 Nov: eyes were cropped at the horizon on a 3840x3840 timeline)
 						["RendererSoftware.LightingEnabled"] = Input { Value = 1, },
 						Width = Input { Value = 2880, },
 						Height = Input { Expression = "Render_LeftEye.Width/2", },
