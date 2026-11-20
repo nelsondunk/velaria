@@ -51,8 +51,10 @@ public:
     Steinberg::tresult PLUGIN_API setupProcessing(Steinberg::Vst::ProcessSetup& setup) override;
     Steinberg::tresult PLUGIN_API setActive(Steinberg::TBool state) override;
     Steinberg::tresult PLUGIN_API process(Steinberg::Vst::ProcessData& data) override;
-    Steinberg::tresult PLUGIN_API setState(Steinberg::IBStream*) override { return Steinberg::kResultOk; }
-    Steinberg::tresult PLUGIN_API getState(Steinberg::IBStream*) override { return Steinberg::kResultOk; }
+    // The plugin has no parameters, but a host that gets an empty state back may treat the restore as failed and
+    // drop the insert (Fairlight did, 20 Nov): save a small versioned record and accept any version on the way back.
+    Steinberg::tresult PLUGIN_API setState(Steinberg::IBStream* state) override;
+    Steinberg::tresult PLUGIN_API getState(Steinberg::IBStream* state) override;
 
 private:
     void openSink();
@@ -79,6 +81,9 @@ class Controller : public Steinberg::Vst::EditControllerEx1 {
 public:
     static Steinberg::FUnknown* create(void*) { return (Steinberg::Vst::IEditController*)new Controller(); }
     Steinberg::tresult PLUGIN_API initialize(Steinberg::FUnknown* context) override;
+    Steinberg::tresult PLUGIN_API setComponentState(Steinberg::IBStream*) override { return Steinberg::kResultOk; }
+    Steinberg::tresult PLUGIN_API setState(Steinberg::IBStream*) override { return Steinberg::kResultOk; }
+    Steinberg::tresult PLUGIN_API getState(Steinberg::IBStream* state) override;
 };
 
 }  // namespace velaria

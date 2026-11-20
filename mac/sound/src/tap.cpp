@@ -1,5 +1,6 @@
 #include "tap.h"
 
+#include "pluginterfaces/base/ibstream.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 #include "pluginterfaces/vst/ivstprocesscontext.h"
 #include "pluginterfaces/vst/vstspeaker.h"
@@ -205,10 +206,37 @@ void Processor::logLine(const char* fmt, ...) {
     fflush(m_log);
 }
 
+// ---------------------------------------------------------------- state
+
+static const char kStateMagic[8] = {'V', 'S', 'N', 'D', 0, 0, 0, 1};   // "VSND" + version 1
+
+tresult PLUGIN_API Processor::getState(IBStream* state) {
+    if (!state) return kResultFalse;
+    int32 written = 0;
+    return state->write((void*)kStateMagic, sizeof kStateMagic, &written) == kResultOk && written == (int32)sizeof kStateMagic
+               ? kResultOk : kResultFalse;
+}
+
+tresult PLUGIN_API Processor::setState(IBStream* state) {
+    if (!state) return kResultFalse;
+    char buf[8] = {};
+    int32 read = 0;
+    state->read(buf, sizeof buf, &read);
+    if (read >= 4 && memcmp(buf, kStateMagic, 4) == 0) logLine("state restored (version %d)", (int)buf[7]);
+    else logLine("state: %d byte(s), not ours; defaults", (int)read);
+    return kResultOk;   // nothing to configure either way; the insert stays
+}
+
 // ---------------------------------------------------------------- controller (no parameters, no view)
 
 tresult PLUGIN_API Controller::initialize(FUnknown* context) {
     return EditControllerEx1::initialize(context);
+}
+
+tresult PLUGIN_API Controller::getState(IBStream* state) {
+    if (!state) return kResultFalse;
+    int32 written = 0;
+    return state->write((void*)kStateMagic, sizeof kStateMagic, &written) == kResultOk ? kResultOk : kResultFalse;
 }
 
 }  // namespace velaria
