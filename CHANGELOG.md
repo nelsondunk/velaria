@@ -2,6 +2,13 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## Head-tracked binaural decode, installer and bridge fixes (20 Nov 2026, later)
+
+- **Headset +81: the ambisonic bus is decoded through an HRTF.** The first-order field is still rotated by the inverse head pose, but each component now goes through Resonance Audio's SADIE II spherical-harmonic HRIR (256 taps, 48 kHz) instead of a pair of cardioids: left ear = W+Y+Z+X filtered, right ear = W−Y+Z+X. Sounds sit outside the head and front/back differ by spectrum, not just level. Kernel checked on the host (`quest/tools/hrirtest.cpp`): a front source lands at −0.8 dB, a lateral one at +3 / −7.7 dB between the ears; 1 s of audio decodes in ~20 ms. Not yet heard by Nelson.
+- **Installer ships Velaria Sound** into `/Library/Audio/Plug-Ins/VST3` (and removes it on `--uninstall`); `package.sh` includes the plugin only with `VELARIA_VST3_LICENSED=1`, i.e. once the Steinberg VST 3 agreement is signed. `--coexist` is no longer marked UNTESTED.
+- **Bridge 1.0.11:** a line on the status strip when Desktop Video has been installed over Velaria's driver ("run sudo ./install.sh --coexist, then restart Resolve"); output-scaling records now name their own project and are restored when that project is next open (20 Nov: a timeline in *Strange Worlds Teaser copy* was scaled while the headset was connected, then the record pointed at the wrong project and the log repeated "not found" every two seconds).
+- Customer docs: setup guide and known limits now describe sound in the headset and the Velaria Sound recipe.
+
 ## Unreleased — Velaria Sound: the mix reaches the headset from a Fairlight bus (20 Nov 2026)
 
 Headset **1.1.0-dome+80**, driver rebuilt the same morning, plugin `VelariaSound.vst3` 0.1. **Confirmed by Nelson, 20 Nov 09:18–09:48:** ambisonic bus → headset, head-tracked, no patching; stereo bus → headset; insert survives a Resolve restart.

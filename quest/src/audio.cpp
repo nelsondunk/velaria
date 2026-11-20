@@ -1,4 +1,5 @@
 #include "audio.h"
+#include "hrir_sh1.h"
 
 #include <aaudio/AAudio.h>
 #include <android/log.h>
@@ -109,6 +110,7 @@ void AudioOut::flush() {
     std::lock_guard<std::mutex> lk(m_mutex);
     m_queue.clear();
     m_fifo.clear(); m_fifoPos = 0; m_fifoValid = false;
+    clearHrir();
 }
 
 void AudioOut::setHead(float qx, float qy, float qz, float qw) {
@@ -117,12 +119,10 @@ void AudioOut::setHead(float qx, float qy, float qz, float qw) {
     m_head[0] = qx; m_head[1] = qy; m_head[2] = qz; m_head[3] = qw;
 }
 
-// Stereo gains for the four first-order components at the current head pose. AmbiX axes are x front, y left,
-// z up; the headset's are x right, y up, -z forward, so ambi (x, y, z) = (-Z, -X, Y) in headset terms. The field
-// is rotated by the inverse head rotation (first-order components rotate like a vector), then each ear is a
-// cardioid: out = 0.5 W + 0.5 (X cos a + Y sin a) with a = +45 (left) / -45 (right). A rear source comes through
-// at 0.15 of a front one: a front/back level cue, no HRTF yet.
-void AudioOut::decodeGains(float g[2][4]) {
+// Head-relative first-order components at the current head pose. AmbiX axes are x front, y left, z up; the
+// headset's are x right, y up, -z forward, so ambi (x, y, z) = (-Z, -X, Y) in headset terms. The field is rotated by
+// the inverse head rotation (first-order components rotate like a vector): m gives (Y' Z' X') from (Y Z X).
+void AudioOut::headRotation(float m[3][3]) {
     // inverse head rotation as a 3x3 (conjugate quaternion)
     float x = -m_head[0], y = -m_head[1], z = -m_head[2], w = m_head[3];
     float r[3][3] = {{1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)},
@@ -135,23 +135,35 @@ void AudioOut::decodeGains(float g[2][4]) {
         float rx = r[0][0] * hx + r[0][1] * hy + r[0][2] * hz;
         float ry = r[1][0] * hx + r[1][1] * hy + r[1][2] * hz;
         float rz = r[2][0] * hx + r[2][1] * hy + r[2][2] * hz;
-        out[0] = -rz; out[1] = -rx; out[2] = ry;   // headset -> ambi
+        out[0] = -rz; out[1] = -rx; out[2] = ry;   // headset -> ambi (x, y, z)
     };
-    // columns of the rotation in ambi terms: where each incoming component lands
+    // where each incoming component lands: cx = image of X, etc., as (x, y, z)
     float cx[3], cy[3], cz[3];
     rel(1, 0, 0, cx);
     rel(0, 1, 0, cy);
     rel(0, 0, 1, cz);
-    const float c45 = 0.70710678f;
-    for (int ear = 0; ear < 2; ear++) {
-        float sa = ear == 0 ? c45 : -c45;   // sin a: + left ear, - right ear
-        float ca = c45;
-        // head-relative X' = cx[0] X + cy[0] Y + cz[0] Z ; Y' = cx[1] X + cy[1] Y + cz[1] Z
-        g[ear][0] = 0.5f;                                   // W
-        g[ear][1] = 0.5f * (cy[0] * ca + cy[1] * sa);       // Y (ACN 1)
-        g[ear][2] = 0.5f * (cz[0] * ca + cz[1] * sa);       // Z (ACN 2)
-        g[ear][3] = 0.5f * (cx[0] * ca + cx[1] * sa);       // X (ACN 3)
+    // rows: Y' Z' X' ; columns: Y Z X
+    m[0][0] = cy[1]; m[0][1] = cz[1]; m[0][2] = cx[1];
+    m[1][0] = cy[2]; m[1][1] = cz[2]; m[1][2] = cx[2];
+    m[2][0] = cy[0]; m[2][1] = cz[0]; m[2][2] = cx[0];
+}
+
+void AudioOut::clearHrir() {
+    m_hist.assign((size_t)4 * 2 * kHrirTaps, 0.0f);
+    m_histPos = 0;
+}
+
+namespace {
+// the SH HRIRs reversed, so each ear is a plain dot product with a contiguous history window
+struct HrirReversed {
+    float h[4][kHrirTaps];
+    HrirReversed() {
+        for (int c = 0; c < 4; c++)
+            for (int k = 0; k < kHrirTaps; k++) h[c][k] = kHrirSh1[c][kHrirTaps - 1 - k];
     }
+};
+const HrirReversed& hrirReversed() { static HrirReversed r; return r; }
+constexpr float kHrirGain = 1.6f;   // a full-scale front source (W = X = 1) lands near full scale
 }
 
 void AudioOut::push(AudioBlock&& b) {
@@ -202,6 +214,7 @@ void AudioOut::pullBlocksLocked() {
             m_fifoPos = 0;
             m_fifoValid = false;
             m_fifoChannels = bch;
+            clearHrir();
         }
         const int kChannels = m_fifoChannels;
         int64_t fifoEnd = m_fifoDueNs + (int64_t)((m_fifo.size() - m_fifoPos) / kChannels) * kNs / kRate;
@@ -265,12 +278,14 @@ int AudioOut::onRender(int16_t* out, int32_t frames) {
     }
     pullBlocksLocked();
     const int kChannels = m_fifoChannels;
-    // decode gains for this callback: from the last callback's to the current head pose, so a turn is a glide
-    float gNow[2][4], gFrom[2][4];
-    decodeGains(gNow);
-    if (!m_lastGainValid) { std::memcpy(m_lastGain, gNow, sizeof gNow); m_lastGainValid = true; }
-    std::memcpy(gFrom, m_lastGain, sizeof gFrom);
-    std::memcpy(m_lastGain, gNow, sizeof gNow);
+    // head rotation for this callback: from the last callback's to the current pose, so a turn is a glide
+    float mNow[3][3], mFrom[3][3];
+    headRotation(mNow);
+    if (!m_lastRotValid) { std::memcpy(m_lastRot, mNow, sizeof mNow); m_lastRotValid = true; }
+    std::memcpy(mFrom, m_lastRot, sizeof mFrom);
+    std::memcpy(m_lastRot, mNow, sizeof mNow);
+    if (m_hist.empty()) clearHrir();
+    const HrirReversed& H = hrirReversed();
     int32_t done = 0;
     int64_t playAt = playTimeNs(0);
     while (done < frames) {
@@ -306,17 +321,37 @@ int AudioOut::onRender(int16_t* out, int32_t frames) {
             const int16_t* in = m_fifo.data() + m_fifoPos;
             int16_t* o = out + (size_t)done * kOut;
             float inv = frames > 1 ? 1.0f / (float)(frames - 1) : 0.0f;
+            float* hist = m_hist.data();
             for (size_t i = 0; i < n; i++) {
                 float t = (float)(done + (int32_t)i) * inv;
                 float w = in[i * 4], yy = in[i * 4 + 1], zz = in[i * 4 + 2], xx = in[i * 4 + 3];
-                for (int ear = 0; ear < 2; ear++) {
-                    float g0 = gFrom[ear][0] + (gNow[ear][0] - gFrom[ear][0]) * t;
-                    float g1 = gFrom[ear][1] + (gNow[ear][1] - gFrom[ear][1]) * t;
-                    float g2 = gFrom[ear][2] + (gNow[ear][2] - gFrom[ear][2]) * t;
-                    float g3 = gFrom[ear][3] + (gNow[ear][3] - gFrom[ear][3]) * t;
-                    float v = (g0 * w + g1 * yy + g2 * zz + g3 * xx) * 1.4f;   // a front source lands near full scale
-                    o[i * 2 + ear] = (int16_t)std::max(-32768.0f, std::min(32767.0f, v));
+                float m[3][3];
+                for (int r = 0; r < 3; r++)
+                    for (int c = 0; c < 3; c++) m[r][c] = mFrom[r][c] + (mNow[r][c] - mFrom[r][c]) * t;
+                // head-relative components, into the history (twice: at pos and pos + taps)
+                float v[4] = {w, m[0][0] * yy + m[0][1] * zz + m[0][2] * xx,
+                              m[1][0] * yy + m[1][1] * zz + m[1][2] * xx,
+                              m[2][0] * yy + m[2][1] * zz + m[2][2] * xx};
+                int pos = m_histPos;
+                for (int c = 0; c < 4; c++) {
+                    float* hc = hist + (size_t)c * 2 * kHrirTaps;
+                    hc[pos] = v[c];
+                    hc[pos + kHrirTaps] = v[c];
                 }
+                // y_c = sum_k h_c[k] x_c[n-k] = dot(h_c reversed, window ending at pos)
+                float acc[4];
+                for (int c = 0; c < 4; c++) {
+                    const float* win = hist + (size_t)c * 2 * kHrirTaps + pos + 1;
+                    const float* hr = H.h[c];
+                    float a = 0.0f;
+                    for (int k = 0; k < kHrirTaps; k++) a += hr[k] * win[k];
+                    acc[c] = a;
+                }
+                m_histPos = pos + 1 == kHrirTaps ? 0 : pos + 1;
+                float l = (acc[0] + acc[1] + acc[2] + acc[3]) * kHrirGain;
+                float rr = (acc[0] - acc[1] + acc[2] + acc[3]) * kHrirGain;
+                o[i * 2] = (int16_t)std::max(-32768.0f, std::min(32767.0f, l));
+                o[i * 2 + 1] = (int16_t)std::max(-32768.0f, std::min(32767.0f, rr));
             }
         }
         m_fifoPos += n * kChannels;

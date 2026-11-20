@@ -67,6 +67,12 @@ Velaria includes or was built with the following software and fonts from other a
 - Copyright 2020 The Saira Project Authors (https://github.com/Omnibus-Type/Saira).
 - Licence: SIL Open Font License 1.1 (`licenses/OFL-1.1-Saira.txt`).
 
+### SADIE II spherical-harmonic HRIRs, via Resonance Audio (headset app)
+
+- Where: `quest/third_party/sadie/sh_hrir_order_1.wav`, compiled into the headset app as `quest/src/hrir_sh1.h` (four 256-tap filters at 48 kHz). They turn the ambisonic bus into head-tracked binaural sound.
+- Copyright 2018 Google Inc. (the derived SH-HRIR set, from Resonance Audio's `third_party/SADIE_hrtf_database`, subject 002); the underlying SADIE II measurements are the University of York's.
+- Licence: Apache License 2.0 (`licenses/Apache-2.0.txt`; the copy of the folder's own LICENSE is beside the file). No Resonance Audio code is used, only this data file.
+
 ## Used at run time but not included
 
 - **NDI** (optional, only with `install.sh --ndi`): Velaria loads the NDI library that the user has installed with NDI Tools. Nothing from the NDI SDK is shipped. NDI is a registered trademark of Vizrt NDI AB. **[VERIFY]** NDI's brand rules ask products that use NDI to carry this trademark line and a link to ndi.video; confirm the current wording if the NDI path is ever mentioned publicly.
