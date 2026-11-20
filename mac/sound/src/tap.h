@@ -12,8 +12,12 @@
 #include "public.sdk/source/vst/vsteditcontroller.h"
 #include "pluginterfaces/base/funknown.h"
 
+#include <atomic>
+#include <condition_variable>
 #include <cstdint>
 #include <cstdio>
+#include <mutex>
+#include <thread>
 
 namespace velaria {
 
@@ -61,7 +65,10 @@ private:
     void closeSink();
     void sendBlock(const float* const* in, int channels, int frames, const Steinberg::Vst::ProcessContext* ctx);
     void meter(const float* const* in, int channels, int frames, const Steinberg::Vst::ProcessContext* ctx);
-    void logLine(const char* fmt, ...);
+    void logLine(const char* fmt, ...);      // any thread, no I/O: formats into the ring
+    void startLogger();
+    void stopLogger();
+    void drainLog();                         // logger thread: ring -> file
 
     int m_sock = -1;
     FILE* m_log = nullptr;
@@ -75,6 +82,18 @@ private:
     // interleave scratch, sized for the largest block seen (allocated outside process once we know maxSamplesPerBlock)
     float* m_scratch = nullptr;
     size_t m_scratchFloats = 0;
+    // silence stood in for a null input channel (inactive bus), maxSamplesPerBlock long
+    float* m_zero = nullptr;
+    size_t m_zeroFloats = 0;
+    // log ring: process() must not touch the file
+    static constexpr uint32_t kLogRing = 32;
+    static constexpr size_t kLogLine = 512;
+    char m_logRing[kLogRing][kLogLine] = {};
+    std::atomic<uint32_t> m_logWrite{0}, m_logRead{0}, m_logDropped{0};
+    std::thread m_logThread;
+    std::mutex m_logMutex;
+    std::condition_variable m_logWake;
+    bool m_logQuit = false;
 };
 
 class Controller : public Steinberg::Vst::EditControllerEx1 {

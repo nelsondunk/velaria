@@ -44,3 +44,8 @@ if(SMTG_MAC)
         COMPANY_NAME "Skylight Visual Media")
     smtg_target_set_debug_executable(VelariaSound "/Applications/DaVinci Resolve/DaVinci Resolve.app")
 endif()
+
+# Host-side checks (null buffers, pass-through, log worker): build/tap/tap_test
+add_executable(tap_test tests/tap_test.cpp src/tap.cpp)
+target_link_libraries(tap_test PRIVATE sdk)
+target_compile_features(tap_test PRIVATE cxx_std_17)

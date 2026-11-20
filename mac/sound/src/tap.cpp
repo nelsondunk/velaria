@@ -6,6 +6,11 @@
 #include "pluginterfaces/vst/vstspeaker.h"
 
 #include <arpa/inet.h>
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 #include <cmath>
 #include <cstdarg>
 #include <cstdlib>
@@ -32,7 +37,9 @@ Processor::Processor() { setControllerClass(kControllerUID); }
 
 Processor::~Processor() {
     closeSink();
+    stopLogger();
     free(m_scratch);
+    free(m_zero);
 }
 
 tresult PLUGIN_API Processor::initialize(FUnknown* context) {
@@ -76,6 +83,12 @@ tresult PLUGIN_API Processor::setupProcessing(ProcessSetup& setup) {
         m_scratch = (float*)malloc(need * sizeof(float));
         m_scratchFloats = m_scratch ? need : 0;
     }
+    size_t zero = (size_t)std::max<int32>(setup.maxSamplesPerBlock, 64);
+    if (zero > m_zeroFloats) {
+        free(m_zero);
+        m_zero = (float*)calloc(zero, sizeof(float));
+        m_zeroFloats = m_zero ? zero : 0;
+    }
     logLine("setup: %.0f Hz, max block %d, %s", setup.sampleRate, (int)setup.maxSamplesPerBlock,
             setup.processMode == kRealtime ? "realtime" : setup.processMode == kOffline ? "offline (render)" : "prefetch");
     return AudioEffect::setupProcessing(setup);
@@ -88,20 +101,38 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 
 tresult PLUGIN_API Processor::process(ProcessData& data) {
     if (data.numInputs < 1 || data.numOutputs < 1 || data.numSamples <= 0) return kResultOk;
+    if (!data.inputs || !data.outputs) return kResultOk;
     AudioBusBuffers& in = data.inputs[0];
     AudioBusBuffers& out = data.outputs[0];
     int ch = std::min(in.numChannels, out.numChannels);
     if (ch <= 0) return kResultOk;
-    // pass-through (the host may hand us the same buffers for in and out)
-    for (int c = 0; c < ch; ++c)
-        if (out.channelBuffers32[c] != in.channelBuffers32[c])
-            memcpy(out.channelBuffers32[c], in.channelBuffers32[c], sizeof(float) * (size_t)data.numSamples);
-    out.silenceFlags = in.silenceFlags;
+    // VST3 allows a null channel-buffer array, and null channel pointers, for an inactive bus (review, 20 Nov). An
+    // input that is missing is silence; an output that is missing is simply not written. Nothing is dereferenced
+    // before it has been checked.
+    const int frames = (int)data.numSamples;
+    const bool zeroOk = m_zero && (size_t)frames <= m_zeroFloats;   // false only for a block larger than promised
+    const float* src[kMaxChannels];
+    int n = std::min(ch, kMaxChannels);
+    bool complete = true;   // every tapped channel has real or substitute samples
+    for (int c = 0; c < n; ++c) {
+        const float* s = in.channelBuffers32 ? in.channelBuffers32[c] : nullptr;
+        if (!s) { s = zeroOk ? m_zero : nullptr; if (!s) complete = false; }
+        src[c] = s;
+    }
+    // pass-through (the host may hand us the same buffers for in and out); a missing input writes silence
+    for (int c = 0; c < ch; ++c) {
+        float* d = out.channelBuffers32 ? out.channelBuffers32[c] : nullptr;
+        if (!d) continue;
+        const float* s = c < n ? src[c] : (in.channelBuffers32 ? in.channelBuffers32[c] : nullptr);
+        if (!s) memset(d, 0, sizeof(float) * (size_t)frames);
+        else if (d != s) memcpy(d, s, sizeof(float) * (size_t)frames);
+    }
+    out.silenceFlags = in.channelBuffers32 ? in.silenceFlags : ~0ull;
+    if (!complete) return kResultOk;
     // Offline (Deliver) renders go through here too; the headset wants the live mix only.
     if (processSetup.processMode == kOffline) return kResultOk;
-    int n = std::min(ch, kMaxChannels);
-    meter(in.channelBuffers32, n, data.numSamples, data.processContext);
-    sendBlock(in.channelBuffers32, n, data.numSamples, data.processContext);
+    meter(src, n, frames, data.processContext);
+    sendBlock(src, n, frames, data.processContext);
     return kResultOk;
 }
 
@@ -126,13 +157,19 @@ void Processor::openSink() {
         mkdir(path, 0755);
         snprintf(path, sizeof path, "%s/Library/Logs/Velaria/tap.log", home ? home : "/tmp");
         m_log = fopen(path, "a");
+        startLogger();
         logLine("Velaria Sound active (sending to 127.0.0.1:%u)", (unsigned)kTapPort);
     }
 }
 
 void Processor::closeSink() {
     if (m_sock >= 0) { close(m_sock); m_sock = -1; }
-    if (m_log) { logLine("Velaria Sound inactive"); fclose(m_log); m_log = nullptr; }
+    if (m_log) {
+        logLine("Velaria Sound inactive");
+        stopLogger();          // drains the ring into the file first
+        fclose(m_log);
+        m_log = nullptr;
+    }
 }
 
 void Processor::sendBlock(const float* const* in, int channels, int frames, const ProcessContext* ctx) {
@@ -141,6 +178,7 @@ void Processor::sendBlock(const float* const* in, int channels, int frames, cons
     const int kMaxFrames = 512;
     for (int off = 0; off < frames; off += kMaxFrames) {
         int n = std::min(kMaxFrames, frames - off);
+        if ((size_t)n * (size_t)channels > m_scratchFloats) return;   // a block larger than setupProcessing promised
         TapPacket h{};
         h.magic = kTapMagic;
         h.version = 1;
@@ -190,6 +228,9 @@ void Processor::meter(const float* const* in, int channels, int frames, const Pr
     m_meterFrames = 0;
 }
 
+// Log lines are formatted into a fixed ring on the calling thread (no allocation, no I/O: process() calls this
+// every two seconds for the meter) and written to the file by a worker (review finding 8, 20 Nov: fprintf/fflush
+// on the VST3 processing thread could glitch Fairlight when the filesystem stalled).
 void Processor::logLine(const char* fmt, ...) {
     if (!m_log) return;
     time_t t = time(nullptr);
@@ -197,13 +238,51 @@ void Processor::logLine(const char* fmt, ...) {
     localtime_r(&t, &tmv);
     char ts[32];
     strftime(ts, sizeof ts, "%H:%M:%S", &tmv);
-    fprintf(m_log, "%s ", ts);
+    uint32_t w = m_logWrite.load(std::memory_order_relaxed);
+    uint32_t r = m_logRead.load(std::memory_order_acquire);
+    if (w - r >= kLogRing) { m_logDropped.fetch_add(1, std::memory_order_relaxed); return; }   // full: drop, count
+    char* line = m_logRing[w % kLogRing];
+    int o = snprintf(line, kLogLine, "%s ", ts);
     va_list ap;
     va_start(ap, fmt);
-    vfprintf(m_log, fmt, ap);
+    if (o > 0 && o < (int)kLogLine) vsnprintf(line + o, kLogLine - (size_t)o, fmt, ap);
     va_end(ap);
-    fputc('\n', m_log);
-    fflush(m_log);
+    m_logWrite.store(w + 1, std::memory_order_release);
+    m_logWake.notify_one();
+}
+
+void Processor::startLogger() {
+    if (m_logThread.joinable()) return;
+    m_logQuit = false;
+    m_logThread = std::thread([this] {
+        std::unique_lock<std::mutex> lk(m_logMutex);
+        for (;;) {
+            m_logWake.wait_for(lk, std::chrono::milliseconds(250));
+            drainLog();
+            if (m_logQuit) { drainLog(); return; }
+        }
+    });
+}
+
+void Processor::stopLogger() {
+    if (!m_logThread.joinable()) return;
+    { std::lock_guard<std::mutex> lk(m_logMutex); m_logQuit = true; }
+    m_logWake.notify_one();
+    m_logThread.join();
+}
+
+void Processor::drainLog() {
+    // worker thread only; m_log is opened before the worker starts and closed after it stops
+    uint32_t r = m_logRead.load(std::memory_order_relaxed);
+    uint32_t w = m_logWrite.load(std::memory_order_acquire);
+    bool any = r != w;
+    for (; r != w; ++r) {
+        if (m_log) { fputs(m_logRing[r % kLogRing], m_log); fputc('\n', m_log); }
+        m_logRead.store(r + 1, std::memory_order_release);
+    }
+    uint32_t d = m_logDropped.exchange(0, std::memory_order_relaxed);
+    if (d && m_log) { fprintf(m_log, "(%u log line(s) dropped: ring full)\n", d); any = true; }
+    if (any && m_log) fflush(m_log);
 }
 
 // ---------------------------------------------------------------- state
