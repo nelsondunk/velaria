@@ -18,6 +18,9 @@ constexpr int32_t kChannels = 2;
 constexpr int64_t kNs = 1000000000LL;
 constexpr int64_t kDropBehindNs = 40 * 1000000LL;     // behind by more than this: skip ahead rather than lag
 constexpr int64_t kContiguousNs = 5 * 1000000LL;      // blocks closer than this to the FIFO's end are joined
+constexpr int64_t kSoftJoinNs = 60 * 1000000LL;       // ...and up to this far off they are joined too, the offset eased out
+                                                      // over the next second (the presentation delay moving 10 ms at a
+                                                      // time used to restart the FIFO: a hole every step, +77 on Bruce)
 constexpr int64_t kFarNs = 2 * kNs;                   // a block due this far off is nonsense: ignore it
 
 int64_t nowNs() {
@@ -201,8 +204,16 @@ void AudioOut::pullBlocksLocked() {
         }
         const int kChannels = m_fifoChannels;
         int64_t fifoEnd = m_fifoDueNs + (int64_t)((m_fifo.size() - m_fifoPos) / kChannels) * kNs / kRate;
-        bool follows = m_fifoValid && !b.discontinuity && std::llabs(b.dueLocalNs - fifoEnd) <= kContiguousNs;
+        int64_t off = b.dueLocalNs - fifoEnd;
+        bool follows = m_fifoValid && !b.discontinuity && std::llabs(off) <= kContiguousNs;
+        if (m_fifoValid && !b.discontinuity && !follows && std::llabs(off) <= kSoftJoinNs) {
+            // join as if contiguous and remember how far the FIFO's timing now differs from the blocks' real due
+            // times; the callback eases it out a sample at a time instead of cutting
+            m_driftNs += off;
+            follows = true;
+        }
         if (!m_fifoValid || !follows) {
+            m_driftNs = 0;
             if (m_fifoValid && m_fifo.size() > m_fifoPos) {
                 // keep what is still unplayed only if the new block is later: a seek backwards starts fresh
                 if (b.dueLocalNs > fifoEnd && b.dueLocalNs - fifoEnd < kNs) {
@@ -276,6 +287,26 @@ int AudioOut::onRender(int16_t* out, int32_t frames) {
             continue;
         }
         size_t n = std::min<size_t>(avail, (size_t)(frames - done));
+        if (m_driftNs != 0 && n > 0) {
+            // ease a timing offset left by a soft join: one frame per 100 either way (about 1%, inaudible on speech)
+            int64_t perFrame = kNs / kRate;
+            if (m_driftNs < -perFrame) {        // content should already have played: skip a frame
+                m_fifoPos += kChannels;
+                m_fifoDueNs += perFrame;
+                m_driftNs += perFrame;
+                m_stats.droppedFrames++;
+                if (--avail == 0) continue;
+                n = std::min<size_t>(avail, (size_t)(frames - done));
+            } else if (m_driftNs > perFrame) {  // content is due later: hold one frame of silence
+                std::memset(out + (size_t)done * kOut, 0, (size_t)kOut * sizeof(int16_t));
+                done += 1;
+                m_driftNs -= perFrame;
+                m_stats.silenceFrames++;
+                if (done >= frames) break;
+                n = std::min<size_t>(avail, (size_t)(frames - done));
+            }
+            n = std::min<size_t>(n, 100);       // so the next frame gets its own adjustment
+        }
         if (kChannels == 2) {
             std::memcpy(out + (size_t)done * kOut, m_fifo.data() + m_fifoPos, n * kOut * sizeof(int16_t));
         } else {

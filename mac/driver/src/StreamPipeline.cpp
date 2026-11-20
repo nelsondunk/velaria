@@ -458,6 +458,13 @@ public:
             std::vector<uint8_t> pcm((size_t)p.frames * 4 * 2);
             uint32_t have = m_tap.read(p.at, p.frames, reinterpret_cast<int16_t*>(pcm.data()), 4);
             bool due = all || now > p.a.ptsNs + kAfterPtsNs || m_tapPending.size() > 64;
+            if (now > p.a.ptsNs + 400000000LL) {
+                // too old to be worth anything (a stop, a seek, the plugin pausing): sending it would only teach the
+                // headset's presentation delay a nonsense lateness
+                m_tapPending.pop_front();
+                m_tapStale++;
+                continue;
+            }
             if (have >= p.frames - p.frames / 16) {
                 if (!m_tapActive) {
                     int64_t first, end;
@@ -826,6 +833,7 @@ private:
     bool m_tapActive = false;
     uint64_t m_tapMissLog = 0;
     std::deque<PendingQuad> m_tapPending;        // four-channel blocks waiting for the plugin's audio (onAudio thread only)
+    uint64_t m_tapStale = 0;
     double m_meterSq[16] = {};          // level meter accumulators (see meterLocked)
     uint32_t m_meterCh = 0, m_meterFrames = 0;
     double m_speed = 1.0;

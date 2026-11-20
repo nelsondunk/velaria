@@ -2974,7 +2974,10 @@ void android_main(android_app* app) {
         g.net.setSource(g.settings.source);
         g.net.wantAudio(g.settings.audio, g.settings.ambisonic ? 4 : 2);
         g.net.setAudioSink([](AudioBlock&& b) {
-            if (b.rxNs && b.ptsLocalNs) { std::lock_guard<std::mutex> lk(g.audioLatenessMx); g.audioLateness.add((b.rxNs - b.ptsLocalNs) / 1e6); }
+            if (b.rxNs && b.ptsLocalNs) {
+                double late = (b.rxNs - b.ptsLocalNs) / 1e6;
+                if (late > -2000 && late < 1500) { std::lock_guard<std::mutex> lk(g.audioLatenessMx); g.audioLateness.add(late); }
+            }
             if (b.fromTap) g.audioTapNs.store(b.rxNs);
             g.audio.push(std::move(b));
         });

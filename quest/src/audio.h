@@ -65,6 +65,7 @@ private:
     float m_head[4] = {0, 0, 0, 1};
     float m_lastGain[2][4] = {{0.5f, 0.3536f, 0, 0.3536f}, {0.5f, -0.3536f, 0, 0.3536f}};
     bool m_lastGainValid = false;
+    int64_t m_driftNs = 0;        // timing offset absorbed by soft joins, eased out in the callback
     int64_t m_fifoDueNs = 0;
     bool m_fifoValid = false;
     AudioStats m_stats;

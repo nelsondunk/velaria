@@ -2,6 +2,7 @@
 #include "Common.h"
 
 #include <arpa/inet.h>
+#include <cstdlib>
 #include <cstring>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -90,8 +91,13 @@ void TapReceiver::store(const TapHeader& h, const float* pcm) {
         m_stamp[(size_t)slot] = (int32_t)(t / m_capacity);
     }
     int64_t end = h.projectTime + h.frames;
-    if (m_first < 0 || h.projectTime < m_first || h.projectTime > m_end + m_rate) m_first = h.projectTime;   // a seek starts a new range
-    if (end > m_end || h.projectTime > m_end + m_rate) m_end = end;
+    if (m_first < 0 || std::llabs(h.projectTime - m_end) > (int64_t)m_rate) {   // a seek (either way) starts a new range
+        m_first = h.projectTime;
+        m_end = end;
+    } else {
+        if (h.projectTime < m_first) m_first = h.projectTime;
+        if (end > m_end) m_end = end;
+    }
     if (m_end - m_first > m_capacity) m_first = m_end - m_capacity;
 }
 
