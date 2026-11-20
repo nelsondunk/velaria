@@ -215,6 +215,7 @@ struct App {
     Swapchain video, strip, cursor, lift;   // lift: halo a few mm in front of the active control
     std::string liftKey = "160,160,34";     // box drawn in the lift texture (see drawLift)
     int64_t bridgeSinceNs = 0;   // when the bridge last connected (the "no picture" check waits a few seconds)
+    int64_t bridgeLostNs = 0;   // when the bridge last went away (0 = never, or back); monitorMode() waits 5 s on it
     // Live convergence (+62, UNTESTED on device): while the Stereo macro's Convergence bar is dragged, the eyes are
     // yawed apart by the change since the drag began, so the depth moves under the hand before Resolve re-renders.
     // 700 ms after release the offset is dropped: by then the frame from Resolve carries the shift itself.
@@ -1584,7 +1585,12 @@ static float cardHalfAngle(const CardGeom& c) {
 static bool monitorMode() {
     std::string n = g.net.serverName();
     bool ndi = n.rfind("NDI", 0) == 0;
-    return ndi || !g.edit.bridgeOk;
+    if (ndi) return true;
+    if (g.edit.bridgeOk) return false;
+    // The bridge drops for a moment whenever the video link reconnects (the Sound chip, a source change...). Only a
+    // bridge that has been gone for a while means "nothing to edit"; before that the panels stay where they are
+    // (20 Nov, Nelson: "when I click on the sound chip... the menus jump to the middle of the screen").
+    return g.bridgeLostNs == 0 || monoNs() - g.bridgeLostNs > 5000000000LL;
 }
 
 static int pickCard(const XrPosef& ray) {
@@ -2249,6 +2255,7 @@ static void updateHud(int64_t now, bool playing) {
         if (ok != g.edit.bridgeOk) {
             g.edit.bridgeOk = ok;
             g.bridgeSinceNs = ok ? now : 0;
+            g.bridgeLostNs = ok ? 0 : now;
             g.hudForce = true;
         }
         Json msg;

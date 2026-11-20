@@ -67,6 +67,13 @@ private:
     std::atomic<uint64_t> m_packets{0};
     uint32_t m_lastSeq = 0;
     uint64_t m_lost = 0;
+    // More than one Velaria Sound insert can be running (one per bus). Each has its own socket, so its source port
+    // tells them apart; the ring follows one of them: an ambisonic bus over a speaker bus, else the one with more
+    // channels, else whichever came first. Others are counted and ignored.
+    struct Source { uint32_t key; int channels; bool ambi; int64_t lastNs; };
+    std::vector<Source> m_sources;
+    uint32_t m_chosen = 0;
+    bool choose(uint32_t key, const TapHeader& h, int64_t now);
 };
 
 }  // namespace vrl

@@ -54,7 +54,9 @@ void TapReceiver::stop() {
 void TapReceiver::loop() {
     std::vector<uint8_t> buf(70000);
     while (m_run) {
-        ssize_t n = recv(m_sock, buf.data(), buf.size(), 0);
+        sockaddr_in from{};
+        socklen_t fromLen = sizeof from;
+        ssize_t n = recvfrom(m_sock, buf.data(), buf.size(), 0, (sockaddr*)&from, &fromLen);
         if (n < (ssize_t)sizeof(TapHeader)) continue;
         TapHeader h;
         memcpy(&h, buf.data(), sizeof h);
@@ -62,8 +64,43 @@ void TapReceiver::loop() {
         if (h.channels < 1 || h.channels > kTapMaxChannels || h.frames == 0) continue;
         size_t need = sizeof h + (size_t)h.frames * h.channels * sizeof(float);
         if ((size_t)n < need) continue;
+        if (!choose(ntohs(from.sin_port), h, nowNs())) continue;
         store(h, reinterpret_cast<const float*>(buf.data() + sizeof h));
     }
+}
+
+// Which insert the ring follows. Returns true when this packet's sender is the chosen one.
+bool TapReceiver::choose(uint32_t key, const TapHeader& h, int64_t now) {
+    bool ambi = (h.flags & 4) != 0;
+    // forget inserts that have been silent for 2 s (removed, or on a stopped bus for long)
+    for (size_t i = 0; i < m_sources.size();) {
+        if (now - m_sources[i].lastNs > 2000000000LL && m_sources[i].key != key) m_sources.erase(m_sources.begin() + i); else i++;
+    }
+    Source* me = nullptr;
+    for (auto& s : m_sources) if (s.key == key) me = &s;
+    if (!me) {
+        m_sources.push_back({key, h.channels, ambi, now});
+        me = &m_sources.back();
+        if (m_sources.size() > 1)
+            VLOGI("tap: another Velaria Sound insert appeared (%u ch, %s): %zu running", h.channels, ambi ? "ambisonic" : "speakers", m_sources.size());
+    }
+    me->channels = h.channels; me->ambi = ambi; me->lastNs = now;
+    const Source* cur = nullptr;
+    for (auto& s : m_sources) if (s.key == m_chosen) cur = &s;
+    auto better = [&](const Source& a, const Source& b) {   // is a better than b
+        if (a.ambi != b.ambi) return a.ambi;
+        return a.channels > b.channels;
+    };
+    bool curLive = cur && now - cur->lastNs < kLiveNs;
+    if (!cur || !curLive || better(*me, *cur)) {
+        if (m_chosen != key) {
+            if (m_sources.size() > 1)
+                VLOGI("tap: following the %u-channel %s insert (of %zu running: remove Velaria Sound from the buses you do not want to hear)",
+                      h.channels, ambi ? "ambisonic" : "speakers", m_sources.size());
+            m_chosen = key;
+        }
+    }
+    return m_chosen == key;
 }
 
 void TapReceiver::store(const TapHeader& h, const float* pcm) {
