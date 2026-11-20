@@ -41,7 +41,7 @@ os.environ.setdefault("RESOLVE_SCRIPT_LIB",
                       "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so")
 sys.path.append(RESOLVE_API + "/Modules")
 
-BRIDGE_VERSION = "1.0.10"
+BRIDGE_VERSION = "1.0.11"
 PORT = int(os.environ.get("VRLINK_BRIDGE_PORT", "47812"))
 LOG = os.path.expanduser("~/Library/Logs/Velaria/bridge.log")
 CONFIG = os.path.expanduser("~/Library/Application Support/Velaria/config.plist")
@@ -110,6 +110,36 @@ def preflight(fmt, managed=None):
         out.append("%s exceeds the %dx%d monitor: Timeline Settings > Output scaling > %d x %d"
                    % (what, MONITOR_MAX_W, MONITOR_MAX_H, fit[0], fit[1]))
     return out
+
+
+FW_ACTIVE = "/Library/Frameworks/DeckLinkAPI.framework/Resources/Info.plist"
+FW_ASIDE = ("/Library/Application Support/Velaria/Blackmagic/DeckLinkAPI.framework",
+            "/Library/Frameworks/DeckLinkAPI.framework.blackmagic-backup")
+_driver_check = {"at": 0.0, "msg": None}
+
+
+def driver_notice(now=None):
+    """A line when Blackmagic Desktop Video has been installed or updated over Velaria's driver: the installer set
+    Blackmagic's framework aside, but the active one is no longer ours, so Resolve lists no "Velaria (Quest)".
+    Checked at most every 30 s (two small file reads)."""
+    now = time.time() if now is None else now
+    st = _driver_check
+    if now - st["at"] < 30:
+        return st["msg"]
+    st["at"] = now
+    msg = None
+    try:
+        if any(os.path.isdir(p) for p in FW_ASIDE) and os.path.exists(FW_ACTIVE):
+            with open(FW_ACTIVE, "rb") as f:
+                if b"skylightproductions" not in f.read():
+                    msg = ("Blackmagic Desktop Video replaced Velaria's driver: run  sudo ./install.sh --coexist  "
+                           "from the Velaria folder, then restart Resolve")
+    except Exception:
+        msg = None
+    if msg != st["msg"]:
+        log("driver: " + (msg or "Velaria's driver is back in place"))
+    st["msg"] = msg
+    return msg
 
 
 _logf = {"path": None, "f": None, "n": 0}
@@ -245,6 +275,9 @@ class Bridge:
         self.format = self.timeline_format(tl)
         managed = self.scaled.get(self.timeline_key(tl))
         warnings = preflight(self.format, managed and (managed["setW"], managed["setH"]))
+        dn = driver_notice()
+        if dn:
+            warnings = [dn] + warnings
         if warnings != getattr(self, "warnings", None):
             self.warnings = warnings
             for w in warnings:

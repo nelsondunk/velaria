@@ -16,6 +16,10 @@ for f in install.sh send-logs.sh usb-tether.sh config.plist vrlink_bridge.py VER
 done
 [ -d "$DIR/DeckLinkAPI.framework" ] || fail "missing: DeckLinkAPI.framework"
 [ -f "$DIR/Velaria.apk" ] || fail "missing: Velaria.apk (the headset app)"
+if [ -d "$DIR/VelariaSound.vst3" ]; then
+  [ -f "$DIR/VelariaSound.vst3/Contents/MacOS/VelariaSound" ] || fail "VelariaSound.vst3 is incomplete"
+  grep -q "VST 3" "$DIR/THIRD-PARTY-NOTICES.md" || fail "VelariaSound.vst3 ships but THIRD-PARTY-NOTICES.md has no VST 3 notice"
+fi
 
 # 2. Files that must not be there: the internal 3D cards and titles, internal macros, test and development files
 while IFS= read -r f; do fail "internal file in the release: ${f#"$DIR"/}"; done < <(

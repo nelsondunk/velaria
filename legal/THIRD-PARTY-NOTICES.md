@@ -26,6 +26,14 @@ Velaria includes or was built with the following software and fonts from other a
 - Licence: the permission notice in the SDK headers, which also refers to Blackmagic's End User License Agreement for the Software Development Kit (https://www.blackmagicdesign.com/EULA/DeckLinkSDK). The header notice does not have to be reproduced for object code.
 - **[VERIFY]** See "Open questions" below. This is the most important one.
 
+### Steinberg VST 3 SDK (Velaria Sound plugin, `VelariaSound.vst3`)
+
+- Where: the Fairlight insert `VelariaSound.vst3` is built with Steinberg's VST 3 SDK (base, pluginterfaces, public.sdk; version 3.7.14). Nothing of Steinberg's ships as source.
+- Copyright (c) Steinberg Media Technologies GmbH.
+- Licence: the SDK is offered under either the GNU GPLv3 or the proprietary "VST 3 Plug-In SDK Licensing Agreement" (free of charge, signed with Steinberg through the developer portal, https://www.steinberg.net/developers/). Velaria ships closed, so the **proprietary agreement must be signed by the legal entity that sells Velaria before the plugin leaves the test Macs**; `package.sh` refuses to include the plugin until `VELARIA_VST3_LICENSED=1` says it has been. The agreement also sets the trademark line below.
+- Trademark line (required by the agreement; also goes in the headset's About / the web page where the plugin is mentioned): "VST is a trademark of Steinberg Media Technologies GmbH, registered in Europe and other countries."
+- **[VERIFY]** Confirm the current agreement text and whether a logo is required in the documentation.
+
 ## In the Velaria View headset app (`Velaria.apk`)
 
 ### OpenXR loader
@@ -75,7 +83,8 @@ Velaria includes or was built with the following software and fonts from other a
 2. **Bundling Google's adb binary.** If the Android SDK terms do not allow redistribution, the fallback is simple: stop shipping `platform-tools/` and have the installer tell the buyer to install it (`brew install android-platform-tools`, or Google's own download). The installer already prefers a system adb.
 3. **GSAP on a commercial page.** GreenSock's older "no charge" licence had conditions for commercial use; in 2025 GSAP was announced as free for all uses. The page pins 3.12.5. Either confirm the terms for 3.12.5 or move to a current release.
 4. **Icons.** The headset's line icons were drawn on the Velaria design canvas (`quest/tools/mkicons.py`). No icon library was found in the repository, though a few shapes (for example the eye) are close to common open-source line icons. Low risk; confirm that none were pasted from a library that needs a notice.
-5. **Not in the package, so no notice needed:** the internal 3D title and card templates and their model kits are excluded by `package.sh` and must stay excluded.
+5. **Steinberg VST 3 agreement.** Sign it (Nelson, as the entity that sells Velaria) before Velaria Sound ships; until then the plugin stays off the package. Nelson, 20 Nov: "can do! Put it on the list."
+6. **Not in the package, so no notice needed:** the internal 3D title and card templates and their model kits are excluded by `package.sh` and must stay excluded.
 
 
 ## stb_image (headset app)

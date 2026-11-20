@@ -4,8 +4,8 @@
 #
 #   sudo ./install.sh                       install / update
 #   sudo ./install.sh --replace-blackmagic  install, setting Blackmagic Desktop Video aside (--uninstall restores it)
-#   sudo ./install.sh --coexist             UNTESTED, not for customers yet: install beside Blackmagic Desktop Video, so
-#                                           Resolve lists "Velaria (Quest)" and the Blackmagic card (--uninstall restores)
+#   sudo ./install.sh --coexist             install beside Blackmagic Desktop Video, so Resolve lists "Velaria (Quest)"
+#                                           and the Blackmagic card (--uninstall restores; first run on hardware 19 Nov 2026)
 #   ./install.sh --status                   show which driver is where (no sudo, changes nothing)
 #   sudo ./install.sh --headset             install / update the headset app only
 #   sudo ./install.sh --ndi                 also start the experimental Premiere / After Effects (NDI) source
@@ -32,6 +32,10 @@ BRIDGE="$USER_HOME/Library/Application Support/Velaria/vrlink_bridge.py"
 NDI_ID="ca.skylightproductions.velaria.ndi"
 NDI_PLIST="$USER_HOME/Library/LaunchAgents/$NDI_ID.plist"
 NDI_BIN="$USER_HOME/Library/Application Support/Velaria/vrlink_ndi"
+# Velaria Sound: the Fairlight VST3 insert that sends a bus's channels to the headset (mac/sound). Resolve scans only
+# this folder for VST3 plugins (not the per-user one), and lists it under Preferences > System > Audio Plugins.
+VST3_SRC="$HERE/VelariaSound.vst3"
+VST3_DST="/Library/Audio/Plug-Ins/VST3/VelariaSound.vst3"
 
 # What is at a framework path: "velaria", "blackmagic" (anything that is not ours), or "absent".
 fw_kind() {
@@ -103,6 +107,7 @@ if [ "${1:-}" = "--uninstall" ]; then
   sudo -u "$USER_NAME" launchctl bootout "gui/$(id -u "$USER_NAME")/$NDI_ID" 2>/dev/null || true
   rm -f "$AGENT_PLIST" "$HELPER" "$BRIDGE_PLIST" "$BRIDGE" "$NDI_PLIST" "$NDI_BIN" "$USER_HOME/Library/Application Support/Velaria/VERSION"
   rm -rf "$USER_HOME/Library/Application Support/Velaria/platform-tools"
+  if [ -d "$VST3_DST" ]; then rm -rf "$VST3_DST"; echo "Removed the Velaria Sound plugin (projects that had it on a bus will show the insert as missing)."; fi
   echo "Velaria uninstalled. Restart DaVinci Resolve."
   exit 0
 fi
@@ -159,8 +164,8 @@ fi
 # 1. Driver. What happens to Blackmagic's real Desktop Video framework, if there is one:
 #    (default)             refuse, so nobody loses a DeckLink / UltraStudio by surprise;
 #    --replace-blackmagic  set it aside at $BACKUP; only Velaria appears in Resolve until --uninstall;
-#    --coexist             UNTESTED: set it aside at $UNDER, where Velaria's driver loads it underneath, so Resolve
-#                          lists both. Nothing here has run on a Mac with Desktop Video installed.
+#    --coexist             set it aside at $UNDER, where Velaria's driver loads it underneath, so Resolve lists both
+#                          (Resolve restarts between switching cards). Run on Bruce with Desktop Video 16.5, 19 Nov 2026.
 MODE="${1:-}"
 KIND=$(fw_kind "$FW_DST")
 if [ -d "$BACKUP" ] && [ -d "$UNDER" ]; then
@@ -168,7 +173,7 @@ if [ -d "$BACKUP" ] && [ -d "$UNDER" ]; then
   echo "Run: sudo ./install.sh --uninstall   then install again."; exit 1
 fi
 if [ "$MODE" = "--coexist" ]; then
-  echo "Coexistence with Blackmagic Desktop Video is UNTESTED. If Resolve stops listing devices: sudo ./install.sh --uninstall"
+  echo "Coexistence mode. If Resolve stops listing devices: sudo ./install.sh --uninstall"
   if [ "$KIND" = blackmagic ]; then
     if [ -d "$BACKUP" ]; then echo "A Blackmagic backup already exists at $BACKUP; refusing to overwrite it. Run: sudo ./install.sh --uninstall   then install again."; exit 1; fi
     mkdir -p "$COEXIST_DIR"
@@ -236,6 +241,21 @@ CFG_DIR="$USER_HOME/Library/Application Support/Velaria"
 sudo -u "$USER_NAME" mkdir -p "$CFG_DIR"
 if [ ! -f "$CFG_DIR/config.plist" ]; then
   sudo -u "$USER_NAME" cp "$HERE/config.plist" "$CFG_DIR/config.plist"
+fi
+
+# 2b. Velaria Sound plugin. Resolve picks it up at its next launch; the user enables it once under
+#     Preferences > System > Audio Plugins if it is not ticked already, then inserts it on the bus to monitor.
+if [ -d "$VST3_SRC" ]; then
+  mkdir -p /Library/Audio/Plug-Ins/VST3
+  rm -rf "$VST3_DST"
+  ditto "$VST3_SRC" "$VST3_DST"
+  chown -R root:wheel "$VST3_DST"; chmod -R go-w "$VST3_DST"
+  xattr -dr com.apple.quarantine "$VST3_DST" 2>/dev/null || true
+  if codesign --verify "$VST3_DST" 2>/dev/null; then
+    echo "Installed the Velaria Sound plugin (Fairlight: insert it on the bus you want to hear in the headset)."
+  else
+    echo "Installed the Velaria Sound plugin, but its signature does not verify; Resolve may refuse to load it."
+  fi
 fi
 
 # 3. Resolve bridge: lets the headset read the timeline and adjust Fusion macro controls (TCP 47812).

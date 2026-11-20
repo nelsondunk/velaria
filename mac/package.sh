@@ -11,6 +11,18 @@ rm -rf "$OUT" && mkdir -p "$OUT"
 ditto driver/build/DeckLinkAPI.framework "$OUT/DeckLinkAPI.framework"
 cp install/install.sh install/send-logs.sh install/usb-tether.sh install/config.plist bridge/vrlink_bridge.py driver/build/vrlink_ndi "$OUT/"
 echo "$VER" > "$OUT/VERSION"
+# Velaria Sound (Fairlight VST3 insert). Built separately with the VST3 SDK (see mac/sound/CMakeLists.txt); the
+# packager takes the staged copy. Until Steinberg's VST 3 licence agreement is signed this must not go to a customer:
+# the build stops here rather than ship it by accident (VELARIA_VST3_LICENSED=1 once the signed agreement is on file).
+if [ -d ~/VRLink/xfer/VelariaSound.vst3 ]; then
+  if [ "${VELARIA_VST3_LICENSED:-0}" = 1 ]; then
+    ditto ~/VRLink/xfer/VelariaSound.vst3 "$OUT/VelariaSound.vst3"
+  else
+    echo "Velaria Sound left out: set VELARIA_VST3_LICENSED=1 once the Steinberg VST 3 licence agreement is signed (legal/THIRD-PARTY-NOTICES.md)." >&2
+  fi
+else
+  echo "WARNING: no VelariaSound.vst3 in ~/VRLink/xfer: this release has no Fairlight plugin" >&2
+fi
 if [ -f ~/VRLink/xfer/Velaria.apk ]; then cp ~/VRLink/xfer/Velaria.apk "$OUT/Velaria.apk"; else echo "WARNING: no Velaria.apk in ~/VRLink/xfer: this release has no headset app" >&2; fi
 # Customer documents come from docs/public only (UNTESTED on a Mac as of 12 Nov 2026). The repository README, the
 # internal setup guide and the internal changelog name development machines and internal projects and do not ship.

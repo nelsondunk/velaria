@@ -24,7 +24,8 @@ Velaria takes the place of Blackmagic Desktop Video while it is installed. A Dec
 
 ## Sound and transport
 
-- **No sound in the headset.** Listen on the Mac.
+- **Sound is the monitor mix**, or the bus **Velaria Sound** is inserted on. First-order ambisonics only (what the headsets' own players decode); higher orders are heard as first order. The ambisonic decode in the headset is a plain first-order decode, not an HRTF, so it places sounds correctly but is less "in-the-room" than Fairlight's Binaural monitor.
+- **Audio delay follows video delay.** The headset adds the delay the mix needs to stay in step with the picture; expect a short settling period after play starts.
 - **Play and stop are Resolve's.** The headset can scrub, step and jump between clips, but it cannot start or stop playback.
 
 ## Editing from the headset

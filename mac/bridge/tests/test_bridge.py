@@ -767,3 +767,21 @@ def test_autoscale_switching_timelines_restores_the_old_one(tmp_path):
     assert a.d["timelineOutputResolutionWidth"] == "5760" and a.d["timelineOutputResMatchTimelineRes"] == "1"
     assert c.d["timelineOutputResolutionWidth"] == "3840"
     assert list(b.scaled) == ["b"]
+
+
+def test_driver_notice_when_blackmagic_is_back_on_top(tmp_path, monkeypatch):
+    active = tmp_path / "Info.plist"
+    aside = tmp_path / "aside"
+    monkeypatch.setattr(vb, "FW_ACTIVE", str(active))
+    monkeypatch.setattr(vb, "FW_ASIDE", (str(aside),))
+    vb._driver_check.update(at=0.0, msg=None)
+    # nothing set aside: whatever is active, no notice
+    active.write_text("<plist>com.blackmagic-design</plist>")
+    assert vb.driver_notice(now=1000) is None
+    # set aside + Blackmagic active = Desktop Video was installed over Velaria
+    aside.mkdir()
+    assert "replaced Velaria" in vb.driver_notice(now=2000)
+    # cached for 30 s, then rechecked
+    active.write_text("<plist>ca.skylightproductions.velaria</plist>")
+    assert vb.driver_notice(now=2010) is not None
+    assert vb.driver_notice(now=2040) is None

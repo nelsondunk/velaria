@@ -57,7 +57,9 @@ Pictures up to 5760 pixels wide reach the headset at full size (a 5760 x 2880 VR
 3. Press play in Resolve. The timeline is in the headset, in step with Resolve's viewer. Scrub, park or play, and it follows.
 4. **Look down** to open the panels. Look back up past the horizon to close them. Grab a panel's top bar to put it where you like. The layout is remembered.
 
-Sound stays on the Mac. Play and stop are Resolve's own (the space bar); the headset can scrub and step.
+Sound plays in the headset too: Resolve's monitor mix (Fairlight's Control Room output) comes with the picture. Play and stop are Resolve's own (the space bar); the headset can scrub and step.
+
+**Hearing an ambisonic mix, head-tracked.** Fairlight cannot send an Ambisonics bus to any output card, so Velaria brings its own insert, **Velaria Sound** (installed with the rest; Resolve finds it on its next launch, and it is listed under **Preferences > System > Audio Plugins** if it needs ticking). On the Fairlight page, set the bus you mix on to **Ambisonics 1st order** and insert **Velaria Sound** on it. That is all: no patching. The headset's Sound chip reads **ambisonic · bus**, the bus's four channels reach the headset in sync with the picture, and turning your head keeps every sound where you panned it. On a stereo bus the same insert sends the stereo mix (chip: **in headset · bus**). The plugin changes nothing in the mix; it only copies it out.
 
 ## 5. Place things from the headset
 
