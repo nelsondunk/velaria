@@ -328,7 +328,7 @@ class Bridge:
             os.makedirs(os.path.dirname(SIDECAR), exist_ok=True)
             if self.scaled:
                 with open(SIDECAR, "w") as f:
-                    json.dump({"project": self.project.GetName() if self.project else "", "scaled": self.scaled}, f)
+                    json.dump({"scaled": self.scaled}, f)   # each record names its own project
             elif os.path.exists(SIDECAR):
                 os.remove(SIDECAR)
         except Exception as e:
@@ -345,10 +345,9 @@ class Bridge:
         except Exception as e:
             log("output scaling: sidecar unreadable, ignored: %s" % e)
             return
-        if d.get("project") and self.project and d["project"] != self.project.GetName():
-            log("output scaling: sidecar is for project '%s', not '%s'; left for later" % (d["project"], self.project.GetName()))
-            return
         self.scaled = d.get("scaled") or {}
+        for rec in self.scaled.values():          # 1.0.10 sidecars named the project once, at the top
+            rec.setdefault("project", d.get("project") or "")
         if self.scaled:
             log("output scaling: a previous bridge left %d timeline(s) scaled; restoring" % len(self.scaled))
             self.autoscale_restore()
@@ -358,7 +357,7 @@ class Bridge:
         if tl and self.timeline_key(tl) == key:
             return tl
         try:
-            for i in range(1, self.project.GetTimelineCount() + 1):
+            for i in range(1, (self.project.GetTimelineCount() or 0) + 1):
                 t = self.project.GetTimelineByIndex(i)
                 if t and self.timeline_key(t) == key:
                     return t
@@ -374,12 +373,16 @@ class Bridge:
         key = self.timeline_key(tl)
         if key in self.scaled:
             return
+        name = tl.GetName()
+        project = self.project.GetName() if self.project else None
+        if not name or not project:     # Resolve is between projects or timelines: a dead handle answers None
+            return
         fmt = getattr(self, "format", None) or self.timeline_format(tl)
         fit = fit_size(fmt["outWidth"], fmt["outHeight"])
         if not fit:
             return
         get, put = self.settings_target(tl)
-        rec = {"name": tl.GetName(), "custom": fmt["custom"],
+        rec = {"name": name, "project": project, "custom": fmt["custom"],
                "match": get("timelineOutputResMatchTimelineRes") or "1",
                "ow": get("timelineOutputResolutionWidth") or "", "oh": get("timelineOutputResolutionHeight") or "",
                "setW": fit[0], "setH": fit[1]}
@@ -398,14 +401,28 @@ class Bridge:
     def autoscale_restore(self, only=None):
         """Put back every scaled timeline (or one key). A timeline whose scaling the user changed since is left as
         the user left it."""
+        here = None
+        try:
+            here = self.project.GetName() if self.project else None
+        except Exception:
+            pass
+        waiting = getattr(self, "scaled_waiting", None)
+        if waiting is None:
+            waiting = self.scaled_waiting = set()
         for key in list(self.scaled):
             if only and key != only:
                 continue
             rec = self.scaled[key]
-            tl = self.find_timeline(key)
+            # A timeline in another project (the user opened one with the headset connected, then moved on) is put
+            # back the next time that project is current; said once, not every tick.
+            tl = self.find_timeline(key) if (not rec.get("project") or rec.get("project") == here) else None
             if not tl:
-                log("output scaling: timeline '%s' not found; its original scaling stays on record" % rec["name"])
+                if key not in waiting:
+                    waiting.add(key)
+                    log("output scaling: '%s' (project '%s') is not open; its original scaling is restored when it is"
+                        % (rec["name"], rec.get("project") or "?"))
                 continue
+            waiting.discard(key)
             get, put = self.settings_target(tl)
             now_w, now_h = get("timelineOutputResolutionWidth"), get("timelineOutputResolutionHeight")
             if (str(now_w), str(now_h)) != (str(rec["setW"]), str(rec["setH"])):

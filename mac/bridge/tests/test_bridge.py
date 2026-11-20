@@ -4,6 +4,7 @@ They cover what the headset relies on: the timeline snapshot, the params message
 virtual Scale/card-rotation controls, switch detection, sticky ranges), set/undo/paste round trips, keyframes at the
 playhead's comp time, the Fusion-page playhead fallback and the transient-None guard.
 """
+import json
 import os
 import sys
 
@@ -767,6 +768,38 @@ def test_autoscale_switching_timelines_restores_the_old_one(tmp_path):
     assert a.d["timelineOutputResolutionWidth"] == "5760" and a.d["timelineOutputResMatchTimelineRes"] == "1"
     assert c.d["timelineOutputResolutionWidth"] == "3840"
     assert list(b.scaled) == ["b"]
+
+
+def test_autoscale_waits_for_the_timeline_s_own_project(tmp_path):
+    """Nelson, 20 Nov: with the headset connected he opened another project; its timeline was scaled, and once he
+    had moved on the record named the wrong project and the bridge logged 'not found' every two seconds."""
+    a = _Tl("Strange Worlds Teaser v1", SQUARE, uid="sw")
+    b, _ = _scaling_bridge(tmp_path, a)
+    b.project.name = "Strange Worlds Teaser copy"
+    b.clients = [object()]
+    b.autoscale_tick()
+    assert a.d["timelineOutputResolutionWidth"] == "3840" and b.scaled["sw"]["project"] == "Strange Worlds Teaser copy"
+    # the user opens a different project (the timeline is no longer reachable) and the headset leaves
+    other = _Tl("Other", {"timelineResolutionWidth": "1920", "timelineResolutionHeight": "1080"}, uid="o")
+    b.project = _project(other, {})
+    b.project.name = "2608 - BC Salmon"
+    b.timeline = other
+    b.refresh_timeline()
+    b.clients = []
+    with open(vb.LOG) as f: before = f.read().count("is not open")
+    b.autoscale_tick(); b.autoscale_tick(); b.autoscale_tick()
+    with open(vb.LOG) as f: after = f.read().count("is not open")
+    assert after - before == 1                       # said once
+    assert list(b.scaled) == ["sw"] and json.load(open(vb.SIDECAR))["scaled"]["sw"]["project"] == "Strange Worlds Teaser copy"
+    assert a.d["timelineOutputResolutionWidth"] == "3840"   # untouched: we cannot reach it from here
+    # back in the right project: restored
+    b.project = _project(a, {})
+    b.project.name = "Strange Worlds Teaser copy"
+    b.timeline = a
+    b.refresh_timeline()
+    b.autoscale_tick()
+    assert a.d["timelineOutputResolutionWidth"] == "5760" and a.d["timelineOutputResMatchTimelineRes"] == "1"
+    assert not b.scaled and not os.path.exists(vb.SIDECAR)
 
 
 def test_driver_notice_when_blackmagic_is_back_on_top(tmp_path, monkeypatch):
