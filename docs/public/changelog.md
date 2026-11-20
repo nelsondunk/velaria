@@ -1,6 +1,6 @@
 # What changed
 
-Newest first. The Look panel's View tab in the headset shows the versions you are running.
+Newest first. The Settings panel in the headset shows the versions you are running.
 
 ## 1.0
 

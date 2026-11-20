@@ -8,7 +8,7 @@ You need DaVinci Resolve Studio 19 or newer and the Velaria effects, which the i
 
 1. On the Edit page, put the clip you want in the window on a track **above** your 360 or 180 shot (V2 or higher).
 2. Drag **Velaria Canvas Control** from Effects > Velaria onto that upper clip. Do not drop it on the background shot itself: the effect outputs the window on a transparent background, and the timeline lays it over the shot.
-3. Put the headset on. The window is on the **Overlays** layer. Pinch it in the picture and move it, or tap its chip on the strip and use the Placement panel.
+3. Put the headset on. The window is on the **Overlays** layer. Pinch it in the picture and move it, or tap its chip on the strip and use the Selected panel.
 4. Let go. Resolve renders the change and the strip shows how long it took.
 
 ## A flat title or graphic

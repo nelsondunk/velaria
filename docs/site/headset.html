@@ -84,7 +84,7 @@ img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(
   <nav class="rail" aria-label="Velaria docs">
     <p class="brand"><a href="#SITE-URL">Velaria</a></p>
     <p class="brand-sub">Docs · 1.0</p>
-    <ul class="pages"><li><a href="index.html">Start here</a></li><li><a href="setup.html">Setup guide</a></li><li><a href="canvas-control.html">Canvas Control</a></li><li><a href="orient-360.html">Orient 360 and patches</a></li><li><a href="trim.html">Trim</a></li><li><a href="180-and-fisheye.html">180, 360 and fisheye</a></li><li><a href="headset.html" aria-current="page">Headset reference</a><ul class="toc"><li><a href="#the-strip">The strip</a></li><li><a href="#placement">Placement</a></li><li><a href="#look">Look</a></li><li><a href="#timeline">Timeline</a></li><li><a href="#scopes">Scopes</a></li><li><a href="#level-grid">Level grid</a></li><li><a href="#controller-shortcuts">Controller shortcuts</a></li></ul></li><li><a href="known-limits.html">Known limits</a></li><li><a href="support.html">Support and logs</a></li><li><a href="uninstall.html">Uninstall</a></li><li><a href="changelog.html">What changed</a></li></ul>
+    <ul class="pages"><li><a href="index.html">Start here</a></li><li><a href="setup.html">Setup guide</a></li><li><a href="canvas-control.html">Canvas Control</a></li><li><a href="orient-360.html">Orient 360 and patches</a></li><li><a href="trim.html">Trim</a></li><li><a href="180-and-fisheye.html">180, 360 and fisheye</a></li><li><a href="headset.html" aria-current="page">Headset reference</a><ul class="toc"><li><a href="#the-strip">The strip</a></li><li><a href="#selected">Selected</a></li><li><a href="#settings">Settings</a></li><li><a href="#timeline">Timeline</a></li><li><a href="#scopes">Scopes</a></li><li><a href="#level-grid">Level grid</a></li><li><a href="#controller-shortcuts">Controller shortcuts</a></li></ul></li><li><a href="known-limits.html">Known limits</a></li><li><a href="support.html">Support and logs</a></li><li><a href="uninstall.html">Uninstall</a></li><li><a href="changelog.html">What changed</a></li></ul>
     <p class="rail-foot">For a Mac with Apple silicon, DaVinci Resolve Studio and a Meta Quest. The pictures of the headset panels are drawn by the app's own code.</p>
   </nav>
   <main id="content">
@@ -98,11 +98,11 @@ img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(
 <p>The strip is always there when the panels are open. It answers two questions at a glance: which layer am I on, and which thing will my hand move?</p>
 <img loading="lazy" decoding="async" width="1280" height="272" alt="The strip on the Overlays layer with a footage window picked" src="ref/strip-overlays.png" />
 <ul>
-<li><strong>Overlays · Patches · Picture</strong> is the layer control, with a count of what is on this frame. Overlays are titles and footage windows, and you can pick them in the picture. Patches are LatLong Patcher windows. Picture is the whole sphere (PanoMap or Velaria Orient 360) and the Velaria Trim pass.</li>
-<li>The four icons on the right show and hide the <strong>Placement</strong>, <strong>Look</strong>, <strong>Timeline</strong> and <strong>Scopes</strong> panels. The chevron rolls the strip up to its bar.</li>
-<li>Row two has one chip for each thing on this layer. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.</li>
+<li><strong>Overlays · Patches · Footage</strong> is the layer control, with a count of what is on this frame. Overlays are titles and footage windows, and you can pick them in the picture. Patches are LatLong Patcher windows. Footage is the whole sphere (PanoMap or Velaria Orient 360) and the Velaria Trim pass.</li>
+<li>The four icons on the right show and hide the <strong>Selected</strong>, <strong>Settings</strong>, <strong>Timeline</strong> and <strong>Scopes</strong> panels. A panel you hide comes back where you left it. The chevron rolls the strip up to this bar, which is all you need once the panels are placed.</li>
+<li>Row two has one chip for each thing on this layer, named for what it is: <em>Title · Editorial</em>, <em>Footage window</em>, <em>Graphic</em>. A title plugged into a Canvas Control is one card with that Canvas Control, not two. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.</li>
 <li><strong>Copy</strong>, <strong>Paste</strong> and <strong>Undo</strong> act on the picked chip. Undo is Resolve's undo.</li>
-<li>Below that: timecode, track, clip, and what the overlay is built from. Then the status line: the link (USB or Wi-Fi), the software, and the last round trip (<em>Resolve updated in 0.4 s</em> or <em>Rendering… 1.2 s</em>).</li>
+<li>Below that: timecode, track, clip, and what the overlay is built from. Then the status line: the link (USB or Wi-Fi), the software, and the last round trip (<em>Resolve updated in 0.4 s</em> or <em>Rendering… 1.2 s</em>). A problem shows there only while it lasts: dropping frames, a delay over 250 ms, or a Resolve setup issue with its fix.</li>
 </ul>
 <img loading="lazy" decoding="async" width="1280" height="272" alt="The strip on the Patches layer with a locked patch picked" src="ref/strip-patches.png" />
 <p>On Patches, nothing in the picture can be picked. Tap a chip instead. The lock switch on the right locks the picked patch. A locked patch shows a lock on its chip, and the panels refuse changes until you unlock it.</p>
@@ -111,25 +111,27 @@ img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(
 <img loading="lazy" decoding="async" width="1280" height="272" alt="The strip while Resolve renders a change" src="ref/strip-rendering.png" />
 <img loading="lazy" decoding="async" width="1280" height="272" alt="The strip showing a setup warning" src="ref/strip-setup-warning.png" />
 <p>When Resolve's monitoring size, output scaling or frame rate is wrong, or no picture arrives, the status line says so with the fix in Resolve's own menu words. Fix it and the line clears on its own.</p>
-<h2 id="placement">Placement</h2>
-<img loading="lazy" decoding="async" width="900" height="1000" alt="The Placement panel for an overlay" src="ref/placement-card.png" />
+<h2 id="selected">Selected</h2>
+<p>Everything about the picked card is on this one panel. The first tab is <strong>Placement</strong>; the tabs after it are the card's own pages (Frame, Glow, Stereo for a footage window; Text, Plate, Lighting for a 3D title).</p>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Selected panel on Placement" src="ref/selected-card.png" />
 <ul>
 <li><strong>Ring (Pan):</strong> you are the centre and front is up, at the white notch. Drag the dot around. The copper arc shows how far from front you are.</li>
 <li><strong>Arc (Tilt):</strong> a side view. The white line is the horizon.</li>
 <li><strong>Throttles (Distance, Scale):</strong> up is nearer or bigger. The real units are printed beside the travel.</li>
-<li><strong>Dials (Roll, and the window's own yaw, pitch and roll):</strong> drag up or down to turn. Tap a dial to zero it.</li>
+<li><strong>Dials (Roll, and the card's own yaw, pitch and roll):</strong> grab and turn, like a knob. Tap a dial to zero it.</li>
 <li>The diamond beside a control is its keyframe. Outline: not animated. White: animated. Copper: a keyframe on this frame. Tap it to set a keyframe at the playhead.</li>
 <li>Or skip the panel: pinch an overlay in the picture and drag it. Pan and Tilt follow your hand.</li>
 </ul>
-<img loading="lazy" decoding="async" width="900" height="1000" alt="The Placement panel for a patch" src="ref/placement-patch.png" />
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Selected panel on a title's Text tab" src="ref/selected-text.png" />
+<p>Bars have nudge chips for exact steps. An on/off control is a switch. Colours get a wheel with a brightness bar and a swatch.</p>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Selected panel for a patch" src="ref/selected-patch.png" />
 <p>For a patch or the whole picture, the same panel shows that tool's rotations. A locked patch shows LOCKED and ignores drags.</p>
-<img loading="lazy" decoding="async" width="900" height="1000" alt="The Placement panel as TRIM" src="ref/placement-trim.png" />
-<p>With a <strong>Velaria Trim</strong> picked on the Picture layer, the Placement panel becomes <strong>TRIM</strong>: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.</p>
-<h2 id="look">Look</h2>
-<img loading="lazy" decoding="async" width="900" height="1000" alt="The Look panel on the Frame tab" src="ref/look-frame.png" />
-<p>The tabs are the effect's own Inspector pages (Frame, Glow, Stereo). Bars have nudge chips for exact steps. An on/off control is a switch. Colours get a wheel with a brightness bar.</p>
-<img loading="lazy" decoding="async" width="900" height="1000" alt="The Look panel on the View tab" src="ref/look-view.png" />
-<p>The <strong>View</strong> tab holds the app's own settings:</p>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Selected panel as TRIM" src="ref/selected-trim.png" />
+<p>With a <strong>Velaria Trim</strong> picked on the Footage layer, the Selected panel becomes <strong>TRIM</strong>: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.</p>
+<h2 id="settings">Settings</h2>
+<p>Closed until you open it from the strip. It holds the app's own settings and the numbers you only need when something is wrong.</p>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Settings panel" src="ref/settings-view.png" />
+<p>The <strong>View</strong> tab:</p>
 <ul>
 <li><strong>Stream and Playback:</strong> picture size, layout, frame rate, bitrate, timecode and delay.</li>
 <li><strong>Source:</strong> Auto, Resolve, or Premiere / After Effects (experimental).</li>
@@ -138,18 +140,18 @@ img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(
 <li><strong>Panels:</strong> Recentre view, panels placed or following you, Scopes on or off.</li>
 <li><strong>The versions line</strong> at the bottom right: the headset app, the Mac package, the bridge when it differs, and Resolve. Take a screenshot of this line when you ask for help.</li>
 </ul>
-<img loading="lazy" decoding="async" width="900" height="1000" alt="The View tab with the fisheye lens presets" src="ref/look-fisheye.png" />
+<img loading="lazy" decoding="async" width="900" height="1000" alt="Settings with the fisheye lens presets" src="ref/settings-fisheye.png" />
 <p>With the Fisheye 180° projection, the lens presets appear: Canon 5.2 (190°), Canon 3.9 (144°), 180°, 200° and 220°, with a 5° trim either way.</p>
 <h2 id="timeline">Timeline</h2>
-<img loading="lazy" decoding="async" width="1400" height="340" alt="The Timeline panel" src="ref/deck-timeline.png" />
+<img loading="lazy" decoding="async" width="1400" height="410" alt="The Timeline panel" src="ref/deck-timeline.png" />
 <p>Clip lanes for each video track, the playhead in red, and markers above. Drag in the lanes to scrub. <strong>Clip</strong> arrows jump to clip edges. <strong>-1</strong> and <strong>+1</strong> step one frame. The chip on the right zooms to All, 60 s or 10 s.</p>
 <p>Play and stop stay in Resolve. Use the space bar.</p>
 <h2 id="scopes">Scopes</h2>
 <img loading="lazy" decoding="async" width="1100" height="560" alt="Scopes: waveform and vectorscope" src="ref/scopes-waveform.png" />
 <p>The scopes are measured on the Mac from the uncompressed picture Resolve plays out, before it is compressed for the headset. Choose waveform with vectorscope, RGB parade, or histograms. The lines at 0, 25, 50, 75 and 100 are video range. The vectorscope carries the 75% colour-bar targets and the skin-tone line.</p>
-<p>Scopes are off until you turn them on, in the View tab or with the scopes icon on the strip.</p>
+<p>Scopes are off until you turn them on, in Settings or with the scopes icon on the strip.</p>
 <h2 id="level-grid">Level grid</h2>
-<p>Turn it on in the View tab (Overlays, Level grid). A level copper horizon with yaw ticks and pitch lines sits over the footage. Use it with the Picture layer to re-level a shot: bring the real horizon to the line. The grid belongs to the room, not the footage, so it never moves with your edits.</p>
+<p>Turn it on in Settings (Overlays, Level grid). A level copper horizon with yaw ticks and pitch lines sits over the footage. Use it with the Footage layer to re-level a shot: bring the real horizon to the line. The grid belongs to the room, not the footage, so it never moves with your edits.</p>
 <h2 id="controller-shortcuts">Controller shortcuts</h2>
 <div class="table-wrap"><table>
 <thead>

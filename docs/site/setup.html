@@ -139,11 +139,12 @@ img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(
 <li>Press play in Resolve. The timeline is in the headset, in step with Resolve's viewer. Scrub, park or play, and it follows.</li>
 <li><strong>Look down</strong> to open the panels. Look back up past the horizon to close them. Grab a panel's top bar to put it where you like. The layout is remembered.</li>
 </ol>
-<p>Sound stays on the Mac. Play and stop are Resolve's own (the space bar); the headset can scrub and step.</p>
+<p>Sound plays in the headset too: Resolve's monitor mix (Fairlight's Control Room output) comes with the picture. Play and stop are Resolve's own (the space bar); the headset can scrub and step.</p>
+<p><strong>Hearing an ambisonic mix, head-tracked.</strong> Fairlight cannot send an Ambisonics bus to any output card, so Velaria brings its own insert, <strong>Velaria Sound</strong> (installed with the rest; Resolve finds it on its next launch, and it is listed under <strong>Preferences &gt; System &gt; Audio Plugins</strong> if it needs ticking). On the Fairlight page, set the bus you mix on to <strong>Ambisonics 1st order</strong> and insert <strong>Velaria Sound</strong> on it. That is all: no patching. The headset's Sound chip reads <strong>ambisonic · bus</strong>, the bus's four channels reach the headset in sync with the picture, and turning your head keeps every sound where you panned it. On a stereo bus the same insert sends the stereo mix (chip: <strong>in headset · bus</strong>). The plugin changes nothing in the mix; it only copies it out.</p>
 <h2 id="5-place-things-from-the-headset">5. Place things from the headset</h2>
 <ul>
 <li>In Resolve, open the Edit page and go to <strong>Effects &gt; Velaria</strong>. You get three effects: <strong>Velaria Canvas Control</strong> (a footage window, a flat title or your own 3D scene), <strong>Velaria Orient 360</strong> (re-orient a stereo 360 shot) and <strong>Velaria Trim</strong> (a trim pass on an adjustment clip). Each has its own how-to.</li>
-<li>In the headset, the strip shows three layers: <strong>Overlays</strong>, <strong>Patches</strong> and <strong>Picture</strong>. On Overlays, pinch a window in the picture and move it, or tap its chip on the strip and use the Placement panel.</li>
+<li>In the headset, the strip shows three layers: <strong>Overlays</strong>, <strong>Patches</strong> and <strong>Footage</strong>. On Overlays, pinch a window in the picture and move it, or tap its chip on the strip and use the Selected panel.</li>
 <li>When you let go, Resolve renders the change and the strip reports the time: <em>Resolve updated in 0.4 s</em>.</li>
 <li>Every change you make in the headset is a real change to the project. Undo is Resolve's undo. Save in Resolve as usual.</li>
 </ul>
@@ -166,7 +167,7 @@ img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(
 <li>In Premiere, open <strong>Settings &gt; Playback</strong>, enable Mercury Transmit and tick the NDI device.</li>
 <li>In the headset, leave <strong>Source</strong> on Auto.</li>
 </ol>
-<p>If the headset says <em>Premiere / After Effects</em> when you want Resolve, open the Look panel's View tab and tap <strong>Source</strong> until it reads Auto.</p>
+<p>If the headset says <em>Premiere / After Effects</em> when you want Resolve, open Settings and tap <strong>Source</strong> until it reads Auto.</p>
 <h2 id="8-settings-file">8. Settings file</h2>
 <p><code>~/Library/Application Support/Velaria/config.plist</code> holds the Mac-side settings. Restart Resolve after you change it. You will rarely need to.</p>
 <div class="table-wrap"><table>

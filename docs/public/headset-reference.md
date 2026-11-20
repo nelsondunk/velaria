@@ -10,11 +10,11 @@ The strip is always there when the panels are open. It answers two questions at 
 
 ![The strip on the Overlays layer with a footage window picked](ref/strip-overlays.png)
 
-- **Overlays · Patches · Picture** is the layer control, with a count of what is on this frame. Overlays are titles and footage windows, and you can pick them in the picture. Patches are LatLong Patcher windows. Picture is the whole sphere (PanoMap or Velaria Orient 360) and the Velaria Trim pass.
-- The four icons on the right show and hide the **Placement**, **Look**, **Timeline** and **Scopes** panels. The chevron rolls the strip up to its bar.
-- Row two has one chip for each thing on this layer. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.
+- **Overlays · Patches · Footage** is the layer control, with a count of what is on this frame. Overlays are titles and footage windows, and you can pick them in the picture. Patches are LatLong Patcher windows. Footage is the whole sphere (PanoMap or Velaria Orient 360) and the Velaria Trim pass.
+- The four icons on the right show and hide the **Selected**, **Settings**, **Timeline** and **Scopes** panels. A panel you hide comes back where you left it. The chevron rolls the strip up to this bar, which is all you need once the panels are placed.
+- Row two has one chip for each thing on this layer, named for what it is: *Title · Editorial*, *Footage window*, *Graphic*. A title plugged into a Canvas Control is one card with that Canvas Control, not two. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.
 - **Copy**, **Paste** and **Undo** act on the picked chip. Undo is Resolve's undo.
-- Below that: timecode, track, clip, and what the overlay is built from. Then the status line: the link (USB or Wi-Fi), the software, and the last round trip (*Resolve updated in 0.4 s* or *Rendering… 1.2 s*).
+- Below that: timecode, track, clip, and what the overlay is built from. Then the status line: the link (USB or Wi-Fi), the software, and the last round trip (*Resolve updated in 0.4 s* or *Rendering… 1.2 s*). A problem shows there only while it lasts: dropping frames, a delay over 250 ms, or a Resolve setup issue with its fix.
 
 ![The strip on the Patches layer with a locked patch picked](ref/strip-patches.png)
 
@@ -30,34 +30,38 @@ An empty layer says so and offers the nearest overlay on either side, with its t
 
 When Resolve's monitoring size, output scaling or frame rate is wrong, or no picture arrives, the status line says so with the fix in Resolve's own menu words. Fix it and the line clears on its own.
 
-## Placement
+## Selected
 
-![The Placement panel for an overlay](ref/placement-card.png)
+Everything about the picked card is on this one panel. The first tab is **Placement**; the tabs after it are the card's own pages (Frame, Glow, Stereo for a footage window; Text, Plate, Lighting for a 3D title).
+
+![The Selected panel on Placement](ref/selected-card.png)
 
 - **Ring (Pan):** you are the centre and front is up, at the white notch. Drag the dot around. The copper arc shows how far from front you are.
 - **Arc (Tilt):** a side view. The white line is the horizon.
 - **Throttles (Distance, Scale):** up is nearer or bigger. The real units are printed beside the travel.
-- **Dials (Roll, and the window's own yaw, pitch and roll):** drag up or down to turn. Tap a dial to zero it.
+- **Dials (Roll, and the card's own yaw, pitch and roll):** grab and turn, like a knob. Tap a dial to zero it.
 - The diamond beside a control is its keyframe. Outline: not animated. White: animated. Copper: a keyframe on this frame. Tap it to set a keyframe at the playhead.
 - Or skip the panel: pinch an overlay in the picture and drag it. Pan and Tilt follow your hand.
 
-![The Placement panel for a patch](ref/placement-patch.png)
+![The Selected panel on a title's Text tab](ref/selected-text.png)
+
+Bars have nudge chips for exact steps. An on/off control is a switch. Colours get a wheel with a brightness bar and a swatch.
+
+![The Selected panel for a patch](ref/selected-patch.png)
 
 For a patch or the whole picture, the same panel shows that tool's rotations. A locked patch shows LOCKED and ignores drags.
 
-![The Placement panel as TRIM](ref/placement-trim.png)
+![The Selected panel as TRIM](ref/selected-trim.png)
 
-With a **Velaria Trim** picked on the Picture layer, the Placement panel becomes **TRIM**: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.
+With a **Velaria Trim** picked on the Footage layer, the Selected panel becomes **TRIM**: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.
 
-## Look
+## Settings
 
-![The Look panel on the Frame tab](ref/look-frame.png)
+Closed until you open it from the strip. It holds the app's own settings and the numbers you only need when something is wrong.
 
-The tabs are the effect's own Inspector pages (Frame, Glow, Stereo). Bars have nudge chips for exact steps. An on/off control is a switch. Colours get a wheel with a brightness bar.
+![The Settings panel](ref/settings-view.png)
 
-![The Look panel on the View tab](ref/look-view.png)
-
-The **View** tab holds the app's own settings:
+The **View** tab:
 
 - **Stream and Playback:** picture size, layout, frame rate, bitrate, timecode and delay.
 - **Source:** Auto, Resolve, or Premiere / After Effects (experimental).
@@ -66,7 +70,7 @@ The **View** tab holds the app's own settings:
 - **Panels:** Recentre view, panels placed or following you, Scopes on or off.
 - **The versions line** at the bottom right: the headset app, the Mac package, the bridge when it differs, and Resolve. Take a screenshot of this line when you ask for help.
 
-![The View tab with the fisheye lens presets](ref/look-fisheye.png)
+![Settings with the fisheye lens presets](ref/settings-fisheye.png)
 
 With the Fisheye 180° projection, the lens presets appear: Canon 5.2 (190°), Canon 3.9 (144°), 180°, 200° and 220°, with a 5° trim either way.
 
@@ -84,11 +88,11 @@ Play and stop stay in Resolve. Use the space bar.
 
 The scopes are measured on the Mac from the uncompressed picture Resolve plays out, before it is compressed for the headset. Choose waveform with vectorscope, RGB parade, or histograms. The lines at 0, 25, 50, 75 and 100 are video range. The vectorscope carries the 75% colour-bar targets and the skin-tone line.
 
-Scopes are off until you turn them on, in the View tab or with the scopes icon on the strip.
+Scopes are off until you turn them on, in Settings or with the scopes icon on the strip.
 
 ## Level grid
 
-Turn it on in the View tab (Overlays, Level grid). A level copper horizon with yaw ticks and pitch lines sits over the footage. Use it with the Picture layer to re-level a shot: bring the real horizon to the line. The grid belongs to the room, not the footage, so it never moves with your edits.
+Turn it on in Settings (Overlays, Level grid). A level copper horizon with yaw ticks and pitch lines sits over the footage. Use it with the Footage layer to re-level a shot: bring the real horizon to the line. The grid belongs to the room, not the footage, so it never moves with your edits.
 
 ## Controller shortcuts
 

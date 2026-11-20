@@ -13,7 +13,7 @@ If Velaria will not install or run on your setup, you can ask for a refund withi
 ## What to send
 
 1. **One line on what you saw**, and the time it happened.
-2. **A screenshot of the versions line.** In the headset: look down, Look panel, View tab, bottom right. It names the headset app, the Mac package, the bridge and Resolve.
+2. **A screenshot of the versions line.** In the headset: look down, open Settings from the strip, bottom right. It names the headset app, the Mac package, the bridge and Resolve.
 3. **The logs zip**, made as below.
 
 ## Make the logs zip
