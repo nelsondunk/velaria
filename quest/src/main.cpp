@@ -353,6 +353,7 @@ struct App {
     vrltime::RollingStat audioLateness{400}; // audio block arrival - its sender pts (ms): the Velaria Sound's bus can trail the picture
     std::mutex audioLatenessMx;              // added on the network thread, read by updateAutoDelay
     std::atomic<int64_t> audioTapNs{0};      // when a block from the Velaria Sound plugin last arrived
+    std::atomic<int64_t> audioAmbiguousNs{0}; // when a block last said two equal inserts are running (+87)
     vrltime::RollingStat photonOffset{240};  // photon time - scanout (ms); ~delay when on time
     int framesSincePlay = 0;
     int64_t lastMotionNs = 0;                // last time a new (non-parked) frame went on screen
@@ -2221,6 +2222,7 @@ static void updateHud(int64_t now, bool playing) {
     in.audio = g.settings.audio;
     in.audioAmbi = g.settings.ambisonic;
     in.audioTap = g.audioTapNs.load() && now - g.audioTapNs.load() < 1500000000LL;
+    in.audioAmbiguous = g.audioAmbiguousNs.load() && now - g.audioAmbiguousNs.load() < 3000000000LL;
     {
         static uint64_t lastBlocks = 0; static int64_t lastBlockNs = 0;
         uint64_t nb = g.net.audioBlocks();
@@ -3167,6 +3169,7 @@ void android_main(android_app* app) {
                 if (late > -2000 && late < 1500) { std::lock_guard<std::mutex> lk(g.audioLatenessMx); g.audioLateness.add(late); }
             }
             if (b.fromTap) g.audioTapNs.store(b.rxNs);
+            if (b.tapAmbiguous) g.audioAmbiguousNs.store(b.rxNs);
             g.audio.push(std::move(b));
         });
         g.net.start(g.settings.lastHost == "-" ? "" : g.settings.lastHost, "Quest");

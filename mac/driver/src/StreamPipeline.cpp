@@ -516,6 +516,7 @@ public:
                 AudioMsg m = p.a;
                 m.channels = (uint16_t)p.channels;
                 m.flags |= kAudioFromTap;
+                if (m_tap.ambiguous()) m.flags |= kAudioTapAmbiguous;   // the headset says "remove one" (+87)
                 sendTapBlock(p.channels, std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, m, pcm.data(), pcm.size())));
                 m_tapPending.pop_front();
             } else if (due) {

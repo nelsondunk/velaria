@@ -24,6 +24,7 @@ struct AudioBlock {
     int64_t ptsLocalNs = 0;       // the sender's pts mapped to this device's clock, before the presentation delay
     bool discontinuity = false;   // does not follow the previous block (seek / stop / flush)
     bool fromTap = false;         // the channels came from the Velaria Sound plugin (a Fairlight bus), not Decklink 1-4
+    bool tapAmbiguous = false;    // two equal inserts on the Mac; the driver follows the first (+87)
     uint32_t frames = 0;
     uint16_t channels = 2;        // 2 stereo, 4 first-order AmbiX
     std::vector<int16_t> pcm;     // interleaved s16

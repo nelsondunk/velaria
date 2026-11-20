@@ -589,6 +589,7 @@ void NetClient::handle(const StreamParser::Message& m, int64_t rx) {
             b.channels = a.channels;
             b.discontinuity = (a.flags & kAudioDiscontinuity) != 0 || (m_audioLastSeq && a.seq != m_audioLastSeq + 1);
             b.fromTap = (a.flags & kAudioFromTap) != 0;
+            b.tapAmbiguous = (a.flags & kAudioTapAmbiguous) != 0;
             b.rxNs = rx;
             m_audioLastSeq = a.seq;
             b.pcm.resize((size_t)a.frames * a.channels);
