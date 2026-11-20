@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.25)
 # their agreement). Velaria ships closed, so the agreement has to be signed before this leaves the test Macs.
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0 CACHE STRING "")
-set(CMAKE_OSX_ARCHITECTURES arm64 CACHE STRING "")
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "")   # universal: Resolve on Intel Macs and under Rosetta loads it too (review 18)
 set(vst3sdk_SOURCE_DIR "" CACHE PATH "Path to the VST3 SDK")
 if(NOT vst3sdk_SOURCE_DIR)
     message(FATAL_ERROR "Pass -Dvst3sdk_SOURCE_DIR=<path to vst3sdk>")

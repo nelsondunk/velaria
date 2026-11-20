@@ -45,6 +45,11 @@ void errorCb(AAudioStream*, void* user, aaudio_result_t err) {
 
 bool AudioOut::start() {
     if (m_stream.load() && !m_errored.load()) return true;
+    // a failed open is not retried every frame (review 15): one try a second, so a device that refuses 48 kHz
+    // stereo s16 does not fill the log or stall the render loop
+    int64_t now = nowNs();
+    if (m_lastStartTryNs && now - m_lastStartTryNs < kNs) return false;
+    m_lastStartTryNs = now;
     if (AAudioStream* old = m_stream.exchange(nullptr)) {   // an errored stream: close it here, never in the callback
         AAudioStream_requestStop(old);
         AAudioStream_close(old);
@@ -96,6 +101,7 @@ bool AudioOut::start() {
         m_errored = false;
         m_stats.running = true;
     }
+    m_lastStartTryNs = 0;
     LOGI("audio: stream open, burst %d frames, buffer %d", burst, AAudioStream_getBufferSizeInFrames(s));
     return true;
 }

@@ -83,6 +83,7 @@ private:
     bool m_fifoValid = false;
     AudioStats m_stats;
     std::atomic<bool> m_errored{false};
+    int64_t m_lastStartTryNs = 0;          // start() backoff after a failed open (+89)
 };
 
 }  // namespace vrq

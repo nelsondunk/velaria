@@ -907,6 +907,21 @@ def test_autoscale_deliver_page_restores_and_reapplies(tmp_path):
     assert tl.d["timelineOutputResolutionWidth"] == "3840"
 
 
+def test_autoscale_none_reads_are_transient_not_hand_changes(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick()
+    real = tl.GetSetting
+    tl.GetSetting = lambda k=None: None if k in ("timelineOutputResolutionWidth", "timelineOutputResolutionHeight") else real(k)
+    b.autoscale_tick()                                   # connected: verify sees None, does nothing
+    _gone(b)                                             # gone: restore sees None, keeps the record
+    assert list(b.scaled) and tl.d["timelineOutputResolutionWidth"] == "3840"
+    tl.GetSetting = real
+    b.autoscale_tick(now=3000.0)
+    assert tl.d["timelineOutputResolutionWidth"] == "5760" and b.scaled == {}
+
+
 def test_autoscale_switching_timelines_restores_the_old_one(tmp_path):
     a = _Tl("A square", SQUARE, uid="a")
     c = _Tl("B square", SQUARE, uid="b")
@@ -963,12 +978,12 @@ def test_driver_notice_when_blackmagic_is_back_on_top(tmp_path, monkeypatch):
     monkeypatch.setattr(vb, "FW_ACTIVE", str(active))
     monkeypatch.setattr(vb, "FW_ASIDE", (str(aside),))
     vb._driver_check.update(at=0.0, msg=None)
-    # nothing set aside: whatever is active, no notice
-    active.write_text("<plist>com.blackmagic-design</plist>")
+    # no active framework at all (nothing installed yet): no notice
     assert vb.driver_notice(now=1000) is None
-    # set aside + Blackmagic active = Desktop Video was installed over Velaria
-    aside.mkdir()
+    # Blackmagic active = Desktop Video was installed over Velaria, aside folder or not (1.0.15, review 17)
+    active.write_text("<plist>com.blackmagic-design</plist>")
     assert "replaced Velaria" in vb.driver_notice(now=2000)
+    aside.mkdir()
     # cached for 30 s, then rechecked
     active.write_text("<plist>ca.skylightproductions.velaria</plist>")
     assert vb.driver_notice(now=2010) is not None

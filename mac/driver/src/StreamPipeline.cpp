@@ -514,7 +514,9 @@ public:
             std::vector<uint8_t> pcm((size_t)p.frames * p.channels * 2);
             uint32_t have = m_tap.read(p.at, p.frames, reinterpret_cast<int16_t*>(pcm.data()), p.channels);
             bool due = all || now > p.a.ptsNs + kAfterPtsNs || m_tapPending.size() > 64;
-            if (have >= p.frames - p.frames / 16) {
+            // full coverage sends at once; a block missing up to a sixteenth goes only when it is due (review 8:
+            // sending it early zero-filled the tail, up to 2 ms of hole, whenever the plugin trailed by a little)
+            if (have >= p.frames || (due && have >= p.frames - p.frames / 16)) {
                 if (!m_tapActive) {
                     int64_t first, end;
                     m_tap.held(first, end);

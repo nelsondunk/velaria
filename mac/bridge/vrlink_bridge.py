@@ -41,7 +41,7 @@ os.environ.setdefault("RESOLVE_SCRIPT_LIB",
                       "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so")
 sys.path.append(RESOLVE_API + "/Modules")
 
-BRIDGE_VERSION = "1.0.14"
+BRIDGE_VERSION = "1.0.15"
 RESTORE_GRACE_S = 5.0   # headset gone this long before a scaled timeline is put back
 PORT = int(os.environ.get("VRLINK_BRIDGE_PORT", "47812"))
 LOG = os.path.expanduser("~/Library/Logs/Velaria/bridge.log")
@@ -130,7 +130,9 @@ def driver_notice(now=None):
     st["at"] = now
     msg = None
     try:
-        if any(os.path.isdir(p) for p in FW_ASIDE) and os.path.exists(FW_ACTIVE):
+        # whatever framework is active, if it is not ours Resolve has no Velaria output (review 17: a plain install
+        # with Desktop Video put over it has no aside folder, and used to get no notice)
+        if os.path.exists(FW_ACTIVE):
             with open(FW_ACTIVE, "rb") as f:
                 if b"skylightproductions" not in f.read():
                     msg = ("Blackmagic Desktop Video replaced Velaria's driver: run  sudo ./install.sh --coexist  "
@@ -389,7 +391,10 @@ class Bridge:
             # again. Any other value -> the user chose it; the record is dropped and their value stands.
             rec = self.scaled[key]
             get, put = self.settings_target(tl)
-            now = (str(get("timelineOutputResolutionWidth")), str(get("timelineOutputResolutionHeight")))
+            w_, h_ = get("timelineOutputResolutionWidth"), get("timelineOutputResolutionHeight")
+            if w_ is None or h_ is None:
+                return   # Resolve between pages or timelines answers None for a moment: not a change of anything
+            now = (str(w_), str(h_))
             match = str(get("timelineOutputResMatchTimelineRes") or "0")
             if now == (str(rec["setW"]), str(rec["setH"])) and match == "0":
                 return
@@ -462,6 +467,8 @@ class Bridge:
             waiting.discard(key)
             get, put = self.settings_target(tl)
             now_w, now_h = get("timelineOutputResolutionWidth"), get("timelineOutputResolutionHeight")
+            if now_w is None or now_h is None:
+                continue   # transient None (review 3): keep the record, try again next tick
             match = str(get("timelineOutputResMatchTimelineRes") or "0")
             if (str(now_w), str(now_h)) != (str(rec["setW"]), str(rec["setH"])) or match != "0":
                 # the size or the match checkbox is not what the bridge set: the user's choice, left alone
