@@ -27,6 +27,7 @@
 #include "Encoder.h"
 #include "FrameSink.h"
 #include "Server.h"
+#include "Tap.h"
 #include "protocol.h"
 #include "timing.h"
 
@@ -129,6 +130,28 @@ uint32_t timecodeOf(IDeckLinkVideoFrame* f) {
     return bcd;
 }
 
+// The frame's timecode as seconds on the timeline (frame number / fps), the clock the Velaria Tap plugin reports
+// its audio in (Fairlight's projectTimeSamples run from 00:00:00:00 of the same timecode). Drop-frame labels are
+// converted to true frame numbers first. false when the frame carries no timecode.
+bool timecodeSeconds(IDeckLinkVideoFrame* f, double fps, double& seconds) {
+    IDeckLinkTimecode* tc = nullptr;
+    if (f->GetTimecode(bmdTimecodeRP188Any, &tc) != S_OK || !tc) return false;
+    uint8_t h = 0, m = 0, s = 0, fr = 0;
+    bool ok = tc->GetComponents(&h, &m, &s, &fr) == S_OK;
+    bool drop = (tc->GetFlags() & bmdTimecodeIsDropFrame) != 0;
+    tc->Release();
+    if (!ok || fps <= 0) return false;
+    int nominal = (int)std::lround(fps);
+    int64_t frames = (((int64_t)h * 60 + m) * 60 + s) * nominal + fr;
+    if (drop && (nominal == 30 || nominal == 60)) {
+        int64_t dropPerMin = nominal / 15;          // 2 at 29.97, 4 at 59.94
+        int64_t totalMin = (int64_t)h * 60 + m;
+        frames -= dropPerMin * (totalMin - totalMin / 10);
+    }
+    seconds = (double)frames / fps;
+    return true;
+}
+
 class StreamPipeline final : public FrameSink {
 public:
     StreamPipeline() : m_cfg(Config::get()) {
@@ -165,6 +188,7 @@ public:
         // Keep the server up once started: Resolve toggles the output while settings change, and the headset
         // should not drop for that.
         m_server.start(m_cfg.port, m_cfg.name, m_serverCb, m_cfg.usbOnly());
+        if (m_cfg.audio) m_tap.start();
         std::lock_guard<std::mutex> lk(m_mutex);
         m_mode = mode;
         m_resetArea = true;
@@ -235,8 +259,12 @@ public:
         job->meta.sync = f.sync;
         job->meta.timecode = timecodeOf(f.frame);
         job->meta.syncHostNs = nowNs();
+        double tcSec = 0;
+        bool tcOk = !f.sync && f.streamTimeNs >= 0 && f.mode->frameDuration > 0 &&
+                    timecodeSeconds(f.frame, (double)f.mode->timeScale / (double)f.mode->frameDuration, tcSec);
         f.frame->AddRef();
         std::unique_lock<std::mutex> lk(m_mutex);
+        if (tcOk) { m_tcStreamNs = f.streamTimeNs; m_tcSeconds = tcSec; m_tcHostNs = nowNs(); }
         job->meta.run = m_running ? m_run : m_run + 1;
         if (!f.sync && m_running) {
             int64_t lead = hostForStreamLocked(f.streamTimeNs) - nowNs();
@@ -367,9 +395,59 @@ public:
             return std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, m, pcm.data(), pcm.size()));
         };
         auto stereo = pack(2);
-        MsgPtr quad = m_server.anyAudioClient4() ? pack(4) : nullptr;
+        MsgPtr quad;
+        if (m_server.anyAudioClient4()) {
+            quad = tapQuad(a, frames, streamNs);   // the Velaria Tap plugin's bus, aligned by timecode, when it is running
+            if (!quad) quad = pack(4);
+        }
         m_server.broadcastAudio(stereo, quad);
         if ((a.seq % 300) == 0) VLOGD("audio: block %llu, %u frames, pts %+.3f s ahead", (unsigned long long)a.seq, frames, (a.ptsNs - nowNs()) / 1e9);
+    }
+
+    // The headset's four-channel message from the Velaria Tap plugin instead of Decklink channels 1-4: the plugin
+    // stamps its audio with the timeline position, the video frames carry timecode, so the block that plays at
+    // stream time S is the bus at timeline time tc(S). Returns nullptr when the plugin is not running, nothing
+    // aligns yet, or the plugin's channel count is not a first-order bus (anything else still comes from Decklink).
+    MsgPtr tapQuad(const AudioMsg& a, uint32_t frames, int64_t streamNs) {
+        int64_t now = nowNs();
+        bool live = m_tap.live(now) && m_tap.channels() >= 4 && streamNs >= 0;
+        int64_t tcStream, tcHost;
+        double tcSec;
+        {
+            std::lock_guard<std::mutex> lk(m_mutex);
+            tcStream = m_tcStreamNs; tcHost = m_tcHostNs; tcSec = m_tcSeconds;
+        }
+        bool aligned = live && tcHost > 0 && now - tcHost < 2000000000LL;
+        if (!aligned) {
+            if (m_tapActive) { VLOGI("audio: ambisonic back to Decklink 1-4 (%s)", live ? "no timecode on the picture" : "Velaria Tap plugin gone"); m_tapActive = false; }
+            return nullptr;
+        }
+        double tl = tcSec + (double)(streamNs - tcStream) / 1e9;
+        int64_t at = (int64_t)std::llround(tl * m_tap.sampleRate());
+        std::vector<uint8_t> pcm((size_t)frames * 4 * 2);
+        uint32_t have = m_tap.read(at, frames, reinterpret_cast<int16_t*>(pcm.data()), 4);
+        if (have < frames / 2) {
+            // the plugin's audio for this moment is not in the ring (plugin behind, or the position maps elsewhere)
+            if (m_tapActive || (m_tapMissLog++ % 200) == 0) {
+                int64_t first, end;
+                m_tap.held(first, end);
+                VLOGI("audio: Velaria Tap has no audio for timeline %.3f s (holds %.3f..%.3f s); using Decklink 1-4",
+                      tl, first / (double)m_tap.sampleRate(), end / (double)m_tap.sampleRate());
+            }
+            m_tapActive = false;
+            return nullptr;
+        }
+        if (!m_tapActive) {
+            int64_t first, end;
+            m_tap.held(first, end);
+            VLOGI("audio: ambisonic from Velaria Tap (%d ch, %s); plugin runs %.0f ms ahead of the picture",
+                  m_tap.channels(), m_tap.ambisonic() ? "ambisonic" : "speakers", (end - at) * 1000.0 / m_tap.sampleRate());
+            m_tapActive = true;
+        }
+        AudioMsg m = a;
+        m.channels = 4;
+        m.flags |= kAudioFromTap;
+        return std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, m, pcm.data(), pcm.size()));
     }
 
 private:
@@ -704,6 +782,11 @@ private:
     int64_t m_anchorHost = 0, m_anchorStream = 0;
     int64_t m_audioNextStreamNs = -1;   // where the next audio block should start, stream time
     uint64_t m_audioSeq = 0;
+    TapReceiver m_tap;                  // the Velaria Tap plugin's copy of a Fairlight bus (see Tap.h)
+    int64_t m_tcStreamNs = -1, m_tcHostNs = 0;   // latest video frame with timecode: its stream time, when seen,
+    double m_tcSeconds = 0;                      // and its timecode as timeline seconds
+    bool m_tapActive = false;
+    uint64_t m_tapMissLog = 0;
     double m_meterSq[16] = {};          // level meter accumulators (see meterLocked)
     uint32_t m_meterCh = 0, m_meterFrames = 0;
     double m_speed = 1.0;
