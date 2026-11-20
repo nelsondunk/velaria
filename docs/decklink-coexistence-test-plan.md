@@ -78,3 +78,13 @@ Work down the list; stop at the first step that restores the A3 or B0 baseline. 
 5. If Velaria itself is what stopped working while the card is fine, the quick isolation is the off switch from A8 (`Coexist` = false): Velaria-only, no reinstall. That tells us whether chaining is the cause.
 
 Nothing in coexistence touches Blackmagic's driver extension, its settings or Resolve's preferences. The only thing moved is the one framework folder, so steps 2 to 4 are a complete undo.
+
+## First run on hardware — 19 Nov 2026 (Bruce, DeckLink Mini Monitor 4K, Desktop Video 16.5, macOS 26.6.2)
+
+Undecided; the deciding test is scheduled for the morning of 20 Nov. What the evening established (details in the project doc *Week Nov 18 - DeckLink coexistence first run*):
+
+1. Desktop Video 16.5's installer never requested activation of the card driver extension (`com.blackmagic-design.BlackmagicIO.DExt`) on this macOS; it had to be requested by hand (`"…/Desktop Video Setup.app/Contents/MacOS/Blackmagic Desktop Video Driver Extension.app/Contents/MacOS/Blackmagic Desktop Video Driver Extension" --timeout 10 --retries 1 --extensions 1 activate`, run from the `/Applications` copy) and approved under System Settings › General › Login Items & Extensions › Driver Extensions. Blackmagic's agent later deactivated all its extensions on its own (19:11) and the sequence had to be repeated.
+2. A framework swapped by **rename** is not what a relaunched Resolve loads: dyld's launch closure followed the moved Velaria framework (`lsof` showed `DeckLinkAPI-Velaria.framework` mapped in a fresh Resolve while Blackmagic's sat at the public path). Swaps must copy and delete, or be followed by a reboot. `--restore`/`--uninstall` rename Blackmagic's framework back: fix or document.
+3. `tools/enum` (new): Blackmagic's framework loaded by a plain process lists 0 devices even at its public path with the driver bound and makes no IOKit/XPC connection; only Resolve's enumeration counts as evidence.
+4. Blackmagic 16.5 exports `_0002` screen-preview helpers, `CreateMetalScreenPreviewHelper_0001/_0002`, `CreateVideoConversionInstance_0002/_0003`, `CreateVideoFrameAncillaryPacketsInstance_0002` and `_v15_2`, none forwarded yet; the device-listing creators are covered. No `/Library/Frameworks` string in their binary.
+5. `coexist: loaded Blackmagic's framework … 16.5`, the exports line and the API version line all appeared in `driver.log` inside Resolve (A5's first three conditions); the census said 0 devices, but the card had no driver at that moment, so A5/B1 are not yet answered.
