@@ -37,6 +37,8 @@ echo "Built build/bench"
 $CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk -Isrc \
   tests/area_test.cpp src/ActiveArea.cpp src/Log.cpp -framework CoreFoundation -o $B/area_test
 echo "Built build/area_test"
+# Velaria Sound receiver without a socket (header validation, ring invalidation, insert selection)
+tests/tap_test.sh >/dev/null && echo "Built tap_test (passed)" || echo "WARNING: tap_test did not build or did not pass (run tests/tap_test.sh to see why)"
 # coexistence merge logic against a fake Blackmagic framework (the real one needs docs/decklink-coexistence-test-plan.md)
 $CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk -Isrc -Wall -Wno-unused-parameter \
   tests/chain_test.cpp src/Chain.cpp -framework CoreFoundation -o $B/chain_test \

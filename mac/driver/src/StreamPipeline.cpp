@@ -243,8 +243,14 @@ public:
             m_running = false;
             pb = playbackMsgLocked(nowNs());
             logLeadLocked();
+            m_tcHostNs = 0;   // the next run's audio waits for a fresh timecode before it trusts the plugin alignment
         }
         m_server.broadcastControl(pb);
+        {
+            std::lock_guard<std::mutex> alk(m_audioMutex);
+            flushTapPending(nowNs(), true);   // nothing queued from the stopped run may go out under the next one's pts
+            m_audioNextStreamNs = -1;
+        }
     }
 
     void onFrame(const ScheduledFrame& f) override {
@@ -360,6 +366,9 @@ public:
     void onAudio(const void* samples, uint32_t frames, uint32_t channels, uint32_t bits, int64_t streamNs) override {
         if (!m_cfg.audio || !samples || frames == 0 || channels == 0) return;
         if (bits != 16 && bits != 32) return;
+        // Two entry points can call this (ScheduleAudioSamples and WriteAudioSamplesSync); the sequence counter,
+        // the discontinuity tracking and the tap queue all assume one caller at a time (review, 20 Nov).
+        std::lock_guard<std::mutex> alk(m_audioMutex);
         meterLocked(samples, frames, channels, bits);
         if (!m_server.anyAudioClient()) { m_audioNextStreamNs = -1; return; }
         AudioMsg a{};
@@ -401,14 +410,24 @@ public:
         // suits: a stereo bus feeds the stereo receivers, a first-order bus feeds the four-channel ones. Resolve hands
         // us a block a little before the plugin has processed the same moment, so those blocks wait in a short queue
         // until the plugin's audio for them has arrived (or their deadline passes, when Decklink's copy goes).
+        // Only a bus the plugin reports as Ambisonics (ACN) takes the four-channel path: a Quad or 5.1 bus has four or
+        // more channels too, and decoding its L R Ls Rs as W Y Z X puts every sound in the wrong place (review
+        // finding 3). A speaker bus of any width feeds the stereo receivers from its first two channels (L, R).
         int tapCh = tapChannelsAligned(streamNs);
-        if (tapCh >= 4) {
+        bool tapAmbi = tapCh >= 4 && m_tap.ambisonic();
+        if (tapCh >= 4 && !tapAmbi && !m_tapSpeakerBusSaid) {
+            VLOGI("audio: Velaria Sound is on a %d-channel speaker bus, not an Ambisonics bus: the headset hears its first two channels as stereo", tapCh);
+            m_tapSpeakerBusSaid = true;
+        }
+        if (tapAmbi) {
             m_server.broadcastAudioSplit(stereo, nullptr);
-            if (want4) tapQueue(a, frames, streamNs, std::move(quad), 4);
-        } else if (tapCh == 2 || tapCh == 1) {
+            // the fallback for a late block is silence, not Decklink's stereo mix dressed as W/Y/Z/X
+            if (want4) tapQueue(a, frames, streamNs, nullptr, 4);
+        } else if (tapCh >= 1) {
             m_server.broadcastAudioSplit(nullptr, quad);
             tapQueue(a, frames, streamNs, std::move(stereo), 2);
         } else {
+            m_tapSpeakerBusSaid = false;
             if (m_tapActive) { VLOGI("audio: back to Decklink (%s)", m_tap.live(nowNs()) ? "no timecode on the picture" : "Velaria Sound plugin gone"); m_tapActive = false; }
             flushTapPending(nowNs(), true);
             m_server.broadcastAudio(stereo, quad);
@@ -503,11 +522,19 @@ public:
                 if (m_tapActive || (m_tapMissLog++ % 500) == 0) {
                     int64_t first, end;
                     m_tap.held(first, end);
-                    VLOGI("audio: Velaria Sound has no audio for timeline %.3f s (holds %.3f..%.3f s) by its deadline; Decklink for this block",
-                          p.at / (double)m_tap.sampleRate(), first / (double)m_tap.sampleRate(), end / (double)m_tap.sampleRate());
+                    VLOGI("audio: Velaria Sound has no audio for timeline %.3f s (holds %.3f..%.3f s) by its deadline; %s for this block",
+                          p.at / (double)m_tap.sampleRate(), first / (double)m_tap.sampleRate(), end / (double)m_tap.sampleRate(),
+                          p.fallback ? "Decklink" : "silence");
                 }
                 m_tapActive = false;
-                sendTapBlock(p.channels, p.fallback);
+                if (p.fallback) sendTapBlock(p.channels, p.fallback);
+                else {
+                    std::vector<uint8_t> zero((size_t)p.frames * p.channels * 2, 0);
+                    AudioMsg m = p.a;
+                    m.channels = (uint16_t)p.channels;
+                    m.flags |= kAudioFromTap;
+                    sendTapBlock(p.channels, std::make_shared<std::vector<uint8_t>>(makeMessage(MsgType::Audio, m, zero.data(), zero.size())));
+                }
                 m_tapPending.pop_front();
             } else {
                 break;
@@ -851,6 +878,8 @@ private:
     int64_t m_tcStreamNs = -1, m_tcHostNs = 0;   // latest video frame with timecode: its stream time, when seen,
     double m_tcSeconds = 0;                      // and its timecode as timeline seconds
     bool m_tapActive = false;
+    bool m_tapSpeakerBusSaid = false;
+    std::mutex m_audioMutex;                     // onAudio and the stop-time flush, one at a time
     uint64_t m_tapMissLog = 0;
     std::deque<PendingBlock> m_tapPending;       // blocks waiting for the plugin's audio (onAudio thread only)
     uint64_t m_tapStale = 0;

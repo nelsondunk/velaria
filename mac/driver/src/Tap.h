@@ -15,6 +15,7 @@ namespace vrl {
 constexpr uint16_t kTapPort = 47813;
 constexpr uint32_t kTapMagic = 0x50415456;   // 'VTAP'
 constexpr int kTapMaxChannels = 16;
+constexpr uint32_t kTapMaxFrames = 512;        // the plugin splits its blocks at 512 frames (mac/sound/src/tap.cpp)
 
 struct TapHeader {                           // == velaria::TapPacket in mac/sound/src/tap.h
     uint32_t magic;
@@ -40,6 +41,15 @@ public:
     uint32_t sampleRate() const { return m_rate.load(); }
     bool ambisonic() const { return m_ambi.load(); }
     bool hostPlaying() const { return m_playing.load(); }
+    // Two live inserts of the same arrangement and channel count: the ring follows the first, but the choice is a
+    // coin toss the user should hear about.
+    bool ambiguous() const { return m_ambiguous.load(); }
+    uint64_t rejected() const { return m_rejected.load(); }
+    // Header checks a datagram must pass before anything in it is used (public so the test can hit it directly).
+    static bool validHeader(const TapHeader& h, size_t datagramBytes);
+    // What loop() does with a datagram that passed validHeader, for tests (no socket): choose() then store().
+    void inject(uint32_t sourceKey, const TapHeader& h, const float* pcm, int64_t nowNs);
+    void startForTest(int64_t capacityFrames);   // ring without the socket thread
     uint64_t packets() const { return m_packets.load(); }
     // Copy `frames` frames starting at timeline sample `at` into out (interleaved s16, outChannels wide; channels the
     // tap lacks are zero). Returns the number of frames that were actually present in the ring; the rest are zeroed.
@@ -50,6 +60,7 @@ public:
 private:
     void loop();
     void store(const TapHeader& h, const float* pcm);
+    void invalidate();                       // forget every held sample (source change)
 
     std::thread m_thread;
     std::atomic<bool> m_run{false};
@@ -65,6 +76,8 @@ private:
     std::atomic<bool> m_ambi{false}, m_playing{false};
     std::atomic<int64_t> m_lastNs{0};
     std::atomic<uint64_t> m_packets{0};
+    std::atomic<uint64_t> m_rejected{0};
+    std::atomic<bool> m_ambiguous{false};
     uint32_t m_lastSeq = 0;
     uint64_t m_lost = 0;
     // More than one Velaria Sound insert can be running (one per bus). Each has its own socket, so its source port
