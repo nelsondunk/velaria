@@ -1,27 +1,26 @@
 <!doctype html>
-<html lang="en-CA">
+<html lang="en-US">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Velaria: live 360 and VR180 preview from DaVinci Resolve to Meta Quest</title>
-<meta name="description" content="Velaria shows your live DaVinci Resolve timeline in a Meta Quest, in stereo, as you scrub. Place titles, set depth and level the horizon from inside the shot. Mac, one-time purchase.">
+<title>Velaria: live 360, VR180 and dome preview from DaVinci Resolve to Meta Quest</title>
+<meta name="description" content="See your live DaVinci Resolve timeline in a Meta Quest, in stereo, for 360, VR180 and dome. Place titles and level the horizon from inside the shot. Mac, one-time.">
 <!--
-  DRAFT for Nelson's approval (12 Nov 2026). Not published anywhere.
-  Before publishing, replace every placeholder below:
-    #BUY-URL         the Lemon Squeezy checkout link (set once, in VELARIA.buyUrl)
-    #DOCS-URL        the public setup guide
-    #EULA-URL  #PRIVACY-URL  #NOTICES-URL   the legal pages (texts are in /legal in the repo)
+  DRAFT for Nelson's approval (20 Nov 2026). Not published on the H&A site.
+  Prices are working numbers (View 39, Canvas 89 USD), not confirmed. Before publishing, replace:
+    #BUY-URL-VIEW  #BUY-URL-CANVAS   the checkout links (set once, in VELARIA)
+    #DOCS-URL  #EULA-URL  #PRIVACY-URL  #NOTICES-URL   the setup guide and legal pages
     SUPPORT-EMAIL    the support address (set once, in VELARIA.supportEmail)
-  Images are not in the repo: img/dome.jpg and img/depth/01.jpg to 61.jpg.
+  Built by build/build.py from the 12 Nov sales page and the design comp's hero, round trip and playground.
 -->
 <script>
-/* ONE PLACE TO CHANGE PRICES, THE BUY LINK AND THE SUPPORT ADDRESS.
-   Working assumption, Nelson to confirm: Core 149 USD one-time. The Dome add-on's price is not on this page or in
-   its source: add it here only when it is public. */
+/* ONE PLACE TO CHANGE PRICES, THE BUY LINKS AND THE SUPPORT ADDRESS. Working numbers, Nelson to confirm. */
 window.VELARIA = {
-  priceCore: 149,
+  priceView: 39,
+  priceCanvas: 89,
   currency: 'USD',
-  buyUrl: '#BUY-URL',
+  buyUrlView: '#BUY-URL-VIEW',
+  buyUrlCanvas: '#BUY-URL-CANVAS',
   supportEmail: 'SUPPORT-EMAIL',
   refundDays: 14
 };
@@ -29,7 +28,7 @@ document.documentElement.classList.add('js');
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@700;800&family=Saira:ital,wght@0,400;0,500;0,600;0,700;1,300&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600&family=Red+Hat+Text:wght@500;600;700&family=Saira+Extra+Condensed:wght@700;800&family=Saira:ital,wght@0,400;0,500;0,600;0,700;1,300&display=swap">
 <style>
 /* One dark room. Show the picture once, then show the product plainly: what it does, what it needs, what it costs. */
 :root {
@@ -80,50 +79,87 @@ section { position: relative; }
 
 /* ---------- Bar ---------- */
 .bar { position: absolute; top: 0; left: 0; right: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: calc(18px + env(safe-area-inset-top, 0px)) 18px; }
-.wordmark { font-family: var(--display); font-weight: 800; font-size: 30px; letter-spacing: 0.06em; text-decoration: none; }
+.wordmark { display: inline-flex; align-items: center; gap: 12px; font-family: "Red Hat Display", var(--text); font-weight: 600; font-size: 24px; letter-spacing: 0.16em; text-decoration: none; }
+.wordmark svg { width: 30px; height: 30px; flex: none; }
 .bar nav { display: flex; align-items: center; gap: clamp(16px, 2.2vw, 32px); font-size: 17px; }
 .bar nav a:not(.button) { text-decoration: none; }
 .bar .button { min-height: 44px; padding: 0 20px; font-size: 16px; }
 @media (max-width: 900px) { .bar nav a.navlink { display: none; } }
 
-/* ---------- Hero ---------- */
-.hero { min-height: min(100svh, 980px); display: grid; align-items: end; overflow: clip; background: #1f2735; }
-.hero__picture { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
-.hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(12,14,18,0.9) 0%, rgba(12,14,18,0.55) 36%, rgba(12,14,18,0) 64%); pointer-events: none; }
-.hero__copy { position: relative; z-index: 1; padding-block: 140px clamp(40px, 6vw, 72px); display: grid; gap: 26px; }
-.hero h1 { font-size: clamp(48px, 7.6vw, 140px); max-width: 100%; }
+/* ---------- Hero: say what it is in one picture. Your timeline on the Mac, live in the headset. ---------- */
+.hero { position: relative; overflow: clip; background: radial-gradient(120% 90% at 78% 30%, #2a2420 0%, var(--ground) 60%); padding-block: calc(110px + env(safe-area-inset-top, 0px)) clamp(48px, 6vw, 88px); }
+.hero__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 4vw, 64px); align-items: center; }
+.hero__copy { display: grid; gap: 24px; align-content: center; }
+.hero h1 { font-size: clamp(46px, 5.6vw, 104px); max-width: 100%; }
 .hero h1 .line { display: block; overflow: clip; padding-bottom: 0.06em; margin-bottom: -0.06em; }
-.hero h1 .line > span { display: block; white-space: nowrap; }
+.hero h1 .line > span { display: block; }
 .hero__act { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; }
-.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px var(--gutter); margin: 8px 0 0; }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px var(--gutter); margin: clamp(40px, 5vw, 72px) 0 0; padding-top: 24px; border-top: 1px solid #2c333d; }
 .facts div { display: grid; gap: 2px; }
 .facts dt { font-size: 14px; font-weight: 600; color: var(--copper); }
 .facts dd { margin: 0; font-size: 16px; line-height: 1.4; }
 @media (max-width: 900px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.hv { position: relative; aspect-ratio: 16 / 12; }
+.hv__tag { font-size: 14px; font-weight: 600; color: var(--ink-2); margin: 0 0 8px 4px; display: flex; align-items: center; gap: 8px; }
+.hv__tag b { color: var(--copper); font-weight: 600; }
+.mac { position: absolute; left: 0; top: 0; width: 64%; }
+.mac__win { background: #0f1216; border: 1px solid #2c333d; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.45); }
+.mac__bar { height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #1a1e24; border-bottom: 1px solid #262c35; }
+.mac__bar i { width: 9px; height: 9px; border-radius: 50%; background: #3a414b; }
+.mac__bar span { margin-left: 8px; font-size: 11px; color: #8a919b; }
+.mac__viewer { position: relative; aspect-ratio: 2 / 1; background: #000 url(img/flat.jpg) center / cover; border-bottom: 1px solid #262c35; }
+.mac__viewer::after { content: "Flat equirect: you can't judge depth here"; position: absolute; left: 8px; bottom: 6px; font-size: 10px; color: #c9ccd1; background: rgba(0,0,0,0.55); padding: 2px 6px; border-radius: 4px; }
+.tl { position: relative; padding: 8px 8px 10px 34px; display: grid; gap: 5px; background: #13171c; }
+.tl__row { position: relative; height: 22px; }
+.tl__row::before { content: attr(data-t); position: absolute; left: -28px; top: 4px; font-size: 10px; color: #6f7680; }
+.clip { position: absolute; top: 0; bottom: 0; border-radius: 4px; overflow: hidden; background: #2d3540 center / cover; border: 1px solid rgba(255,255,255,0.08); }
+.clip--title { background: linear-gradient(#e7b386, #c98a5b); color: #15181d; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; display: flex; align-items: center; padding: 0 6px; white-space: nowrap; }
+.clip--audio { background: #1f3b33; }
+.tl__head { position: absolute; top: 4px; bottom: 4px; left: 58%; width: 2px; background: #e5484d; border-radius: 1px; }
+.tl__head::before { content: ""; position: absolute; top: -3px; left: -4px; width: 10px; height: 7px; background: #e5484d; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.quest { position: absolute; right: 0; bottom: 0; width: 64%; }
+.hv { padding-bottom: 28px; }
+.quest__view { position: relative; aspect-ratio: 16 / 10; border-radius: 26px; overflow: hidden; background: #0e1014 url(img/dome.jpg) 50% 40% / cover; box-shadow: 0 0 0 1px rgba(224,169,122,0.55), 0 40px 80px rgba(0,0,0,0.55), 0 0 60px rgba(224,169,122,0.18); }
+.quest__status { position: absolute; left: 14px; top: 12px; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--ice); background: rgba(14,16,20,0.72); padding: 5px 10px; border-radius: 999px; }
+.quest__status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ice); box-shadow: 0 0 8px var(--ice); }
+.quest__panel { position: absolute; right: 14px; bottom: 14px; width: 26%; height: auto; display: block; border-radius: 8px; box-shadow: 0 10px 24px rgba(0,0,0,0.5); }
+.link { position: absolute; left: 40%; top: 38%; width: 30%; height: 26%; pointer-events: none; overflow: visible; }
+.link path { fill: none; stroke: var(--copper); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 2 7; }
+.link circle { fill: #ffd9b3; filter: drop-shadow(0 0 6px #e0a97a); }
+.link text { fill: var(--copper); font: 600 13px var(--text); }
 @media (max-width: 720px) {
-  .hero h1 .line > span { white-space: normal; }
-  .hero { min-height: 0; align-items: stretch; grid-template-rows: 56svh auto; background: var(--ground); }
-  .hero__picture { position: relative; height: 56svh; object-position: 50% 40%; }
-  .hero::after { display: none; }
-  .hero__copy { padding-block: 28px 56px; }
+  .hv { aspect-ratio: auto; padding-bottom: 0; display: grid; gap: 10px; }
+  .mac, .quest { position: static; width: 100%; }
+  .mac { width: 88%; }
+  .quest { width: 92%; justify-self: end; }
+  .link { display: none; }
+    .mac__viewer::after { font-size: 9px; }
+}
+@media (max-width: 900px) {
+  .hero__grid { grid-template-columns: 1fr; }
+  .hv { max-width: 640px; width: 100%; margin-inline: auto; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .js .hero h1 .line > span { transform: translateY(105%); animation: rise 900ms var(--ease-expo) forwards; animation-delay: calc(120ms + var(--i) * 100ms); }
   .js .hero [data-load] { opacity: 0; transform: translateY(12px); animation: settle 600ms var(--ease-out) forwards; animation-delay: var(--d); }
-  .js .hero__picture { transform: scale(1.06); animation: unzoom 1400ms var(--ease-expo) forwards; }
 }
 @keyframes rise { to { transform: none; } }
 @keyframes settle { to { opacity: 1; transform: none; } }
-@keyframes unzoom { to { transform: none; } }
+
 
 /* ---------- Problem: one block, said once ---------- */
 .problem { padding-block: var(--section) 0; }
-.loop { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gutter); }
-.loop li { background: var(--step); border-radius: 18px; padding: 26px 24px 28px; display: grid; gap: 8px; align-content: start; }
-.loop h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(36px, 3.4vw, 52px); line-height: 0.9; margin: 0; }
-.loop p { margin: 0; font-size: 17px; color: var(--ink-2); }
-@media (max-width: 900px) { .loop { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 480px) { .loop { grid-template-columns: 1fr; } }
+.pain { display: grid; gap: clamp(18px, 2vw, 28px); max-width: 1100px; }
+.pain .head { font-size: clamp(44px, 6.4vw, 104px); }
+.trip { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin: 0; padding: 0; list-style: none; font: 600 clamp(18px, 1.7vw, 24px)/1.2 var(--text); color: var(--ink-2); }
+.trip li { display: inline-flex; align-items: center; gap: 12px; }
+.trip li:not(:last-child)::after { content: "→"; color: #5d6470; }
+.trip li.bad { color: var(--ink); }
+.trip .again { color: #15181d; background: var(--copper); padding: 6px 14px; border-radius: 999px; }
+.count { margin: 0; font-size: clamp(17px, 1.4vw, 20px); color: var(--ink-2); }
+.count b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.pain__turn { margin: 0; font: 800 clamp(28px, 2.6vw, 40px)/1 var(--display); text-transform: uppercase; color: var(--copper); }
 
 /* ---------- How it works ---------- */
 .how { padding-block: var(--section); }
@@ -167,17 +203,39 @@ section { position: relative; }
 @media (max-width: 960px) { .features__grid { grid-template-columns: 1fr; } .panel { position: static; max-width: 560px; } }
 @media (max-width: 560px) { .flist { grid-template-columns: 1fr; } }
 
-/* ---------- Try it: level the horizon ---------- */
-.level { background: var(--step); padding-block: clamp(80px, 9vw, 144px); }
-.level__grid { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--gutter); align-items: center; }
-.level__copy { display: grid; gap: 22px; }
-.level__view { position: relative; aspect-ratio: 16 / 9; overflow: clip; background: #0e1014; border-radius: 18px; }
-.level__view img { position: absolute; inset: -12%; width: 124%; height: 124%; max-width: none; object-fit: cover; object-position: 80% 70%; transform: rotate(var(--roll, 6deg)); }
-.level__line { position: absolute; left: 6%; right: 6%; top: 50%; height: 2px; background: var(--copper); opacity: 0.85; transform: translateY(-1px); }
-.level__control { display: grid; gap: 10px; }
-.level__control label { font-weight: 600; font-size: 17px; display: flex; justify-content: space-between; gap: 16px; }
-.level__control output { font-variant-numeric: tabular-nums; color: var(--ink-2); font-weight: 500; }
-.level__status { min-height: 1.6em; font-weight: 600; color: var(--copper); margin: 0; }
+/* ---------- Try the controls: a working copy of the headset panel driving a view inside the dome ---------- */
+.play { background: var(--step); padding-block: clamp(80px, 9vw, 144px); }
+.play__grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(300px, 4fr); gap: clamp(20px, 2.4vw, 36px); align-items: start; margin-top: clamp(28px, 3vw, 44px); }
+.play__stage { display: grid; gap: 12px; }
+.play__view { position: relative; aspect-ratio: 16 / 10; border-radius: 22px; overflow: clip; background: #0e1014; box-shadow: 0 0 0 1px #2c333d; touch-action: none; cursor: grab; }
+.play__view:active { cursor: grabbing; }
+.play__view > #pv-c { display: block; width: 100%; height: 100%; }
+.play__hint { position: absolute; left: 14px; top: 12px; font-size: 12px; font-weight: 600; color: var(--ice); background: rgba(14,16,20,0.72); padding: 5px 10px; border-radius: 999px; pointer-events: none; }
+.play__warn { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-size: 14px; font-weight: 600; color: #15181d; background: var(--copper); padding: 6px 14px; border-radius: 999px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 200ms ease; }
+.play__warn.on { opacity: 1; }
+.play__top { position: absolute; right: 12px; top: 12px; width: 26%; max-width: 150px; aspect-ratio: 1; border-radius: 12px; background: rgba(14,16,20,0.78); pointer-events: none; }
+.play__bar { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.seg { display: inline-flex; background: #12161b; border-radius: 999px; padding: 4px; gap: 2px; }
+.seg button { font: 600 14px/1 var(--text); color: var(--ink-2); background: transparent; border: 0; border-radius: 999px; min-height: 36px; padding: 0 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: linear-gradient(#f4cfa8, #e3a676 42%, #cd8a5b 62%, #e2a878); color: #15181d; }
+.play__side { display: grid; gap: 14px; }
+.play__more { display: grid; grid-template-columns: 11fr 9fr; gap: 14px; align-items: start; margin-top: 6px; }
+@media (max-width: 720px) { .play__more { grid-template-columns: 1fr; } }
+.hud svg { display: block; width: 100%; height: auto; touch-action: none; }
+.hud [data-c] { cursor: grab; outline: none; }
+.hud[hidden] { display: none; }
+.play__panel { background: #2a292e; border-radius: 18px; padding: 18px 18px 20px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 20px 40px rgba(0,0,0,0.35); display: grid; gap: 14px; }
+.play__panel h3 { margin: 0; font: 700 13px/1 var(--text); letter-spacing: 0.3em; color: #b9b9bb; display: flex; justify-content: space-between; }
+.play__panel h3 span { color: var(--copper); letter-spacing: 0.15em; }
+.ctl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+.ctl { display: grid; justify-items: center; gap: 4px; outline: none; border-radius: 12px; padding: 4px 0; }
+.ctl:focus-visible { box-shadow: 0 0 0 2px var(--copper); }
+.ctl svg { display: block; width: 100%; height: auto; touch-action: none; cursor: grab; }
+.ctl b { font: 700 18px/1.1 var(--text); color: #dfe0e2; font-variant-numeric: tabular-nums; }
+.ctl small { font: 700 11px/1 var(--text); letter-spacing: 0.25em; color: #a9a6a3; text-transform: uppercase; }
+.play__note { margin: 0; font-size: 15px; color: var(--ink-2); }
+.play__note b { color: var(--ink); }
+@media (max-width: 960px) { .play__grid { grid-template-columns: 1fr; } .play__side { max-width: 560px; } }
 input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; margin: 0; cursor: pointer; }
 input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: #343c47; border-radius: 999px; }
 input[type="range"]::-moz-range-track { height: 6px; background: #343c47; border-radius: 999px; }
@@ -256,6 +314,21 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
 .support p { max-width: 44em; }
 .close__legal { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; color: var(--ink-2); }
 .close__fine { font-size: 13px; color: var(--ink-2); max-width: 70em; margin: 0; }
+
+/* ---------- Two versions ---------- */
+.tag { display: inline-flex; align-items: center; min-height: 28px; padding: 0 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--step-2); color: var(--copper); margin-bottom: 18px; }
+.tag--ice { color: var(--ice); background: color-mix(in oklab, var(--ice) 16%, var(--step)); }
+.see { padding-block: var(--section) 0; }
+.choose { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gutter); margin-top: var(--gutter); }
+.choose .tier { background: var(--ground); }
+.choose .tier--mid { background: var(--step-2); }
+.choose .price { font-size: clamp(64px, 6vw, 96px); color: var(--ink); }
+.choose .price small { color: var(--ink-2); }
+.choose .button { justify-self: start; margin-top: 8px; }
+.button--ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--copper); }
+@media (hover: hover) and (pointer: fine) { .button--ghost:hover { background: color-mix(in oklab, var(--copper) 18%, transparent); } }
+.checkout { margin: 18px 0 0; font-size: 15px; color: var(--ink-2); max-width: 46em; }
+@media (max-width: 720px) { .choose { grid-template-columns: 1fr; } }
 </style>
 <script type="application/ld+json">
 {
@@ -264,10 +337,18 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
  "mainEntity": [
   {
    "@type": "Question",
+   "name": "View or Canvas: which one do I need?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Velaria View is the monitor. You see your live Resolve timeline in the headset in every format, with sound, scopes, a level grid and notes that land as Resolve markers. If you only need to check your cut where your audience will see it, View is enough. Velaria Canvas is everything in View, plus the controls that change the picture from inside the headset: move titles and footage windows, set their depth, level and re-orient the shot, set keyframes and do a trim pass. It includes the Velaria effects for Resolve that those controls drive."
+   }
+  },
+  {
+   "@type": "Question",
    "name": "What do I get when I buy Velaria?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "One download for your Mac. It contains the Velaria output that DaVinci Resolve Studio plays to, the Velaria View app for your Quest, the Velaria effects for Resolve (Canvas Control, Orient 360 and Trim), an installer and uninstaller, and the setup guide. It is a one-time purchase with no subscription and no licence key."
+    "text": "One download for your Mac, with the Velaria output that DaVinci Resolve Studio plays to, the Velaria app for your Quest, an installer and uninstaller, and the setup guide. Velaria Canvas also includes the Velaria effects for Resolve: Canvas Control, Orient 360 and 180, Stereo and Trim. Both are one-time purchases, with no subscription and no license key."
    }
   },
   {
@@ -291,7 +372,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "Why does my Quest need developer mode?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "Velaria View is not in the Meta Horizon Store yet, so the installer loads it onto your headset over the cable. Meta only allows that when developer mode is on. Turning it on means creating a free Meta developer account, and Meta may take a few days to verify the account. If you are not comfortable doing that, please wait for a store version before you buy."
+    "text": "The Velaria app is not in the Meta Horizon Store, so the installer loads it onto your headset over the cable, and Meta only allows that when developer mode is on. Turning it on means creating a free Meta developer account, and Meta may take a few days to verify it, so it is worth starting first. If you would rather not turn developer mode on, this version of Velaria isn't for you."
    }
   },
   {
@@ -299,7 +380,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "macOS says it can't verify the developer. Is that expected?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "Yes. Velaria 1.0 is not signed or notarized by Apple. On most Macs the installer runs from Terminal without a warning. If macOS does stop it, the requirements box above gives the exact message and the fix: System Settings, Privacy & Security, Open Anyway, then run the installer again."
+    "text": "Yes. Velaria is not signed or notarized by Apple. On most Macs the installer runs from Terminal without a warning. If macOS does stop it, the requirements box above gives the exact message and the fix: System Settings, Privacy & Security, Open Anyway, then run the installer again."
    }
   },
   {
@@ -307,7 +388,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "I own a DeckLink or UltraStudio. Can I keep using it?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "Yes, but not at the same moment in version 1.0. Resolve sees Velaria as a Blackmagic video device, so while Velaria is installed it takes the place of Blackmagic Desktop Video. The installer will not set Blackmagic's driver aside unless you tell it to, and the uninstaller puts it back. Having both listed side by side in Resolve is in the works and will be a free update."
+    "text": "Yes. Velaria and your Blackmagic device can both appear in Resolve's Video and Audio I/O, and you switch between them there. Resolve asks for a restart each time you switch, which is how it behaves with any two Blackmagic devices. We have tested this with a DeckLink Mini Monitor 4K; the setup guide has the install step. On macOS 26, if your card doesn't show up at all, approve Blackmagic's driver extension under System Settings, General, Login Items & Extensions. That one is on Blackmagic's side, and it catches people out whether Velaria is installed or not."
    }
   },
   {
@@ -315,7 +396,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "Does it work with Premiere Pro, Final Cut Pro or on Windows?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "No. Velaria 1.0 is for DaVinci Resolve Studio on a Mac."
+    "text": "No. Velaria is for DaVinci Resolve Studio on a Mac."
    }
   },
   {
@@ -323,7 +404,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "Does it work with Apple Vision Pro, Pico or other headsets?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "No. Velaria 1.0 is for Meta Quest. If you work on Apple Vision Pro, DaVinci Resolve Studio has its own monitoring for that headset."
+    "text": "No. Velaria is for Meta Quest. If you work on Apple Vision Pro, DaVinci Resolve Studio has its own monitoring for that headset."
    }
   },
   {
@@ -331,15 +412,31 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "Which formats and resolutions can I preview?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "360 in mono or over/under stereo, and 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees. Pictures up to 5760 pixels wide reach the headset at full size (a 5760 x 2880 VR180 timeline, for example); wider pictures are scaled down to 5760. Resolve's monitoring picture is no taller than 4320 pixels, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed."
+    "text": "360 in mono or over/under stereo; 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees; and dome, from a standard domemaster. Pictures up to 5760 pixels wide reach the headset at full size (a 5760 x 2880 VR180 timeline, for example); wider pictures are scaled down to 5760. Resolve's monitoring picture is no taller than 4320 pixels, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed."
    }
   },
   {
    "@type": "Question",
-   "name": "Can I finish a colour grade in the headset?",
+   "name": "Can I preview a dome show?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "No. A Quest is not a reference display. Velaria gives you scopes measured on the Mac and a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor."
+    "text": "Yes, in both View and Canvas. Open a standard domemaster timeline (square, 180 degree fisheye, front at the bottom of the frame) and choose the Dome projection in the headset. You sit in a modeled theater: choose small, medium or large, a screen tilt from level to 30 degrees, and one of five seats, then fine-tune the tilt a degree at a time. It is a preview for composition, pacing and comfort, not a substitute for a check in the real theater."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Can I hear my mix in the headset?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes. Resolve's monitoring mix plays through the Quest on the same clock as the picture. A first-order ambisonic mix can also be heard head-tracked, so a sound placed behind you stays behind you as you turn. The setup guide shows how to route it in Fairlight."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Can I finish a color grade in the headset?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. A Quest is not a reference display. Velaria gives you scopes measured on the Mac, and Canvas adds a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor."
    }
   },
   {
@@ -347,7 +444,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "Cable or Wi-Fi?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "Both work, and the app finds your Mac on its own. The USB-C cable is the steadier choice. Over Wi-Fi, the Mac and the headset need to be on the same network, and a fast, uncrowded one."
+    "text": "The USB-C cable is the default and the steadier choice. Wi-Fi works too, on a fast network you trust, with the Mac and the headset on the same network. Either way the app finds your Mac on its own."
    }
   },
   {
@@ -355,15 +452,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "How is this different from a headset app that shows a video stream from my Mac?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "Those apps show you a picture. Velaria also stays in step with Resolve's own viewer, frame for frame, and it lets you change the project from inside the shot: move an overlay, set its depth, level the horizon, set a keyframe. Every change is a real change in your Resolve project, with undo."
-   }
-  },
-  {
-   "@type": "Question",
-   "name": "When is dome support coming, and what will it cost?",
-   "acceptedAnswer": {
-    "@type": "Answer",
-    "text": "Dome preview is planned for version 1.1 as a paid add-on for people who make fulldome and planetarium work. We have not set a date. Version 1.0 does not include it."
+    "text": "Those apps show you a picture, usually through an NDI plug-in and an extra node in your Resolve tree. Velaria appears in Resolve as a video output, with nothing added to your node tree, and is built to stay in step with Resolve's viewer, with your mix in sync. With Canvas you can also change the project from inside the shot, with undo."
    }
   },
   {
@@ -379,7 +468,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
    "name": "Does Velaria send any data anywhere?",
    "acceptedAnswer": {
     "@type": "Answer",
-    "text": "No. There is no account, no analytics and no telemetry. The picture travels between your Mac and your headset over the cable or your own network, and nowhere else. The privacy statement has the details."
+    "text": "There is no account, no analytics and no telemetry. Over the cable, the picture and sound go from your Mac to your headset and nowhere else. Over Wi-Fi the stream is not encrypted, so use a network you trust. The privacy statement has the details."
    }
   },
   {
@@ -397,10 +486,10 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
 <body>
 
 <header class="bar wrap">
-  <a class="wordmark" href="#top" aria-label="Velaria, back to top">VELARIA</a>
+  <a class="wordmark" href="#top" aria-label="Velaria, back to top"><svg viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(-20 50 50)"><ellipse cx="50" cy="50" rx="34" ry="42" fill="#f2f3f5"/><ellipse cx="55" cy="49.5" rx="25" ry="33" fill="#e0a97a"/><ellipse cx="51.5" cy="50.5" rx="22" ry="31" fill="#15181d"/></g></svg>VELARIA</a>
   <nav aria-label="Main">
     <a class="navlink" href="#how">How it works</a>
-    <a class="navlink" href="#features">Features</a>
+    <a class="navlink" href="#try">Try it</a>
     <a class="navlink" href="#formats">Formats</a>
     <a class="navlink" href="#faq">Questions</a>
     <a class="button" href="#buy">Buy Velaria</a>
@@ -409,34 +498,62 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
 
 <main id="top">
   <section class="hero" aria-labelledby="hero-title">
-    <img class="hero__picture" src="img/dome.jpg" alt="An editor in a headset stands inside her film, pulling a 3D title into place with a copper beam from her controller" width="2200" height="1228" fetchpriority="high">
-    <div class="hero__copy wrap">
-      <h1 id="hero-title" class="display"><span class="line"><span style="--i:0">Edit your immersive film</span></span><span class="line"><span style="--i:1">from inside it.</span></span></h1>
-      <p class="lead" data-load style="--d:420ms">Velaria shows your live DaVinci Resolve timeline in a Meta Quest. Scrub on your Mac and you are standing in the shot, in stereo, at full size. Then move a title, set its depth and level the horizon without taking the headset off.</p>
-      <div class="hero__act" data-load style="--d:500ms">
-        <a class="button" href="#buy">Buy Velaria</a>
-        <a class="textlink" href="#how">See how it works</a>
+    <div class="wrap">
+      <div class="hero__grid">
+        <div class="hero__copy">
+          <h1 id="hero-title" class="display"><span class="line"><span style="--i:0">Stop exporting</span></span><span class="line"><span style="--i:1">to see your cut.</span></span></h1>
+          <p class="lead" data-load style="--d:420ms">Velaria puts your live DaVinci Resolve Studio timeline inside a Meta Quest as you work, in stereo and in step with Resolve's viewer, for 360, VR180 and dome films. With Velaria Canvas you can move a title, set its depth and level the horizon without taking the headset off.</p>
+          <div class="hero__act" data-load style="--d:500ms">
+            <a class="button" href="#buy">Choose your version</a>
+            <a class="textlink" href="#how">See how it works</a>
+          </div>
+        </div>
+        <figure class="hv" data-load style="--d:300ms; margin: 0;" aria-label="Your Resolve timeline on a Mac, shown live in a Meta Quest">
+          <div class="mac">
+            <p class="hv__tag"><b>1</b> Your timeline, in Resolve on your Mac</p>
+            <div class="mac__win" aria-hidden="true">
+              <div class="mac__bar"><i></i><i></i><i></i><span>Strange Worlds · 360 stereo</span></div>
+              <div class="mac__viewer"></div>
+              <div class="tl">
+                <div class="tl__row" data-t="V2"><div class="clip clip--title" style="left: 44%; width: 30%;">STRANGE WORLDS</div></div>
+                <div class="tl__row" data-t="V1"><div class="clip" style="left: 0; width: 30%; background-image: url(img/t0.jpg);"></div><div class="clip" style="left: 31%; width: 40%; background-image: url(img/t1.jpg);"></div><div class="clip" style="left: 72%; width: 28%; background-image: url(img/t2.jpg);"></div></div>
+                <div class="tl__row" data-t="A1"><div class="clip clip--audio" style="left: 0; width: 100%;"></div></div>
+                <div class="tl__head"></div>
+              </div>
+            </div>
+          </div>
+          <svg class="link" viewBox="0 0 300 160" aria-hidden="true">
+            <path id="hv-path" d="M8 10 C 120 10, 170 140, 292 150"/>
+            <circle r="5"><animateMotion dur="2.4s" repeatCount="indefinite"><mpath href="#hv-path"/></animateMotion></circle>
+            <text x="150" y="58">live</text>
+          </svg>
+          <div class="quest">
+            <div class="quest__view">
+              <span class="quest__status">USB · Resolve · live · sound</span>
+              <img class="quest__panel" src="img/panel.png" alt="" width="900" height="840">
+            </div>
+            <p class="hv__tag" style="margin: 10px 0 0 6px;"><b>2</b> The same frame, live in your headset, with your mix</p>
+          </div>
+        </figure>
       </div>
       <dl class="facts" data-load style="--d:580ms">
-        <div><dt>Works with</dt><dd>DaVinci Resolve Studio on a Mac</dd></div>
-        <div><dt>Formats</dt><dd>360 and 180, mono or stereo</dd></div>
+        <div><dt>Works with</dt><dd>DaVinci Resolve Studio on a Mac with Apple silicon</dd></div>
+        <div><dt>Formats</dt><dd>360, VR180, fisheye 180 and dome, mono or stereo</dd></div>
         <div><dt>Headset</dt><dd>Meta Quest 3, over USB-C or Wi-Fi</dd></div>
-        <div><dt>Price</dt><dd><span data-price="core">See below</span>, once. No subscription.</dd></div>
+        <div><dt>Price</dt><dd>From <span data-price="view">$39</span>, once. No subscription.</dd></div>
       </dl>
     </div>
   </section>
 
   <section class="problem wrap" id="problem" aria-labelledby="problem-title">
-    <div class="sechead">
-      <h2 id="problem-title" class="head" data-reveal>You can't judge a sphere on a flat monitor.</h2>
-      <p class="lead muted" data-reveal>A flat screen can't show depth, so you can't tell how far away a title sits or whether it will float in the viewer's face. So checking one change goes like this:</p>
+    <div class="pain">
+      <h2 id="problem-title" class="head" data-reveal>Every tweak is a round trip.</h2>
+      <ol class="trip" data-reveal aria-label="What checking one change looks like today">
+        <li>Export</li><li>Copy it to the headset</li><li>Put it on</li><li class="bad">The title's in your face</li><li>Take it off</li><li>Nudge it</li><li class="again">Again</li>
+      </ol>
+      <p class="count" data-reveal>A flat monitor can't show depth or tell you whether the horizon is level, so you guess, then check. <span id="trips" aria-hidden="true">Round trip <b>1</b>.</span></p>
+      <p class="pain__turn" data-reveal>Or skip the trip.</p>
     </div>
-    <ol class="loop" data-reveal>
-      <li><h3>Export.</h3><p>Render the sequence to check one title.</p></li>
-      <li><h3>Sideload.</h3><p>Copy it to the headset and find the file.</p></li>
-      <li><h3>Squint.</h3><p>The horizon leans and the title sits too close.</p></li>
-      <li><h3>Again.</h3><p>Headset off, nudge a value, guess, repeat.</p></li>
-    </ol>
   </section>
 
   <section class="how wrap" id="how" aria-labelledby="how-title">
@@ -451,16 +568,17 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
         <p>Resolve sees Velaria as one more video output.</p>
         <ul>
           <li>One installer, run once</li>
-          <li>In Resolve's Video I/O, pick Velaria (Quest)</li>
+          <li>In Resolve's Video and Audio I/O, pick Velaria (Quest)</li>
+          <li>A DeckLink or UltraStudio can stay beside it</li>
         </ul>
       </div>
       <svg class="chain__arrow" viewBox="0 0 44 20" aria-hidden="true"><path d="M2 10h36M30 3l8 7-8 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="chain__step">
         <p class="chain__where">On your Quest</p>
         <h3 class="sub">Put the headset on</h3>
-        <p>The Velaria View app finds your Mac on its own.</p>
+        <p>The Velaria app finds your Mac on its own.</p>
         <ul>
-          <li>USB-C cable, or Wi-Fi on the same network</li>
+          <li>USB-C cable, or Wi-Fi on a network you trust</li>
           <li>No pairing codes and no addresses to type</li>
         </ul>
       </div>
@@ -472,7 +590,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
         <ul>
           <li>In step with Resolve's viewer as you scrub</li>
           <li>Stereo depth you can actually see</li>
-          <li>Nothing to export to check</li>
+          <li>Your mix in the headset, in sync</li>
         </ul>
       </div>
     </div>
@@ -491,9 +609,28 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
     </div>
   </section>
 
+  <section class="see wrap" id="view" aria-labelledby="view-title">
+    <div class="sechead">
+      <div><p class="tag tag--ice" data-reveal>Velaria View and Canvas</p>
+      <h2 id="view-title" class="head" data-reveal>See it, hear it, note it.</h2></div>
+      <p class="lead muted" data-reveal>Everything you need to review a cut from inside it, in both versions: the live picture in every format, your mix, and notes that land in your Resolve project.</p>
+    </div>
+    <ul class="flist">
+      <li data-reveal><h3>Your mix, in sync</h3><p>Resolve's monitoring mix plays in the headset on the same clock as the picture. A first-order ambisonic mix turns with your head, so a sound behind you stays behind you.</p></li>
+      <li data-reveal><h3>Notes that land in Resolve</h3><p>Drop a note from the headset and it becomes a marker at the playhead, colored by kind: Editing, Sound, Color, Graphics, Immersive, or Love this.</p></li>
+      <li data-reveal><h3>Grab a still</h3><p>Save the frame you're looking at to a Velaria Stills folder beside your media, without Resolve changing pages.</p></li>
+      <li data-reveal><h3>Hide a layer</h3><p>Switch a title or a footage window off to see the plate behind it, and bring it back with one tap.</p></li>
+      <li data-reveal><h3>Scopes in the headset</h3><p>Waveform, RGB parade, vectorscope and histogram, measured on your Mac from the frame Resolve sends, before any compression.</p></li>
+      <li data-reveal><h3>A true horizon</h3><p>A level grid over the picture, with degree marks, so a tilt of a degree shows up before your audience feels it.</p></li>
+      <li data-reveal><h3>It tells you what's wrong</h3><p>When a Resolve setting is off, the headset names it and gives the fix in Resolve's own menu words.</p></li>
+      <li data-reveal><h3>Scrub, play, park</h3><p>The headset follows the playhead as you work and holds the frame when you stop, so you can look around a parked shot.</p></li>
+    </ul>
+  </section>
+
   <section class="features wrap" id="features" aria-labelledby="features-title">
     <div class="sechead">
-      <h2 id="features-title" class="head" data-reveal>Fix it while you're in there.</h2>
+      <div><p class="tag" data-reveal>Velaria Canvas</p>
+      <h2 id="features-title" class="head" data-reveal>Fix it while you're in there.</h2></div>
       <p class="lead muted" data-reveal>Point at a title, a footage window or the whole picture, and change it from inside the shot. Every move is a real change in your Resolve project, with undo.</p>
     </div>
     <div class="features__grid">
@@ -554,72 +691,93 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
       </figure>
       <ul class="flist">
         <li data-reveal><h3>Place titles and footage</h3><p>Point at an overlay in the scene to select it, then drag it where it belongs. Pan, tilt, roll, distance and scale each have their own control.</p></li>
-        <li data-reveal><h3>Set stereo depth by eye</h3><p>Push a title back or pull it forward and watch it settle against the scene, so nothing ends up floating in the viewer's face.</p></li>
-        <li data-reveal><h3>Level and re-orient 360</h3><p>Turn on the level grid for a true horizon, then re-level the shot or turn the sphere so the action starts in front.</p></li>
+        <li data-reveal><h3>Set stereo depth by eye</h3><p>Push a title back or pull it forward and watch it settle against the scene, so nothing ends up floating in the viewer's face. Set the convergence of a whole stereo shot the same way.</p></li>
+        <li data-reveal><h3>Level and re-orient 360 and 180</h3><p>Re-level a shot against the grid, or turn the sphere so the action starts in front.</p></li>
         <li data-reveal><h3>Keyframes and undo</h3><p>A keyframe on any control, marks on the timeline deck, and undo that goes straight to your Resolve project.</p></li>
         <li data-reveal><h3>Always know what you're moving</h3><p>Overlays, patches and the whole picture are separate layers, each named, with a lock so the plate stays put.</p></li>
-        <li data-reveal><h3>Scopes in the headset</h3><p>Waveform, RGB parade, vectorscope and histogram, measured on your Mac from the frame Resolve sends, before any compression.</p></li>
         <li data-reveal><h3>A trim pass on the delivery device</h3><p>Exposure, lift, gamma, gain, contrast, saturation, temperature and tint on a layer above your grade. A trim for the headset your audience will wear, not a final grade.</p></li>
-        <li data-reveal><h3>It tells you what's wrong</h3><p>When a Resolve setting is off, the headset names it and gives the fix in Resolve's own menu words.</p></li>
+        <li data-reveal><h3>180 with the same tools</h3><p>The Velaria 180 effects let Canvas Control, Orient and Trim work on a VR180 timeline just as they do on 360.</p></li>
+        <li data-reveal><h3>Copy a placement</h3><p>Copy where one card sits and paste it onto another, so a series of titles lands in the same place.</p></li>
       </ul>
     </div>
   </section>
 
-  <section class="level" id="level" aria-labelledby="level-title">
-    <div class="level__grid wrap">
-      <div class="level__copy">
-        <h2 id="level-title" class="head">Try it: level this horizon.</h2>
-        <p class="lead">In the headset you'd point at the floor ring and turn the world. Here, drag the roll until the canyon sits on the line.</p>
-        <div class="level__control">
-          <label for="roll">Roll <output id="roll-out" for="roll">6.5°</output></label>
-          <input id="roll" type="range" min="-12" max="12" step="0.1" value="6.5" aria-describedby="roll-status">
-          <p id="roll-status" class="level__status" aria-live="polite"></p>
-        </div>
+  <section class="play" id="try" aria-labelledby="try-title">
+    <div class="wrap">
+      <div class="sechead">
+        <h2 id="try-title" class="head">Try the controls.</h2>
+        <p class="lead muted">These are Velaria Canvas's panels from the headset, working. Pick the title or the footage window on the strip, then turn the ring, pull the throttle, set the window depth and level the picture. The scopes read the frame as you go, and the trim pass sits on top of it all. Drag the view to look around.</p>
       </div>
-      <div class="level__view" id="level-view">
-        <img src="img/dome.jpg" alt="A canyon scene, tilted off level" loading="lazy">
-        <div class="level__line" aria-hidden="true"></div>
+      <div class="play__grid" id="pp">
+        <div class="play__stage">
+          <div class="hud" id="pp-strip"></div>
+          <div class="play__view" id="pv" aria-label="A view from inside the dome. The overlay you pick moves as you use the panels. Click a card to pick it.">
+            <canvas id="pv-c" width="1280" height="800"></canvas>
+            <span class="play__hint" id="pv-hint">Drag to look around</span>
+            <canvas class="play__top" id="pv-top" width="300" height="300" aria-hidden="true"></canvas>
+            <span class="play__warn" id="pv-warn" aria-live="polite"></span>
+          </div>
+          <div class="play__bar">
+            <div class="seg" role="group" aria-label="How to show the two eyes on this flat screen">
+              <button type="button" data-eyes="both" aria-pressed="true">Both eyes</button>
+              <button type="button" data-eyes="one" aria-pressed="false">One eye</button>
+            </div>
+          </div>
+          <svg id="trim-fx" width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="trimf" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncR id="tfR" type="gamma" amplitude="1" exponent="1" offset="0"/><feFuncG id="tfG" type="gamma" amplitude="1" exponent="1" offset="0"/><feFuncB id="tfB" type="gamma" amplitude="1" exponent="1" offset="0"/></feComponentTransfer><feColorMatrix id="tsat" type="saturate" values="1"/><feComponentTransfer><feFuncR id="tcR" type="linear" slope="1" intercept="0"/><feFuncG id="tcG" type="linear" slope="1" intercept="0"/><feFuncB id="tcB" type="linear" slope="1" intercept="0"/></feComponentTransfer></filter></svg>
+          <p class="play__note" id="pv-note"><b>Both eyes</b> shows what each eye sees, overlaid. Turn <b>Window Depth</b> up and the two images split apart without the title changing size: that gap is the depth your viewer feels (drawn three times wider here so you can see it). At the dome wall they meet.</p>
+          <div class="play__more">
+            <div class="hud" id="pp-scopes"></div>
+            <div class="hud" id="pp-trim"></div>
+          </div>
+        </div>
+        <div class="play__side">
+          <div class="hud" id="pp-place"></div>
+          <div class="hud" id="pp-look"></div>
+          <p class="play__note" style="font-size: 14px;">These are the headset's panels, drawn as the app draws them. Drag a dot, a throttle or the bar; drag a dial up or down, tap it to zero it, or focus any control and use the arrow keys.</p>
+        </div>
       </div>
     </div>
   </section>
 
+
   <section class="tiers wrap" id="formats" aria-labelledby="formats-title" style="padding-top: var(--section)">
     <div class="sechead">
-      <h2 id="formats-title" class="head" data-reveal>360 and 180 today. Dome is next.</h2>
+      <h2 id="formats-title" class="head" data-reveal>360, 180 and dome. In both versions.</h2>
       <p class="lead muted" data-reveal>Velaria shows each format the way your audience will see it, mono or stereo.</p>
     </div>
     <div class="tiers__grid">
       <article class="tier" data-reveal>
-        <p class="tier__name">Included</p>
-        <h3>360</h3>
+        <p class="tier__name">360</p>
+        <h3>The sphere</h3>
         <p>The whole sphere, around you.</p>
         <ul>
           <li>Mono, or stereo over/under</li>
-          <li>Level grid, re-level and re-orient</li>
+          <li>Level grid; with Canvas, re-level and re-orient</li>
           <li>Up to 5760 pixels wide at full size</li>
           <li>Square stereo timelines monitor at 3840 x 3840</li>
         </ul>
       </article>
       <article class="tier" data-reveal>
-        <p class="tier__name">Included</p>
-        <h3>180</h3>
-        <p>VR180, straight from the timeline.</p>
+        <p class="tier__name">180</p>
+        <h3>VR180</h3>
+        <p>Straight from the timeline.</p>
         <ul>
           <li>Side-by-side VR180, at full size</li>
           <li>Dual fisheye, unwrapped in the headset</li>
           <li>Lens presets from 144 to 220 degrees, with fine trim</li>
         </ul>
       </article>
-      <article class="tier" data-reveal>
-        <p class="tier__name">Coming in 1.1</p>
-        <h3>Dome</h3>
-        <p>For fulldome and planetarium work.</p>
+      <article class="tier tier--mid" data-reveal>
+        <p class="tier__name">Dome</p>
+        <h3>Fulldome</h3>
+        <p>Sit in your dome show before the dome is booked.</p>
         <ul>
-          <li class="plus">A dome master on a tilted dome, seen from a seat</li>
-          <li class="plus">A paid add-on to Velaria</li>
-          <li class="plus">Not in version 1.0, and no date yet</li>
+          <li>A standard domemaster, overhead, from a seat in a modeled theater</li>
+          <li>Small, medium or large, with a screen tilt from level to 30 degrees</li>
+          <li>Five seats: the sweet spot, front row, rear row, left and right</li>
+          <li>Fine tilt, a degree at a time</li>
         </ul>
-        <p class="tier__when">Making a dome show? <a class="textlink" data-mail="Velaria Dome">Tell us</a> and we'll write when it's ready.</p>
+        <p class="tier__when">A preview for composition, pacing and comfort, not a substitute for a check in the real theater.</p>
       </article>
     </div>
   </section>
@@ -627,17 +785,17 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
   <section class="isnt wrap" id="fit" aria-labelledby="fit-title">
     <div class="sechead">
       <h2 id="fit-title" class="head" data-reveal>What it is. What it isn't.</h2>
-      <p class="lead muted" data-reveal>Velaria is a small tool that does one job. Here is the plain list, so you know before you buy.</p>
+      <p class="lead muted" data-reveal>Velaria is a small tool that does one job well. Here is the plain list, so you know before you buy.</p>
     </div>
     <div class="isnt__grid">
       <article class="tier tier--mid" data-reveal>
         <p class="tier__name">Velaria is</p>
         <ul>
           <li>A live headset monitor for DaVinci Resolve Studio on a Mac</li>
-          <li>A way to place overlays, set depth and level a shot from inside it</li>
-          <li>Built for 360 and 180, mono or stereo</li>
+          <li>With Canvas, a way to place overlays, set depth and level a shot from inside it</li>
+          <li>Built for 360, 180 and dome, mono or stereo</li>
           <li>A one-time purchase, with every 1.x update included</li>
-          <li>Private: nothing leaves your Mac and your headset</li>
+          <li>Private: no account, no analytics, no telemetry</li>
         </ul>
       </article>
       <article class="tier" data-reveal>
@@ -646,7 +804,7 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
           <li class="no">For Windows, Premiere Pro or Final Cut Pro</li>
           <li class="no">For Apple Vision Pro, Pico or the free version of Resolve</li>
           <li class="no">A Meta Horizon Store app. You load it with developer mode</li>
-          <li class="no">Signed by Apple yet. macOS may ask you to approve it</li>
+          <li class="no">Signed by Apple. macOS may ask you to approve it</li>
           <li class="no">A reference display, a stitcher or an encoder</li>
         </ul>
       </article>
@@ -657,29 +815,54 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
     <div class="buy__grid wrap">
       <div class="buy__copy">
         <h2 id="buy-title" class="head">Buy it once.</h2>
-        <p class="price"><span data-price="core">&nbsp;</span><small>one-time</small></p>
-        <noscript><p class="muted">The price is shown at checkout.</p></noscript>
+        <p class="lead muted">Two versions. Check the five things on the right first, then pick the one that fits how you work.</p>
         <ul class="buy__terms">
-          <li>No subscription and no licence key</li>
+          <li>No subscription and no license key</li>
           <li>Every 1.x update included</li>
           <li>One person, on the Macs and headsets you use</li>
           <li>Full refund within <span data-v="refundDays">14</span> days, no questions asked</li>
           <li>Sales tax or VAT is added at checkout where it applies</li>
         </ul>
       </div>
-      <div class="req" id="requirements">
-        <h3 class="sub">Check these five things first</h3>
-        <ol>
-          <li><b>A Mac with Apple silicon, and DaVinci Resolve Studio.</b><span>macOS 13 or newer, and Resolve Studio 19, 20 or 21. The free version of Resolve will not work.</span></li>
-          <li><b>A Meta Quest 3 with developer mode on.</b><span>Developer mode needs a free Meta developer account, and Meta may take a few days to verify it. Quest 3S, Quest 2 and Quest Pro run the app, but we test on Quest 3.</span></li>
-          <li><b>Velaria is not signed by Apple.</b><span>You install it from Terminal with one command, and on most Macs it runs without a warning. If macOS says <q>Apple could not verify [file name] is free of malware that may harm your Mac or compromise your privacy</q> (macOS 15 and newer) or <q>[file name] cannot be opened because the developer cannot be verified</q> (macOS 13 and 14), click Done, open System Settings, go to Privacy &amp; Security, scroll to Security and click Open Anyway. Then run the installer again.</span></li>
-          <li><b>It takes the place of Blackmagic Desktop Video while installed.</b><span>If you use a DeckLink or UltraStudio, you can have that or Velaria active, not both at once. The installer will not set Blackmagic's driver aside unless you tell it to, and the uninstaller puts it back. Showing both in Resolve is planned as a free update.</span></li>
-          <li><b>Support is by email, and updates come when they're ready.</b><span>There is no phone support and no guaranteed response time. If it doesn't work on your setup, you get your money back.</span></li>
-        </ol>
-        <div class="req__act">
-          <a class="button" data-buy href="#BUY-URL">Buy Velaria</a>
-          <p>Secure checkout by Lemon Squeezy. Your download link arrives by email. By buying you agree to the <a class="textlink" href="#EULA-URL">licence agreement</a>.</p>
+      <div>
+        <div class="req" id="requirements">
+          <h3 class="sub">Check these five things first</h3>
+          <ol>
+            <li><b>A Mac with Apple silicon, and DaVinci Resolve Studio.</b><span>macOS 13 or newer, and Resolve Studio 19, 20 or 21. The free version of Resolve will not work.</span></li>
+            <li><b>A Meta Quest 3 with developer mode on.</b><span>Developer mode needs a free Meta developer account, and Meta may take a few days to verify it. Quest 3S, Quest 2 and Quest Pro run the app, but we test on Quest 3.</span></li>
+            <li><b>Velaria is not signed by Apple.</b><span>You install it from Terminal with one command, and on most Macs it runs without a warning. If macOS says <q>Apple could not verify [file name] is free of malware that may harm your Mac or compromise your privacy</q> (macOS 15 and newer) or <q>[file name] cannot be opened because the developer cannot be verified</q> (macOS 13 and 14), click Done, open System Settings, go to Privacy &amp; Security, scroll to Security and click Open Anyway. Then run the installer again.</span></li>
+            <li><b>If you use a DeckLink or UltraStudio, read the setup guide first.</b><span>Velaria and your Blackmagic device can both appear in Resolve's Video and Audio I/O, and Resolve restarts when you switch between them. We have tested this with a DeckLink Mini Monitor 4K.</span></li>
+            <li><b>Support is by email, and updates come when they're ready.</b><span>There is no phone support and no guaranteed response time. If it doesn't work on your setup, you get your money back.</span></li>
+          </ol>
         </div>
+        <div class="choose">
+          <article class="tier">
+            <p class="tier__name">Velaria View</p>
+            <p class="price"><span data-price="view">$39</span><small>one-time</small></p>
+            <p>See your cut where your audience will.</p>
+            <ul>
+              <li>Your live timeline in the headset, in step with Resolve's viewer</li>
+              <li>360, VR180, fisheye and dome, with theater tilt and seats</li>
+              <li>Your mix in sync, ambisonic mixes head-tracked</li>
+              <li>Scopes, level grid, notes as markers, stills</li>
+            </ul>
+            <a class="button button--ghost" data-buy="view" href="#BUY-URL-VIEW">Buy View</a>
+          </article>
+          <article class="tier tier--mid">
+            <p class="tier__name">Velaria Canvas</p>
+            <p class="price"><span data-price="canvas">$89</span><small>one-time</small></p>
+            <p>Edit your immersive film from inside it.</p>
+            <ul>
+              <li>Everything in View</li>
+              <li>Move titles and footage windows, and set their depth</li>
+              <li>Level and re-orient 360 and 180, and set convergence</li>
+              <li>Keyframes with Resolve's undo, and a trim pass</li>
+              <li>The Velaria effects for Resolve</li>
+            </ul>
+            <a class="button" data-buy="canvas" href="#BUY-URL-CANVAS">Buy Canvas</a>
+          </article>
+        </div>
+        <p class="checkout">Secure checkout by Lemon Squeezy. Your download link arrives by email. By buying you agree to the <a class="textlink" href="#EULA-URL">license agreement</a>.</p>
       </div>
     </div>
   </section>
@@ -690,21 +873,23 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
       <p class="lead muted" data-reveal>If yours isn't here, write to us before you buy. We would rather answer a question than process a refund.</p>
     </div>
     <div class="faq__list">
-      <details open><summary>What do I get when I buy Velaria?</summary><div><p>One download for your Mac. It contains the Velaria output that DaVinci Resolve Studio plays to, the Velaria View app for your Quest, the Velaria effects for Resolve (Canvas Control, Orient 360 and Trim), an installer and uninstaller, and the setup guide.</p><p>It is a one-time purchase with no subscription and no licence key.</p></div></details>
+      <details open><summary>View or Canvas: which one do I need?</summary><div><p>Velaria View is the monitor. You see your live Resolve timeline in the headset in every format, with sound, scopes, a level grid and notes that land as Resolve markers. If you only need to check your cut where your audience will see it, View is enough.</p><p>Velaria Canvas is everything in View, plus the controls that change the picture from inside the headset: move titles and footage windows, set their depth, level and re-orient the shot, set keyframes and do a trim pass. It includes the Velaria effects for Resolve that those controls drive.</p></div></details>
+      <details><summary>What do I get when I buy Velaria?</summary><div><p>One download for your Mac, with the Velaria output that DaVinci Resolve Studio plays to, the Velaria app for your Quest, an installer and uninstaller, and the setup guide. Velaria Canvas also includes the Velaria effects for Resolve: Canvas Control, Orient 360 and 180, Stereo and Trim.</p><p>Both are one-time purchases, with no subscription and no license key.</p></div></details>
       <details><summary>Which Mac, which Resolve and which headset do I need?</summary><div><p>A Mac with Apple silicon running macOS 13 or newer, DaVinci Resolve Studio 19, 20 or 21, and a Meta Quest 3. Quest 3S, Quest 2 and Quest Pro run the app, but Quest 3 is the headset we test on.</p><p>You also need a USB-C data cable for the install. After that you can work over the cable or over Wi-Fi.</p></div></details>
       <details><summary>Does it work with the free version of DaVinci Resolve?</summary><div><p>No. The free version has no video output for Velaria to connect to, so Velaria needs DaVinci Resolve Studio.</p></div></details>
-      <details><summary>Why does my Quest need developer mode?</summary><div><p>Velaria View is not in the Meta Horizon Store yet, so the installer loads it onto your headset over the cable. Meta only allows that when developer mode is on. Turning it on means creating a free Meta developer account, and Meta may take a few days to verify the account.</p><p>If you are not comfortable doing that, please wait for a store version before you buy.</p></div></details>
-      <details><summary>macOS says it can't verify the developer. Is that expected?</summary><div><p>Yes. Velaria 1.0 is not signed or notarized by Apple. On most Macs the installer runs from Terminal without a warning. If macOS does stop it, the requirements box above gives the exact message and the fix: System Settings, Privacy &amp; Security, Open Anyway, then run the installer again.</p></div></details>
-      <details><summary>I own a DeckLink or UltraStudio. Can I keep using it?</summary><div><p>Yes, but not at the same moment in version 1.0. Resolve sees Velaria as a Blackmagic video device, so while Velaria is installed it takes the place of Blackmagic Desktop Video. The installer will not set Blackmagic's driver aside unless you tell it to, and the uninstaller puts it back.</p><p>Having both listed side by side in Resolve is in the works and will be a free update.</p></div></details>
-      <details><summary>Does it work with Premiere Pro, Final Cut Pro or on Windows?</summary><div><p>No. Velaria 1.0 is for DaVinci Resolve Studio on a Mac.</p></div></details>
-      <details><summary>Does it work with Apple Vision Pro, Pico or other headsets?</summary><div><p>No. Velaria 1.0 is for Meta Quest. If you work on Apple Vision Pro, DaVinci Resolve Studio has its own monitoring for that headset.</p></div></details>
-      <details><summary>Which formats and resolutions can I preview?</summary><div><p>360 in mono or over/under stereo, and 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees.</p><p>Pictures up to 5760 pixels wide reach the headset at full size (a 5760 x 2880 VR180 timeline, for example); wider pictures are scaled down to 5760. Resolve's monitoring picture is no taller than 4320 pixels, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed.</p></div></details>
-      <details><summary>Can I finish a colour grade in the headset?</summary><div><p>No. A Quest is not a reference display. Velaria gives you scopes measured on the Mac and a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor.</p></div></details>
-      <details><summary>Cable or Wi-Fi?</summary><div><p>Both work, and the app finds your Mac on its own. The USB-C cable is the steadier choice. Over Wi-Fi, the Mac and the headset need to be on the same network, and a fast, uncrowded one.</p></div></details>
-      <details><summary>How is this different from a headset app that shows a video stream from my Mac?</summary><div><p>Those apps show you a picture. Velaria also stays in step with Resolve's own viewer, frame for frame, and it lets you change the project from inside the shot: move an overlay, set its depth, level the horizon, set a keyframe. Every change is a real change in your Resolve project, with undo.</p></div></details>
-      <details><summary>When is dome support coming, and what will it cost?</summary><div><p>Dome preview is planned for version 1.1 as a paid add-on for people who make fulldome and planetarium work. We have not set a date. Version 1.0 does not include it.</p></div></details>
+      <details><summary>Why does my Quest need developer mode?</summary><div><p>The Velaria app is not in the Meta Horizon Store, so the installer loads it onto your headset over the cable, and Meta only allows that when developer mode is on. Turning it on means creating a free Meta developer account, and Meta may take a few days to verify it, so it is worth starting first.</p><p>If you would rather not turn developer mode on, this version of Velaria isn't for you.</p></div></details>
+      <details><summary>macOS says it can't verify the developer. Is that expected?</summary><div><p>Yes. Velaria is not signed or notarized by Apple. On most Macs the installer runs from Terminal without a warning. If macOS does stop it, the requirements box above gives the exact message and the fix: System Settings, Privacy &amp; Security, Open Anyway, then run the installer again.</p></div></details>
+      <details><summary>I own a DeckLink or UltraStudio. Can I keep using it?</summary><div><p>Yes. Velaria and your Blackmagic device can both appear in Resolve's Video and Audio I/O, and you switch between them there. Resolve asks for a restart each time you switch, which is how it behaves with any two Blackmagic devices. We have tested this with a DeckLink Mini Monitor 4K; the setup guide has the install step.</p><p>On macOS 26, if your card doesn't show up at all, approve Blackmagic's driver extension under System Settings, General, Login Items &amp; Extensions. That one is on Blackmagic's side, and it catches people out whether Velaria is installed or not.</p></div></details>
+      <details><summary>Does it work with Premiere Pro, Final Cut Pro or on Windows?</summary><div><p>No. Velaria is for DaVinci Resolve Studio on a Mac.</p></div></details>
+      <details><summary>Does it work with Apple Vision Pro, Pico or other headsets?</summary><div><p>No. Velaria is for Meta Quest. If you work on Apple Vision Pro, DaVinci Resolve Studio has its own monitoring for that headset.</p></div></details>
+      <details><summary>Which formats and resolutions can I preview?</summary><div><p>360 in mono or over/under stereo; 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees; and dome, from a standard domemaster.</p><p>Pictures up to 5760 pixels wide reach the headset at full size (a 5760 x 2880 VR180 timeline, for example); wider pictures are scaled down to 5760. Resolve's monitoring picture is no taller than 4320 pixels, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. The headset tells you when that setting is needed.</p></div></details>
+      <details><summary>Can I preview a dome show?</summary><div><p>Yes, in both View and Canvas. Open a standard domemaster timeline (square, 180 degree fisheye, front at the bottom of the frame) and choose the Dome projection in the headset. You sit in a modeled theater: choose small, medium or large, a screen tilt from level to 30 degrees, and one of five seats, then fine-tune the tilt a degree at a time.</p><p>It is a preview for composition, pacing and comfort, not a substitute for a check in the real theater.</p></div></details>
+      <details><summary>Can I hear my mix in the headset?</summary><div><p>Yes. Resolve's monitoring mix plays through the Quest on the same clock as the picture. A first-order ambisonic mix can also be heard head-tracked, so a sound placed behind you stays behind you as you turn. The setup guide shows how to route it in Fairlight.</p></div></details>
+      <details><summary>Can I finish a color grade in the headset?</summary><div><p>No. A Quest is not a reference display. Velaria gives you scopes measured on the Mac, and Canvas adds a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor.</p></div></details>
+      <details><summary>Cable or Wi-Fi?</summary><div><p>The USB-C cable is the default and the steadier choice. Wi-Fi works too, on a fast network you trust, with the Mac and the headset on the same network. Either way the app finds your Mac on its own.</p></div></details>
+      <details><summary>How is this different from a headset app that shows a video stream from my Mac?</summary><div><p>Those apps show you a picture, usually through an NDI plug-in and an extra node in your Resolve tree. Velaria appears in Resolve as a video output, with nothing added to your node tree, and is built to stay in step with Resolve's viewer, with your mix in sync. With Canvas you can also change the project from inside the shot, with undo.</p></div></details>
       <details><summary>How many computers can I install it on? Are updates free?</summary><div><p>One purchase covers one person, on the Macs and headsets that person uses. A second editor needs a second copy. Every 1.x update is free. A later major version may be a paid upgrade.</p></div></details>
-      <details><summary>Does Velaria send any data anywhere?</summary><div><p>No. There is no account, no analytics and no telemetry. The picture travels between your Mac and your headset over the cable or your own network, and nowhere else. The privacy statement has the details.</p></div></details>
+      <details><summary>Does Velaria send any data anywhere?</summary><div><p>There is no account, no analytics and no telemetry. Over the cable, the picture and sound go from your Mac to your headset and nowhere else. Over Wi-Fi the stream is not encrypted, so use a network you trust. The privacy statement has the details.</p></div></details>
       <details><summary>What if it doesn't work for me?</summary><div><p>Write to us within 14 days of buying and we will refund you, no questions asked. Support is by email. If you run the log script that comes with Velaria and attach the file, we can usually see what went wrong.</p></div></details>
     </div>
   </section>
@@ -718,11 +903,11 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
 <footer class="close wrap">
   <p class="close__name" aria-hidden="true">Velaria</p>
   <div class="close__row">
-    <span>Edit your immersive film from inside it. Made by Hammer &amp; Anvil.</span>
-    <nav aria-label="Footer"><a class="textlink" href="#how">How it works</a><a class="textlink" href="#formats">Formats</a><a class="textlink" href="#faq">Questions</a><a class="textlink" href="#buy">Buy</a></nav>
+    <span>Stop exporting to see your cut. Made by Hammer &amp; Anvil.</span>
+    <nav aria-label="Footer"><a class="textlink" href="#how">How it works</a><a class="textlink" href="#try">Try it</a><a class="textlink" href="#formats">Formats</a><a class="textlink" href="#faq">Questions</a><a class="textlink" href="#buy">Buy</a></nav>
   </div>
   <div class="close__legal">
-    <a class="textlink" href="#EULA-URL">Licence agreement</a>
+    <a class="textlink" href="#EULA-URL">License agreement</a>
     <a class="textlink" href="#PRIVACY-URL">Privacy</a>
     <a class="textlink" href="#NOTICES-URL">Third-party notices</a>
     <a class="textlink" href="#DOCS-URL">Setup guide</a>
@@ -738,16 +923,17 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
 
   /* Prices, buy link, support address: all from VELARIA at the top of the file */
   const money = (n) => '$' + n + (V.currency === 'USD' ? '' : ' ' + V.currency);
-  document.querySelectorAll('[data-price]').forEach((el) => { el.textContent = money(V.priceCore) + (el.closest('.price') ? '' : ' ' + V.currency); });
+  const priceOf = { view: V.priceView, canvas: V.priceCanvas };
+  document.querySelectorAll('[data-price]').forEach((el) => { el.textContent = money(priceOf[el.dataset.price]); });
   document.querySelectorAll('[data-v]').forEach((el) => { el.textContent = V[el.dataset.v]; });
-  document.querySelectorAll('[data-buy]').forEach((el) => { el.href = V.buyUrl; });
+  document.querySelectorAll('[data-buy]').forEach((el) => { el.href = el.dataset.buy === 'view' ? V.buyUrlView : V.buyUrlCanvas; });
   document.querySelectorAll('[data-mail]').forEach((el) => { el.href = 'mailto:' + V.supportEmail + '?subject=' + encodeURIComponent(el.dataset.mail); });
   const ld = document.createElement('script'); ld.type = 'application/ld+json';
   ld.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'Velaria',
     applicationCategory: 'MultimediaApplication', operatingSystem: 'macOS 13 or later; Meta Quest',
     description: document.querySelector('meta[name="description"]').content,
     publisher: { '@type': 'Organization', name: 'Hammer & Anvil' },
-    offers: { '@type': 'Offer', price: String(V.priceCore), priceCurrency: V.currency, availability: 'https://schema.org/InStock' } });
+    offers: [{ '@type': 'Offer', name: 'Velaria View', price: String(V.priceView), priceCurrency: V.currency }, { '@type': 'Offer', name: 'Velaria Canvas', price: String(V.priceCanvas), priceCurrency: V.currency }] });
   document.head.appendChild(ld);
 
   /* Dial tick dots on the panel, as the headset draws them */
@@ -762,15 +948,468 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
     }
   });
 
-  /* Level the horizon: the one live control */
-  const roll = document.getElementById('roll'), out = document.getElementById('roll-out'), status = document.getElementById('roll-status'), view = document.getElementById('level-view');
-  const setRoll = () => {
-    const v = parseFloat(roll.value);
-    view.style.setProperty('--roll', v + 'deg');
-    out.textContent = (v > 0 ? '+' : '') + v.toFixed(1) + '°';
-    status.textContent = Math.abs(v) < 0.4 ? 'Level. Back to cutting.' : '';
-  };
-  roll.addEventListener('input', setRoll); setRoll();
+  /* Try the controls: a canvas view inside the dome, driven by a working copy of the headset panel */
+  (() => {
+    const cv = document.getElementById('pv-c'), ctx = cv.getContext('2d'), view = document.getElementById('pv');
+    const top = document.getElementById('pv-top'), tctx = top.getContext('2d');
+    const warn = document.getElementById('pv-warn'), note = document.getElementById('pv-note');
+    const W = cv.width, H = cv.height, FOV = 100 * Math.PI / 180, F = (W / 2) / Math.tan(FOV / 2), WALL = 10, IPD = 0.064;
+    const d2r = (d) => d * Math.PI / 180;
+    const items = {
+      title: { pan: 0, tilt: 8, dist: 3.2, scale: 1, roll: 0, yaw: 0, pitch: 0, croll: 0, depth: 0, stereo: true },
+      footage: { pan: -34, tilt: -6, dist: 5, scale: 1, roll: 0, yaw: 20, pitch: 0, croll: 0, depth: 0, stereo: true },
+    };
+    const st = { layer: 'overlays', pick: 'title', eyes: 'both', yaw: 0, rotY: 0, level: 6, focus: null, lastMs: '0.4' };
+
+    /* The dome: cut-paper canyon wrapped all the way round (360 degrees), drawn once. */
+    const PW = 4096, PH = 1400, pano = document.createElement('canvas'); pano.width = PW; pano.height = PH;
+    (() => {
+      const g = pano.getContext('2d');
+      const sky = g.createLinearGradient(0, 0, 0, PH * 0.62); sky.addColorStop(0, '#0f1d3d'); sky.addColorStop(0.6, '#25427a'); sky.addColorStop(1, '#6d86b8');
+      g.fillStyle = sky; g.fillRect(0, 0, PW, PH);
+      let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < 260; i++) { const x = rnd() * PW, y = rnd() * PH * 0.5, r = rnd() * 2.4 + 0.6; g.fillStyle = `rgba(255,236,200,${0.35 + rnd() * 0.6})`; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+      const wave = (x, a) => a.reduce((s, [amp, k, ph]) => s + amp * Math.sin(2 * Math.PI * k * x / PW + ph), 0); // periodic, so it wraps seamlessly
+      const layers = [
+        { base: 0.6, h: 70, cols: ['#6f4a5a', '#8c5a5c'], a: [[1, 9, 1], [0.6, 17, 2], [0.3, 37, 0.3]], t: 0.25, k: 2.2, haze: 0.35 },
+        { base: 0.65, h: 110, cols: ['#9a5240', '#b7684a'], a: [[1, 7, 0.4], [0.7, 13, 1.7], [0.3, 29, 2.2]], t: 0.3, k: 2.6, haze: 0.15 },
+        { base: 0.72, h: 150, cols: ['#bd5f3a', '#d98153'], a: [[1, 6, 2.5], [0.6, 11, 0.9], [0.25, 31, 1.1]], t: 0.45, k: 3, haze: 0 },
+      ];
+      for (const L of layers) {
+        const top = (x) => { const n = wave(x, L.a) - L.t; return L.h * Math.min(1, Math.max(0, n * L.k)) + 8 * Math.sin(x * 0.05); }; // flat-topped mesas, softened
+        const ridge = new Path2D(); ridge.moveTo(0, PH * L.base - top(0));
+        for (let x = 4; x <= PW; x += 4) ridge.lineTo(x, PH * L.base - top(x));
+        const fill = new Path2D(ridge); fill.lineTo(PW, PH); fill.lineTo(0, PH); fill.closePath();
+        const gr = g.createLinearGradient(0, PH * L.base - L.h, 0, PH * L.base + 160); gr.addColorStop(0, L.cols[1]); gr.addColorStop(1, L.cols[0]);
+        g.fillStyle = gr; g.fill(fill);
+        g.save(); g.clip(fill);
+        for (let i = 0; i < 70; i++) { const y = PH * L.base - L.h + rnd() * (L.h + 160); g.fillStyle = `rgba(${rnd() < 0.5 ? '70,25,20' : '255,205,165'},0.08)`; g.fillRect(rnd() * PW, y, 80 + rnd() * 260, 2 + rnd() * 3); } // paper strata
+        if (L.haze) { g.fillStyle = `rgba(109,134,184,${L.haze})`; g.fill(fill); }
+        g.restore();
+        g.strokeStyle = 'rgba(255,214,170,0.4)'; g.lineWidth = 2.5; g.stroke(ridge); // the cut paper edge
+      }
+      const fl = g.createLinearGradient(0, PH * 0.8, 0, PH); fl.addColorStop(0, '#d9a77a'); fl.addColorStop(1, '#8c5a3c'); g.fillStyle = fl; g.fillRect(0, PH * 0.8, PW, PH * 0.2);
+      g.strokeStyle = '#8fc1d9'; g.lineWidth = 26; g.lineCap = 'round'; g.beginPath(); // river
+      for (let x = 0; x <= PW; x += 8) { const y = PH * 0.86 + 34 * Math.sin(2 * Math.PI * 4 * x / PW) + 14 * Math.sin(2 * Math.PI * 9 * x / PW); x ? g.lineTo(x, y) : g.moveTo(x, y); }
+      g.stroke();
+    })();
+    const PANO_FOV_V = d2r(110); // the strip covers 110 degrees of height, 360 of width
+
+    /* The overlays */
+    const titleArt = document.createElement('canvas'); titleArt.width = 1400; titleArt.height = 400;
+    const drawTitle = () => {
+      const g = titleArt.getContext('2d'); g.clearRect(0, 0, 1400, 400);
+      g.font = '800 200px "Saira Extra Condensed", "Arial Narrow", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      for (let i = 14; i > 0; i--) { g.fillStyle = `rgb(${90 + i * 2},${42 + i},${24})`; g.fillText('STRANGE WORLDS', 690 + i * 1.2, 200 + i * 1.6); } // the extruded sides
+      const gr = g.createLinearGradient(0, 110, 0, 290); gr.addColorStop(0, '#ffe3c0'); gr.addColorStop(0.5, '#e0a97a'); gr.addColorStop(1, '#b8774a');
+      g.fillStyle = gr; g.fillText('STRANGE WORLDS', 690, 200);
+    };
+    document.fonts && document.fonts.ready.then(() => { drawTitle(); draw(); }); drawTitle();
+    const vid = document.createElement('video'); vid.src = 'img/footage.mp4'; vid.muted = true; vid.loop = true; vid.playsInline = true; vid.preload = 'auto';
+    const poster = new Image(); poster.src = 'img/footage.jpg'; poster.onload = () => draw();
+
+    const felt = (it) => 1 / Math.max(0.02, 1 / it.dist + it.depth * 0.8);  // where the stereo puts it, in metres
+    const project = (it, eye, gain = 1) => {
+      // angular position relative to where you're looking, plus the eye's sideways offset for stereo
+      let dy = ((it.pan - st.yaw + 540) % 360) - 180;
+      const ang = d2r(dy), x = W / 2 + F * Math.tan(ang), y = H / 2 - F * Math.tan(d2r(it.tilt)) / Math.cos(ang);
+      const disp = (it.stereo ? gain : 0) * eye * (IPD / 2) * F * (1 / felt(it) - 1 / WALL);  // zero disparity at the dome wall; Stereo depth moves where the eyes converge
+      return { x: x - disp, y, vis: Math.abs(dy) < 85 };
+    };
+    const sizeOf = (key) => { const it = items[key], widthM = key === 'title' ? 1.3 : 1.4, w = 2 * F * Math.tan(Math.atan((widthM / 2) * it.scale / it.dist)); return [w, key === 'title' ? w * 400 / 1400 : w * 9 / 16]; };
+    const boxOf = (key) => { const p = project(items[key], 0); if (!p.vis) return null; const [w, h] = sizeOf(key); return { x: p.x, y: p.y, w, h }; };
+    const drawItem = (g, key, eye, alpha, gain = 1) => {
+      const it = items[key], p = project(it, eye, gain); if (!p.vis) return;
+      const [w, h] = sizeOf(key);
+      g.save(); g.globalAlpha = alpha; g.translate(p.x, p.y); g.rotate(d2r(it.roll + it.croll));
+      g.scale(Math.max(0.05, Math.cos(d2r(it.yaw))), Math.max(0.05, Math.cos(d2r(it.pitch))));  // card yaw and pitch turn it away from you
+      if (key === 'title') g.drawImage(titleArt, -w / 2, -h / 2, w, h);
+      else {
+        g.fillStyle = '#e0a97a'; g.fillRect(-w / 2 - 6, -h / 2 - 6, w + 12, h + 12);
+        const src = vid.readyState >= 2 ? vid : poster; try { g.drawImage(src, -w / 2, -h / 2, w, h); } catch (e) {}
+      }
+      if (key === st.pick && st.layer === 'overlays') { g.strokeStyle = 'rgba(224,169,122,0.9)'; g.lineWidth = 3; g.setLineDash([10, 8]); g.strokeRect(-w / 2 - 14, -h / 2 - 14, w + 28, h + 28); }
+      g.restore();
+    };
+    const drawWorld = (g, eye, alphaItems) => {
+      g.save(); g.translate(W / 2, H / 2); g.rotate(d2r(st.level)); g.translate(-W / 2, -H / 2);
+      g.fillStyle = '#0f1d3d'; g.fillRect(-W, -H, W * 3, H * 1.5); g.fillStyle = '#9a6343'; g.fillRect(-W, H / 2, W * 3, H * 1.6);  // beyond the strip: sky above, floor below
+      const pxPerRad = PW / (2 * Math.PI), ox = (d2r(st.yaw - st.rotY) * pxPerRad) % PW, sw = FOV * pxPerRad;
+      const sh = PH * (2 * Math.atan(H / 2 / F)) / PANO_FOV_V;
+      for (const k of [-1, 0, 1]) {  // tile so the 360 wraps
+        const sx = ((ox - sw / 2) % PW + PW) % PW + k * PW;
+        g.drawImage(pano, sx - sw * 0.25, (PH - sh * 1.6) / 2, sw * 2.1, sh * 1.6, -W * 0.55, -H * 0.3, W * 2.1, H * 1.6);
+      }
+      g.restore();
+      g.strokeStyle = 'rgba(224,169,122,0.55)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W * 0.04, H / 2); g.lineTo(W * 0.96, H / 2); g.stroke(); // level grid line
+      for (const k of ['footage', 'title']) drawItem(g, k, eye, alphaItems);
+    };
+    const trimBuf = document.createElement('canvas'); trimBuf.width = W; trimBuf.height = H;
+    let raf = 0; const draw = () => { if (!raf) raf = requestAnimationFrame(render); };
+    function render() {
+      raf = 0;
+      if (st.eyes === 'both') {
+        drawWorld(ctx, 0, 0);
+        for (const k of ['footage', 'title']) { drawItem(ctx, k, -1, 0.55, 3); drawItem(ctx, k, 1, 0.55, 3); }
+      } else drawWorld(ctx, 0, 1);
+      if (trimIsOn()) {  // the trim sits on top of everything, like an adjustment clip at the top of the stack
+        if ('filter' in ctx) { const b = trimBuf.getContext('2d'); b.clearRect(0, 0, W, H); b.drawImage(cv, 0, 0); ctx.save(); ctx.filter = 'url(#trimf)'; ctx.clearRect(0, 0, W, H); ctx.drawImage(trimBuf, 0, 0); ctx.restore(); cv.style.filter = ''; }
+        else cv.style.filter = `brightness(${Math.pow(2, trim.exposure) * trim.gain}) saturate(${trim.saturation}) contrast(${trim.contrast})`;
+      } else cv.style.filter = '';
+      measureSoon();
+      // the warning when the stereo becomes uncomfortable
+      const it = items[st.pick];
+      if (st.layer !== 'overlays') { warn.classList.remove('on'); drawTop(); return; }
+      warn.textContent = felt(it) < 0.9 ? 'Too close: this floats in your viewer\'s face' : felt(it) > WALL ? 'Behind the dome wall: the stereo fights the picture' : '';
+      warn.classList.toggle('on', !!warn.textContent);
+      drawTop();
+      if (vid.readyState >= 2 && !vid.paused && items.footage) draw();
+    }
+    const drawTop = () => {  // seen from above: you, where you're looking, the overlays and the dome wall
+      const s = top.width, c = s / 2, R0 = s * 0.42, map = (d) => R0 * Math.log(1 + d) / Math.log(1 + WALL);
+      tctx.clearRect(0, 0, s, s);
+      tctx.strokeStyle = 'rgba(143,193,217,0.6)'; tctx.lineWidth = 3; tctx.beginPath(); tctx.arc(c, c, R0, 0, 7); tctx.stroke();
+      tctx.fillStyle = 'rgba(143,193,217,0.18)'; tctx.beginPath(); tctx.moveTo(c, c);
+      tctx.arc(c, c, R0, d2r(st.yaw - 90) - FOV / 2, d2r(st.yaw - 90) + FOV / 2); tctx.fill();
+      for (const k of ['footage', 'title']) {
+        const it = items[k], r = Math.min(map(felt(it)), R0 * 1.12), a = d2r(it.pan - 90);
+        tctx.fillStyle = k === st.pick ? '#e0a97a' : '#8a919b'; tctx.beginPath(); tctx.arc(c + r * Math.cos(a), c + r * Math.sin(a), k === st.pick ? 9 : 6, 0, 7); tctx.fill();
+      }
+      tctx.fillStyle = '#f2f3f5'; tctx.beginPath(); tctx.arc(c, c, 7, 0, 7); tctx.fill();
+      tctx.fillStyle = '#b4b8bf'; tctx.font = '600 22px Saira, sans-serif'; tctx.textAlign = 'center'; tctx.fillText('top view', c, s - 10);
+    };
+
+    /* Look around by dragging the view; a click without a drag picks the card under the pointer, as a pinch does */
+    let drag = null;
+    view.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, yaw: st.yaw, moved: false }; view.setPointerCapture(e.pointerId); document.getElementById('pv-hint').style.opacity = 0; });
+    view.addEventListener('pointermove', (e) => { if (!drag) return; if (Math.abs(e.clientX - drag.x) > 4) drag.moved = true; st.yaw = drag.yaw - (e.clientX - drag.x) / view.clientWidth * 100; draw(); });
+    view.addEventListener('pointerup', (e) => {
+      if (drag && !drag.moved) {
+        const r = view.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * W, py = (e.clientY - r.top) / r.height * H;
+        for (const k of ['title', 'footage']) { const b = boxOf(k); if (b && Math.abs(px - b.x) < b.w / 2 + 20 && Math.abs(py - b.y) < b.h / 2 + 20) { st.layer = 'overlays'; st.pick = k; ui(); draw(); break; } }
+      }
+      drag = null;
+    });
+
+    /* ---------- The headset panels, drawn to the same geometry as the app's own renderer (hudpreview) ---------- */
+    const FONT = `font-family:'Red Hat Text',system-ui,sans-serif`;
+    const t = (x, y, s, size, weight, fill, extra = '') => `<text x="${x}" y="${y}" style="${FONT};font-size:${size}px;font-weight:${weight}${extra}" fill="${fill}">${s}</text>`;
+    const tc = (x, y, s, size, weight, fill, extra = '') => `<text x="${x}" y="${y}" text-anchor="middle" style="${FONT};font-size:${size}px;font-weight:${weight}${extra}" fill="${fill}">${s}</text>`;
+    const LBL = '#a9adb4', TRACK = '#14171c', DEFS = `<defs>
+      <linearGradient id="pbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#272c34"/><stop offset="1" stop-color="#1e2229"/></linearGradient>
+      <radialGradient id="knob" cx="0.4" cy="0.35" r="0.7"><stop offset="0" stop-color="#ffffff"/><stop offset="0.7" stop-color="#eceef1"/><stop offset="1" stop-color="#c9ccd1"/></radialGradient>
+      <linearGradient id="knobv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfd2d7"/></linearGradient>
+      <linearGradient id="satin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4cfa8"/><stop offset="0.42" stop-color="#e3a676"/><stop offset="0.62" stop-color="#cd8a5b"/><stop offset="1" stop-color="#e2a878"/></linearGradient>
+      <linearGradient id="polish" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe3c8"/><stop offset="0.2" stop-color="#eab389"/><stop offset="0.44" stop-color="#cf8d5e"/><stop offset="0.56" stop-color="#b97448"/><stop offset="0.76" stop-color="#d99c6c"/><stop offset="1" stop-color="#f3c79d"/></linearGradient>
+      <linearGradient id="throttle" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#94603f"/><stop offset="1" stop-color="#5d3b2a"/></linearGradient>
+      <linearGradient id="chip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#363c46"/><stop offset="1" stop-color="#2a2f37"/></linearGradient>
+    </defs>`;
+    const frame = (w, h, title) => `<rect x="1" y="1" width="${w - 2}" height="${h - 2}" rx="30" fill="url(#pbg)" stroke="#3d424b" stroke-width="2"/>` +
+      `<rect x="22" y="29" width="56" height="6" rx="3" fill="#8e939b"/>` + t(92, 40, title, 18, 700, '#b9bcc2', ';letter-spacing:4px') +
+      `<path d="M856 36 L864 28 L872 36" fill="none" stroke="#b9bcc2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` +
+      `<line x1="2" y1="63" x2="${w - 2}" y2="63" stroke="#3a3f47" stroke-width="1.5"/>`;
+    const diamond = (x, y, on) => `<path d="M${x} ${y - 11} L${x + 7} ${y} L${x} ${y + 11} L${x - 7} ${y} Z" fill="${on ? '#e0a97a' : 'none'}" stroke="${on ? '#e0a97a' : '#9ba0a8'}" stroke-width="2.2" stroke-linejoin="round"/>`;
+    const sign = (v) => (v > 0.05 ? '+' : v < -0.05 ? '−' : '') + Math.abs(v).toFixed(1) + '°';
+    const pol = (cx, cy, r, deg) => [cx + r * Math.cos(d2r(deg)), cy + r * Math.sin(d2r(deg))];
+    const arc = (cx, cy, r, a0, a1) => { const [x0, y0] = pol(cx, cy, r, a0), [x1, y1] = pol(cx, cy, r, a1); return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} ${a1 > a0 ? 1 : 0} ${x1.toFixed(1)} ${y1.toFixed(1)}`; };
+    const knob = (x, y, r = 18) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="url(#knob)" stroke="#2a2e35" stroke-width="2"/>`;
+    const focusRing = (c, x, y, w, h) => st.focus === c ? `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="16" fill="none" stroke="#e0a97a" stroke-width="2" stroke-opacity="0.7"/>` : '';
+
+    function panRing(v) {
+      const cx = 220, cy = 265; let s = `<g data-c="pan" tabindex="0" role="slider" aria-label="Pan" aria-valuetext="${sign(v)}">` + focusRing('pan', 62, 100, 316, 330);
+      s += `<circle cx="${cx}" cy="${cy}" r="150" fill="none" stroke="#5d636c" stroke-width="1.5"/><circle cx="${cx}" cy="${cy}" r="140" fill="${TRACK}"/><circle cx="${cx}" cy="${cy}" r="117" fill="#1b1f25"/>`;
+      for (let a = 0; a < 360; a += 15) { const maj = a % 90 === 0, [x0, y0] = pol(cx, cy, 112, a), [x1, y1] = pol(cx, cy, maj ? 94 : 102, a); s += `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${maj ? '#f2f3f5' : '#cfd2d7'}" stroke-width="${maj ? 3 : 2}" stroke-linecap="round"/>`; }
+      if (Math.abs(v) > 0.5) s += `<path d="${arc(cx, cy, 128, -90, -90 + v)}" fill="none" stroke="#e0a97a" stroke-width="5" stroke-linecap="round"/>`;
+      s += `<path d="M212 102 L228 102 L220 112 Z" fill="#f2f3f5"/>`;
+      const [kx, ky] = pol(cx, cy, 128, -90 + v);
+      s += tc(cx, 278, sign(v), 34, 700, '#f2f3f5') + tc(cx, 307, 'PAN', 16, 700, LBL, ';letter-spacing:3.5px') + knob(kx, ky) + diamond(377, 113) + '</g>';
+      return s;
+    }
+    function tiltArc(v) {
+      const cx = 520, cy = 265; let s = `<g data-c="tilt" tabindex="0" role="slider" aria-label="Tilt" aria-valuetext="${sign(v)}">` + focusRing('tilt', 480, 100, 220, 390);
+      s += `<path d="${arc(cx, cy, 128, -90, 90)}" fill="none" stroke="${TRACK}" stroke-width="24" stroke-linecap="round"/>`;
+      for (let a = -90; a <= 90; a += 15) { const maj = a % 45 === 0, [x0, y0] = pol(cx, cy, 112, a), [x1, y1] = pol(cx, cy, maj ? 92 : 102, a); s += `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${maj ? '#f2f3f5' : '#cfd2d7'}" stroke-width="${maj ? 3 : 2}" stroke-linecap="round"/>`; }
+      s += `<line x1="${cx}" y1="${cy}" x2="${cx + 102}" y2="${cy}" stroke="#f2f3f5" stroke-width="3"/><line x1="${cx + 106}" y1="${cy}" x2="${cx + 122}" y2="${cy}" stroke="#f2f3f5" stroke-width="3"/>`;
+      if (Math.abs(v) > 0.5) s += `<path d="${arc(cx, cy, 140, Math.min(0, -v), Math.max(0, -v))}" fill="none" stroke="#e0a97a" stroke-width="5" stroke-linecap="round"/>`;
+      const [kx, ky] = pol(cx, cy, 128, -v);
+      s += tc(563, 443, sign(v), 34, 700, '#f2f3f5') + tc(533, 475, 'TILT', 16, 700, LBL, ';letter-spacing:3.5px') + knob(kx, ky) + diamond(677, 113) + '</g>';
+      return s;
+    }
+    const DY0 = 535, DY1 = 722, dToY = (d) => DY0 + Math.log(d / 0.5) / Math.log(40) * (DY1 - DY0), yToD = (y) => 0.5 * Math.pow(40, Math.min(1, Math.max(0, (y - DY0) / (DY1 - DY0))));
+    function throttle(v) {
+      const y = dToY(v); let s = `<g data-c="dist" tabindex="0" role="slider" aria-label="Distance" aria-valuetext="${v.toFixed(2)} metres">` + focusRing('dist', 30, 510, 200, 300);
+      s += t(40, 507, 'SCALE · DISTANCE', 16, 700, LBL, ';letter-spacing:3.5px') + diamond(142, 517);
+      s += `<rect x="48" y="528" width="60" height="200" rx="10" fill="#12151a" stroke="#2a2e35" stroke-width="2"/>`;
+      s += `<rect x="53" y="${y.toFixed(1)}" width="50" height="${(724 - y).toFixed(1)}" rx="8" fill="url(#throttle)"/>`;
+      for (const [d, lab] of [[0.5, '0.5 m'], [1, '1 m'], [2, '2 m'], [5, '5 m'], [20, '20 m']]) { const yy = dToY(d); s += `<line x1="116" y1="${yy}" x2="124" y2="${yy}" stroke="#a9adb4" stroke-width="2"/>` + t(128, yy + 6, lab, 16, 600, '#c9ccd1'); }
+      s += `<rect x="51" y="${(y - 14).toFixed(1)}" width="54" height="28" rx="7" fill="url(#knobv)" stroke="#2a2e35" stroke-width="1.5"/>`;
+      s += t(48, 768, v.toFixed(2) + ' m', 30, 700, '#f2f3f5') + t(48, 794, 'DISTANCE', 16, 700, LBL, ';letter-spacing:3.5px') + '</g>';
+      return s;
+    }
+    function dial(c, cx, cy, v, label, dx, dy) {
+      let s = `<g data-c="${c}" data-cx="${cx}" data-cy="${cy}" tabindex="0" role="slider" aria-label="${label}" aria-valuetext="${sign(v)}">` + focusRing(c, cx - 110, cy - 64, 220, 190);
+      s += `<circle cx="${cx}" cy="${cy}" r="55" fill="#0f1216" stroke="#6b7078" stroke-width="2.5"/>`;
+      for (let a = 0; a < 360; a += 30) { const maj = a % 90 === 0, [x0, y0] = pol(cx, cy, 47, a), [x1, y1] = pol(cx, cy, maj ? 36 : 41, a); s += `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="#e9eaec" stroke-width="${maj ? 3 : 2}" stroke-linecap="round"/>`; }
+      const [px, py] = pol(cx, cy, 36, -90 + v);
+      s += `<line x1="${cx}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="#f2f3f5" stroke-width="6" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="9" fill="#f2f3f5"/>`;
+      s += tc(cx, cy + 87, sign(v), 28, 700, '#f2f3f5') + tc(cx, cy + 114, label.toUpperCase(), 16, 700, LBL, ';letter-spacing:3.5px') + diamond(dx, dy) + '</g>';
+      return s;
+    }
+    function placementSVG() {
+      const it = items[st.pick];
+      return `<svg viewBox="0 0 900 1000" role="group" aria-label="Placement panel">${DEFS}${frame(900, 1000, 'PLACEMENT')}` +
+        t(40, 91, 'POSITION ON SPHERE', 16, 700, LBL, ';letter-spacing:3.5px') + panRing(it.pan) + tiltArc(it.tilt) + throttle(it.dist) +
+        t(400, 507, 'CARD ROTATION', 16, 700, LBL, ';letter-spacing:3.5px') +
+        dial('roll', 515, 590, it.roll, 'Roll', 575, 529) + dial('yaw', 745, 590, it.yaw, 'Card yaw', 805, 529) +
+        dial('pitch', 515, 772, it.pitch, 'Card pitch', 575, 711) + dial('croll', 745, 772, it.croll, 'Card roll', 805, 711) +
+        t(40, 970, 'Pinch a dot and move · tap a dial to zero it', 18, 600, LBL) + '</svg>';
+    }
+    function pictureSVG() {
+      return `<svg viewBox="0 0 900 470" role="group" aria-label="Picture panel">${DEFS}${frame(900, 470, 'PICTURE · WHOLE SPHERE')}` +
+        t(40, 91, 'ROLL · LEVEL THE HORIZON', 16, 700, LBL, ';letter-spacing:3.5px') +
+        dial('rotY', 245, 190, st.rotY, 'Rotate Y', 305, 129) + dial('rotZ', 655, 190, st.level, 'Rotate Z', 715, 129) +
+        t(40, 440, 'Level grid (View tab) shows true level · bring the horizon to the line', 18, 600, LBL) + '</svg>';
+    }
+    const BX0 = 114, BX1 = 786, dToX = (v) => BX0 + (v + 1) / 2 * (BX1 - BX0), xToD = (x) => Math.min(1, Math.max(-1, (x - BX0) / (BX1 - BX0) * 2 - 1));
+    function lookSVG() {
+      const it = items[st.pick], x = dToX(it.depth), on = it.stereo;
+      const tabs = [['View', 88], ['Frame', 187], ['Glow', 289], ['Stereo', 391]];
+      let s = `<svg viewBox="0 0 900 430" role="group" aria-label="Look panel, Stereo tab">${DEFS}${frame(900, 430, 'LOOK')}`;
+      s += `<rect x="40" y="73" width="410" height="58" rx="14" fill="#14171c"/><rect x="337" y="76" width="108" height="52" rx="10" fill="url(#satin)"/><line x1="340" y1="77" x2="442" y2="77" stroke="#ffffff" stroke-opacity="0.8"/>`;
+      for (const [n, cx] of tabs) s += tc(cx, 110, n, 21, 700, n === 'Stereo' ? '#2a1d14' : LBL);
+      s += `<line x1="40" y1="145" x2="860" y2="145" stroke="#3a3f47" stroke-width="1.5"/>`;
+      // Mono / stereo switch
+      s += `<g data-c="stereo" tabindex="0" role="switch" aria-checked="${on}" aria-label="Stereo">` + t(40, 222, st.pick === 'title' ? 'Title' : 'Footage', 21, 700, '#f2f3f5');
+      s += `<rect x="500" y="189" width="96" height="52" rx="26" fill="${on ? 'url(#polish)' : '#3a3f47'}" stroke="#2a2e35" stroke-width="1.5"/>${knob(on ? 571 : 525, 215, 22)}<circle cx="${on ? 571 : 525}" cy="215" r="22" fill="none" stroke="#15181d" stroke-width="3"/>`;
+      s += t(616, 222, on ? 'On' : 'Off', 20, 600, LBL) + diamond(834, 215) + '</g>';
+      // Window depth bar with nudges
+      s += `<g data-c="depth" tabindex="0" role="slider" aria-label="Window depth" aria-valuetext="${it.depth.toFixed(3)}">` + focusRing('depth', 30, 262, 840, 140);
+      s += t(40, 300, 'Window Depth', 21, 700, on ? '#f2f3f5' : '#6f757e') + `<text x="790" y="302" text-anchor="end" style="${FONT};font-size:28px;font-weight:700" fill="${on ? '#f2f3f5' : '#6f757e'}">${(it.depth >= 0 ? '' : '−') + Math.abs(it.depth).toFixed(3)}</text>` + diamond(834, 292);
+      for (const [bx, sym] of [[40, '−'], [800, '+']]) s += `<g data-nudge="${sym === '+' ? 1 : -1}"><rect x="${bx}" y="330" width="60" height="58" rx="10" fill="url(#chip)" stroke="#1a1d22" stroke-width="1.5"/><line x1="${bx + 3}" y1="331" x2="${bx + 57}" y2="331" stroke="#ffffff" stroke-opacity="0.12"/>${tc(bx + 30, 371, sym, 34, 500, '#f2f3f5')}</g>`;
+      s += `<rect x="${BX0}" y="354" width="${BX1 - BX0}" height="12" rx="6" fill="#0c0e11" stroke="#2a2e35" stroke-width="1.5"/>`;
+      s += `<rect x="${BX0}" y="354" width="${(x - BX0).toFixed(1)}" height="12" rx="6" fill="${on ? 'url(#polish)' : '#4a4f57'}"/>` + knob(x, 360) + '</g>';
+      return s + '</svg>';
+    }
+    function chip(x, y, w, label, ver, active, data) {
+      return `<g ${data} style="cursor:pointer"><rect x="${x}" y="${y}" width="${w}" height="58" rx="12" fill="${active ? 'url(#satin)' : 'url(#chip)'}" stroke="${active ? '#7a4422' : '#1a1d22'}" stroke-width="1.5"/>` +
+        `<line x1="${x + 6}" y1="${y + 1}" x2="${x + w - 6}" y2="${y + 1}" stroke="#ffffff" stroke-opacity="${active ? 0.8 : 0.12}"/>` +
+        t(x + 18, y + 37, label, 21, 700, active ? '#2a1d14' : '#f2f3f5') + (ver ? `<text x="${x + w - 18}" y="${y + 37}" text-anchor="end" style="${FONT};font-size:19px;font-weight:700" fill="${active ? '#7a4f33' : '#a9adb4'}">${ver}</text>` : '') + '</g>';
+    }
+    function stripSVG() {
+      const ov = st.layer === 'overlays';
+      let s = `<svg viewBox="0 0 1280 272" role="group" aria-label="Instance strip: pick a layer and what your hand moves">${DEFS}<rect x="1" y="1" width="1278" height="270" rx="30" fill="url(#pbg)" stroke="#3d424b" stroke-width="2"/>`;
+      s += `<rect x="24" y="35" width="56" height="6" rx="3" fill="#8e939b"/><rect x="96" y="9" width="400" height="60" rx="16" fill="#14171c"/>`;
+      // layer control: icon + word + count
+      s += `<g data-layer="overlays" style="cursor:pointer"><rect x="99" y="12" width="196" height="54" rx="12" fill="${ov ? 'url(#satin)' : 'transparent'}"/>` +
+        `<rect x="124" y="32" width="14" height="14" rx="2" fill="none" stroke="${ov ? '#2a1d14' : '#a9adb4'}" stroke-width="2.4"/><path d="M130 28 h12 v12" fill="none" stroke="${ov ? '#2a1d14' : '#a9adb4'}" stroke-width="2.4"/>` +
+        t(154, 47, 'Overlays', 21, 700, ov ? '#2a1d14' : LBL) + t(258, 47, '2', 19, 700, ov ? '#7a4f33' : '#7d838c') + '</g>';
+      s += `<g data-layer="picture" style="cursor:pointer"><rect x="300" y="12" width="192" height="54" rx="12" fill="${!ov ? 'url(#satin)' : 'transparent'}"/>` +
+        `<circle cx="330" cy="39" r="10" fill="none" stroke="${!ov ? '#2a1d14' : '#a9adb4'}" stroke-width="2.4"/><path d="M320 39 h20 M330 29 c-6 6 -6 14 0 20 M330 29 c6 6 6 14 0 20" fill="none" stroke="${!ov ? '#2a1d14' : '#a9adb4'}" stroke-width="2"/>` +
+        t(352, 47, 'Picture', 21, 700, !ov ? '#2a1d14' : LBL) + t(440, 47, '1', 19, 700, !ov ? '#7a4f33' : '#7d838c') + '</g>';
+      const icons = { place: '<circle cx="0" cy="0" r="7"/><path d="M0 -14 v7 M0 7 v7 M-14 0 h7 M7 0 h7"/>', look: '<path d="M-9 9 l3 -9 l11 -11 l6 6 l-11 11 z M2 -14 l6 6"/>', scopes: '<path d="M-13 9 h26 M-13 -12 v21 M-10 4 l6 -9 l5 5 l7 -11"/>', trim: '<path d="M-12 -8 h24 M-12 0 h24 M-12 8 h24"/><circle cx="-4" cy="-8" r="3"/><circle cx="6" cy="0" r="3"/><circle cx="-7" cy="8" r="3"/>' };
+      Object.keys(icons).forEach((k, i) => { const x = 960 + i * 66, on = st.show[k];
+        s += `<g data-show="${k}" style="cursor:pointer" role="button" aria-pressed="${on}" aria-label="Show the ${k === 'place' ? 'Placement' : k[0].toUpperCase() + k.slice(1)} panel"><rect x="${x - 26}" y="13" width="52" height="52" rx="12" fill="${on ? 'url(#chip)' : 'transparent'}" stroke="${on ? '#1a1d22' : '#3a3f47'}"/><g transform="translate(${x} 39)" fill="none" stroke="${on ? '#f2f3f5' : '#7d838c'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${icons[k]}</g></g>`; });
+      s += `<line x1="1200" y1="22" x2="1200" y2="56" stroke="#4a5059"/><path d="M1232 44 L1240 36 L1248 44" fill="none" stroke="#b9bcc2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="2" y1="76" x2="1278" y2="76" stroke="#3a3f47" stroke-width="1.5"/>`;
+      if (ov) {
+        s += `<path d="M58 112 L50 120 L58 128" fill="none" stroke="#a9adb4" stroke-width="2.5" stroke-linecap="round"/>`;
+        s += chip(94, 91, 360, '3D Title · Strange Worlds', 'V2', st.pick === 'title', 'data-item="title"') + chip(470, 91, 270, 'Footage window', 'V3', st.pick === 'footage', 'data-item="footage"');
+        s += `<path d="M908 112 L916 120 L908 128" fill="none" stroke="#a9adb4" stroke-width="2.5" stroke-linecap="round"/>`;
+        s += t(94, 184, st.pick === 'title' ? '01:00:12:08' : '01:00:14:02', 19, 700, '#f2f3f5') + t(222, 184, st.pick === 'title' ? '·  V2  ·  Strange Worlds  ·  Comp: Velaria3DTitle' : '·  V3  ·  Waterfall_PIP.mov  ·  Comp: VelariaCanvasControl', 19, 600, LBL);
+      } else {
+        s += chip(94, 91, 360, 'PanoMap · whole sphere', 'V1', true, '') + t(94, 184, '01:00:12:08', 19, 700, '#f2f3f5') + t(222, 184, '·  V1  ·  Canyon_360_TB.mov', 19, 600, LBL);
+      }
+      s += `<path d="M99 219 v6 m10 -6 v6 M96 225 h16 v5 a5 5 0 0 1 -5 5 h-6 a5 5 0 0 1 -5 -5 Z M104 235 v8" fill="none" stroke="#8fc1d9" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>` + t(130, 239, 'USB · Resolve', 19, 700, '#8fc1d9') + `<line x1="274" y1="222" x2="274" y2="246" stroke="#4a5059"/>` + t(288, 239, `Resolve updated in ${st.lastMs} s`, 19, 700, '#8fc1d9');
+      s += `<text x="1256" y="239" text-anchor="end" style="${FONT};font-size:19px;font-weight:600" fill="${LBL}">${ov ? 'Pinch the card in the picture to pick it, or tap a name.' : 'Turn the dials to level the whole picture.'}</text>`;
+      return s + '</svg>';
+    }
+
+    /* ---------- Scopes: measured live from the picture, drawn as the headset draws them ---------- */
+    const SC = { mode: 'wave', url: '', status: 'Measured at 01:00:12:08 · from the frame, before HEVC' };
+    const samp = document.createElement('canvas'); samp.width = 296; samp.height = 170; const sctx = samp.getContext('2d', { willReadFrequently: true });
+    const ras = document.createElement('canvas'); const rctx = ras.getContext('2d');
+    let scopeT = 0;
+    const measureSoon = () => { if (!scopeT) scopeT = setTimeout(() => { scopeT = 0; measure(); }, 110); };
+    function measure() {
+      if (!host.scopes || host.scopes.hidden) return;
+      let px; try { sctx.drawImage(cv, 0, 0, samp.width, samp.height); px = sctx.getImageData(0, 0, samp.width, samp.height).data; } catch (e) { SC.status = 'Scopes need the page served, not opened as a file'; SC.url = ''; uiScopes(); return; }
+      const sw = samp.width, sh = samp.height;
+      if (SC.mode === 'wave') {
+        // luma waveform (left, 296 x 178) and vectorscope (right, 178 x 178) in one raster
+        ras.width = 480; ras.height = 180; const img = rctx.createImageData(480, 180), d = img.data;
+        const add = (x, y, r, g, b, k) => { if (x < 0 || y < 0 || x >= 480 || y >= 180) return; const i = (y * 480 + x) * 4; d[i] = Math.min(255, d[i] + r * k); d[i + 1] = Math.min(255, d[i + 1] + g * k); d[i + 2] = Math.min(255, d[i + 2] + b * k); d[i + 3] = 255; };
+        for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
+          const i = (y * sw + x) * 4, R = px[i] / 255, G = px[i + 1] / 255, B = px[i + 2] / 255, Y = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+          add(Math.round(x / sw * 296), Math.round(165 - Y * 150), 120, 210, 170, 0.22);
+          const cb = -0.1146 * R - 0.3854 * G + 0.5 * B, cr = 0.5 * R - 0.4542 * G - 0.0458 * B;
+          add(Math.round(390 + cb * 155), Math.round(90 - cr * 155), 210, 230, 240, 0.35);
+        }
+        for (let i = 3; i < d.length; i += 4) if (!d[i]) d[i] = 0;
+        rctx.putImageData(img, 0, 0);
+      } else if (SC.mode === 'parade') {
+        ras.width = 480; ras.height = 180; const img = rctx.createImageData(480, 180), d = img.data;
+        const col = [[255, 110, 110], [120, 235, 140], [120, 160, 255]];
+        for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
+          const i = (y * sw + x) * 4;
+          for (let c = 0; c < 3; c++) {
+            const X = Math.round(c * 160 + x / sw * 150), Y = Math.round(165 - px[i + c] / 255 * 150), j = (Y * 480 + X) * 4;
+            d[j] = Math.min(255, d[j] + col[c][0] * 0.25); d[j + 1] = Math.min(255, d[j + 1] + col[c][1] * 0.25); d[j + 2] = Math.min(255, d[j + 2] + col[c][2] * 0.25); d[j + 3] = 255;
+          }
+        }
+        rctx.putImageData(img, 0, 0);
+      } else {
+        ras.width = 480; ras.height = 180; rctx.clearRect(0, 0, 480, 180);
+        const bins = [new Float32Array(120), new Float32Array(120), new Float32Array(120), new Float32Array(120)];
+        for (let i = 0; i < px.length; i += 4) { const R = px[i], G = px[i + 1], B = px[i + 2]; bins[0][Math.min(119, (0.2126 * R + 0.7152 * G + 0.0722 * B) / 255 * 120 | 0)]++; bins[1][R / 255 * 119 | 0]++; bins[2][G / 255 * 119 | 0]++; bins[3][B / 255 * 119 | 0]++; }
+        const cols = ['rgba(230,232,236,0.55)', 'rgba(255,110,110,0.45)', 'rgba(120,235,140,0.45)', 'rgba(120,160,255,0.45)'];
+        bins.forEach((b, k) => { const m = Math.log(1 + Math.max(...b)); rctx.fillStyle = cols[k]; rctx.beginPath(); rctx.moveTo(0, 170);
+          for (let i = 0; i < 120; i++) rctx.lineTo(i * 4, 170 - Math.log(1 + b[i]) / m * 155); rctx.lineTo(480, 170); rctx.closePath(); rctx.fill(); });
+      }
+      SC.url = ras.toDataURL(); SC.status = `Measured at ${st.pick === 'title' ? '01:00:12:08' : '01:00:14:02'} · from the frame, before HEVC`; uiScopes();
+    }
+    function scopesSVG() {
+      const tabs = [['wave', 'Waveform', 40, 150], ['parade', 'Parade', 198, 120], ['hist', 'Histogram', 326, 150]];
+      let s = `<svg viewBox="0 0 1100 560" role="group" aria-label="Scopes panel">${DEFS}${frame(1100, 560, 'SCOPES')}`;
+      for (const [m, n, x, w] of tabs) s += `<g data-scope="${m}" style="cursor:pointer"><rect x="${x}" y="84" width="${w}" height="44" rx="10" fill="${SC.mode === m ? 'url(#satin)' : 'url(#chip)'}" stroke="#1a1d22"/>${tc(x + w / 2, 113, n, 19, 700, SC.mode === m ? '#2a1d14' : '#f2f3f5')}</g>`;
+      s += t(500, 113, SC.status, 18, 700, LBL);
+      const lines = (x0, x1) => [0, 25, 50, 75, 100].map((v) => { const y = 481 - v * 3.07; return `<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="#8fc1d9" stroke-opacity="0.55" stroke-width="1.5"/>`; }).join('');
+      const nums = (x) => [0, 25, 50, 75, 100].map((v) => t(x, 488 - v * 3.07, String(v), 19, 700, '#8fc1d9')).join('');
+      if (SC.mode === 'wave') {
+        s += `<rect x="40" y="146" width="592" height="357" rx="6" fill="#12151a"/><rect x="702" y="146" width="358" height="357" rx="6" fill="#12151a"/>`;
+        s += lines(40, 632) + nums(640) + t(44, 170, 'LUMA', 18, 700, LBL, ';letter-spacing:3px');
+        s += `<circle cx="881" cy="325" r="178" fill="none" stroke="#8fc1d9" stroke-opacity="0.8" stroke-width="1.5"/><circle cx="881" cy="325" r="89" fill="none" stroke="#8fc1d9" stroke-opacity="0.5" stroke-width="1.2"/>` +
+          `<line x1="703" y1="325" x2="1059" y2="325" stroke="#8fc1d9" stroke-opacity="0.6"/><line x1="881" y1="147" x2="881" y2="503" stroke="#8fc1d9" stroke-opacity="0.6"/><line x1="881" y1="325" x2="788" y2="182" stroke="#cfd2d7" stroke-opacity="0.6"/>`;
+        for (const [n, x, y] of [['R', 858, 221], ['Mg', 941, 241], ['B', 984, 347], ['Cy', 904, 428], ['G', 821, 408], ['Yl', 778, 301]]) s += `<rect x="${x - 6}" y="${y - 6}" width="12" height="12" fill="none" stroke="#8fc1d9" stroke-width="2"/>` + t(x + 10, y + 7, n, 19, 700, '#8fc1d9');
+        s += t(710, 170, 'VECTOR', 18, 700, LBL, ';letter-spacing:3px');
+      } else if (SC.mode === 'parade') {
+        for (const [n, x] of [['R', 40], ['G', 368], ['B', 696]]) s += `<rect x="${x}" y="146" width="312" height="357" rx="6" fill="#12151a"/>` + lines(x, x + 312) + t(x + 8, 170, n, 19, 700, LBL);
+        s += nums(1016);
+      } else {
+        s += `<rect x="40" y="146" width="1020" height="357" rx="6" fill="#12151a"/>` + lines(40, 1060) + t(44, 170, 'Y · R · G · B', 18, 700, LBL, ';letter-spacing:2px');
+      }
+      if (SC.url && SC.mode !== 'wave') s += `<image href="${SC.url}" x="40" y="146" width="${SC.mode === 'parade' ? 960 : 1020}" height="357" preserveAspectRatio="none" style="mix-blend-mode:screen"/>`;
+      s += t(40, 538, 'Video range: 0 = 64, 100 = 940 on the 10-bit scale · measured on the Mac, not from the headset’s decoded picture', 17, 700, LBL);
+      return s + '</svg>';
+    }
+    function uiScopes() {
+      if (!host.scopes) return;
+      host.scopes.innerHTML = scopesSVG();
+      if (SC.mode === 'wave' && SC.url) {  // crop the shared raster into the two boxes with nested svgs
+        const svg = host.scopes.querySelector('svg');
+        const wrap = (x, y, w, h, sx, sw) => `<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${sx} 0 ${sw} 180" preserveAspectRatio="none"><image href="${SC.url}" x="0" y="0" width="480" height="180" style="mix-blend-mode:screen"/></svg>`;
+        svg.insertAdjacentHTML('beforeend', wrap(40, 146, 592, 357, 0, 296) + wrap(702, 146, 358, 357, 300, 180));
+      }
+    }
+
+    /* ---------- Trim: the trim pass, drawn in the panel's own controls. ---------- */
+    const TR = { exposure: [0, -2, 2, 0.05, 2, ' st'], lift: [0, -0.2, 0.2, 0.005, 3, ''], gamma: [1, 0.5, 2, 0.01, 2, ''], gain: [1, 0.5, 2, 0.01, 2, ''], saturation: [1, 0, 2, 0.02, 2, ''], contrast: [1, 0.5, 1.5, 0.01, 2, ''] };
+    const trim = Object.fromEntries(Object.entries(TR).map(([k, v]) => [k, v[0]]));
+    const TRY0 = 150, TRROW = 96;
+    function trimSVG() {
+      let s = `<svg viewBox="0 0 900 ${TRY0 + 6 * TRROW + 40}" role="group" aria-label="Trim panel">${DEFS}${frame(900, TRY0 + 6 * TRROW + 40, 'TRIM')}`;
+      s += t(40, 100, 'A trim pass on top of your grade, on the device your audience uses.', 17, 600, LBL);
+      Object.keys(TR).forEach((k, i) => {
+        const [, lo, hi, , dp, unit] = TR[k], v = trim[k], y = TRY0 + i * TRROW, x = BX0 + (v - lo) / (hi - lo) * (BX1 - BX0);
+        s += `<g data-c="tr_${k}" tabindex="0" role="slider" aria-label="${k}" aria-valuetext="${v.toFixed(dp)}">` + focusRing('tr_' + k, 30, y - 30, 840, 92);
+        s += t(40, y, k[0].toUpperCase() + k.slice(1), 21, 700, '#f2f3f5') + `<text x="790" y="${y + 2}" text-anchor="end" style="${FONT};font-size:26px;font-weight:700" fill="#f2f3f5">${(v > 0 && (k === 'exposure' || k === 'lift') ? '+' : '') + v.toFixed(dp)}${unit}</text>` + diamond(834, y - 8);
+        for (const [bx, sym] of [[40, '−'], [800, '+']]) s += `<g data-nudge="${sym === '+' ? 1 : -1}"><rect x="${bx}" y="${y + 14}" width="60" height="46" rx="10" fill="url(#chip)" stroke="#1a1d22" stroke-width="1.5"/>${tc(bx + 30, y + 48, sym, 30, 500, '#f2f3f5')}</g>`;
+        s += `<rect x="${BX0}" y="${y + 31}" width="${BX1 - BX0}" height="12" rx="6" fill="#0c0e11" stroke="#2a2e35" stroke-width="1.5"/><rect x="${BX0}" y="${y + 31}" width="${(x - BX0).toFixed(1)}" height="12" rx="6" fill="url(#polish)"/>` + knob(x, y + 37) + '</g>';
+      });
+      return s + t(40, TRY0 + 6 * TRROW + 12, 'Double-click a bar to reset it · it never touches your colorist’s nodes', 17, 600, LBL) + '</svg>';
+    }
+    // apply the trim to the whole frame, as an adjustment layer on top would
+    const fx = document.getElementById('trim-fx');
+    function applyTrim() {
+      const amp = Math.pow(2, trim.exposure) * trim.gain, ex = 1 / trim.gamma, c = trim.contrast;
+      for (const ch of ['R', 'G', 'B']) { const f = fx.querySelector('#tf' + ch); f.setAttribute('amplitude', amp); f.setAttribute('exponent', ex); f.setAttribute('offset', trim.lift); }
+      fx.querySelector('#tsat').setAttribute('values', trim.saturation);
+      for (const ch of ['R', 'G', 'B']) { const f = fx.querySelector('#tc' + ch); f.setAttribute('slope', c); f.setAttribute('intercept', (1 - c) / 2); }
+    }
+    const trimIsOn = () => Object.keys(TR).some((k) => Math.abs(trim[k] - TR[k][0]) > 1e-6);
+
+    /* ---------- State and interaction ---------- */
+    const host = { strip: document.getElementById('pp-strip'), place: document.getElementById('pp-place'), look: document.getElementById('pp-look'), scopes: document.getElementById('pp-scopes'), trim: document.getElementById('pp-trim') };
+    st.show = { place: true, look: true, scopes: true, trim: true };
+    const LIM = { pan: [-180, 180], tilt: [-90, 90], dist: [0.5, 20], roll: [-180, 180], yaw: [-90, 90], pitch: [-90, 90], croll: [-180, 180], depth: [-1, 1], rotY: [-180, 180], rotZ: [-45, 45] };
+    const STEP = { pan: 5, tilt: 2, dist: 0, roll: 5, yaw: 5, pitch: 5, croll: 5, depth: 0.025, rotY: 5, rotZ: 0.5 };
+    const get = (c) => c.startsWith('tr_') ? trim[c.slice(3)] : c === 'rotY' ? st.rotY : c === 'rotZ' ? st.level : items[st.pick][c];
+    let msTimer = 0;
+    const set = (c, v) => {
+      if (c.startsWith('tr_')) { const k = c.slice(3), [, lo, hi] = TR[k]; trim[k] = Math.min(hi, Math.max(lo, v)); applyTrim(); host.trim.innerHTML = trimSVG(); const f = host.trim.querySelector(`[data-c="${c}"]`); if (f && st.focus === c) f.focus({ preventScroll: true }); draw(); return; }
+      const [lo, hi] = LIM[c]; v = Math.min(hi, Math.max(lo, v));
+      if (c === 'rotY') st.rotY = v; else if (c === 'rotZ') st.level = v; else items[st.pick][c] = v;
+      clearTimeout(msTimer); msTimer = setTimeout(() => { st.lastMs = (0.3 + Math.random() * 0.2).toFixed(1); ui(); }, 380);  // the round trip the strip reports
+      ui(); draw();
+    };
+    function ui() {
+      host.strip.innerHTML = stripSVG();
+      host.place.innerHTML = st.layer === 'overlays' ? placementSVG() : pictureSVG();
+      host.look.innerHTML = lookSVG(); host.look.hidden = st.layer !== 'overlays' || !st.show.look; host.place.hidden = !st.show.place;
+      host.trim.innerHTML = trimSVG(); host.trim.hidden = !st.show.trim; host.scopes.hidden = !st.show.scopes; uiScopes(); if (st.show.scopes) measureSoon();
+      if (st.focus) { const el = document.querySelector(`#pp [data-c="${st.focus}"]`); if (el && document.activeElement !== el) el.focus({ preventScroll: true }); }
+    }
+    const svgPt = (svg, e) => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+    let grab = null;
+    const panel = document.getElementById('pp');
+    panel.addEventListener('pointerdown', (e) => {
+      const shw = e.target.closest('[data-show]'), sco = e.target.closest('[data-scope]');
+      if (shw) { st.show[shw.dataset.show] = !st.show[shw.dataset.show]; ui(); return; }
+      if (sco) { SC.mode = sco.dataset.scope; SC.url = ''; uiScopes(); measure(); return; }
+      const lay = e.target.closest('[data-layer]'), itm = e.target.closest('[data-item]'), nud = e.target.closest('[data-nudge]'), g = e.target.closest('[data-c]');
+      if (lay) { st.layer = lay.dataset.layer; st.focus = null; ui(); draw(); return; }
+      if (itm) { st.pick = itm.dataset.item; ui(); draw(); return; }
+      if (!g) return;
+      const c = g.dataset.c; st.focus = c; e.preventDefault();
+      if (nud) { set(c, get(c) + Number(nud.dataset.nudge) * (c.startsWith('tr_') ? TR[c.slice(3)][3] : STEP.depth)); return; }
+      if (c === 'stereo') { items[st.pick].stereo = !items[st.pick].stereo; ui(); draw(); return; }
+      grab = { c, host: g.closest('.hud').id, cx: Number(g.dataset.cx), cy: Number(g.dataset.cy), x: e.clientX, y: e.clientY, v: get(c), t: performance.now(), moved: false };
+      panel.setPointerCapture(e.pointerId); if (!g.dataset.cx) move(e);
+    });
+    const move = (e) => {
+      if (!grab) return;
+      const svg = document.querySelector('#' + grab.host + ' svg'), p = svgPt(svg, e), c = grab.c, deg = (y, x) => Math.atan2(y, x) * 180 / Math.PI;
+      if (Math.hypot(e.clientX - grab.x, e.clientY - grab.y) > 4) grab.moved = true;
+      if (c === 'pan') set(c, ((deg(p.y - 265, p.x - 220) + 90 + 540) % 360) - 180);       // the dot follows the cursor round the ring
+      else if (c === 'tilt') set(c, -deg(p.y - 265, Math.max(8, p.x - 520)));               // and round the arc
+      else if (c === 'dist') set(c, yToD(p.y));
+      else if (c === 'depth') set(c, xToD(p.x));
+      else if (c.startsWith('tr_')) { const [, lo, hi] = TR[c.slice(3)]; set(c, lo + Math.min(1, Math.max(0, (p.x - BX0) / (BX1 - BX0))) * (hi - lo)); }
+      else if (grab.cx && grab.moved) set(c, ((deg(p.y - grab.cy, p.x - grab.cx) + 90 + 540) % 360) - 180);  // dial pointer points at the cursor
+    };
+    panel.addEventListener('pointermove', move);
+    panel.addEventListener('pointerup', (e) => {
+      if (grab && grab.cx && !grab.moved) set(grab.c, 0);  // tap a dial to zero it
+      grab = null;
+    });
+    panel.addEventListener('keydown', (e) => {
+      const g = e.target.closest('[data-c]'); if (!g) return; const c = g.dataset.c;
+      if (c === 'stereo' && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); items[st.pick].stereo = !items[st.pick].stereo; ui(); draw(); return; }
+      const k = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key]; if (!k) return; e.preventDefault(); st.focus = c;
+      if (c === 'dist') set(c, yToD(dToY(get(c)) - k * 6)); else set(c, get(c) + k * (c.startsWith('tr_') ? TR[c.slice(3)][3] : STEP[c]));
+    });
+    panel.addEventListener('dblclick', (e) => { const g = e.target.closest('[data-c]'); if (!g) return; const c = g.dataset.c; if (c.startsWith('tr_')) set(c, TR[c.slice(3)][0]); else if (c === 'depth') set(c, 0); });
+    panel.addEventListener('focusin', (e) => { const g = e.target.closest('[data-c]'); if (g && st.focus !== g.dataset.c) { st.focus = g.dataset.c; ui(); } });
+
+    const notes = {
+      both: '<b>Both eyes</b> shows what each eye sees, overlaid. Turn <b>Window Depth</b> up and the two images split apart without the title changing size: that gap is the depth your viewer feels (drawn three times wider here so you can see it). At the dome wall they meet.',
+      one: '<b>One eye</b> is what a flat monitor gives you: the title looks the same at 1 m or 9 m, which is why depth is a guess until you\'re in the headset.',
+    };
+    document.querySelectorAll('[data-eyes]').forEach((b) => b.addEventListener('click', () => {
+      st.eyes = b.dataset.eyes; document.querySelectorAll('[data-eyes]').forEach((x) => x.setAttribute('aria-pressed', x === b)); note.innerHTML = notes[st.eyes]; draw();
+    }));
+    vid.addEventListener('playing', draw);
+    new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) vid.play().catch(() => {}); else vid.pause(); })).observe(view);
+    document.fonts && document.fonts.ready.then(ui);
+    ui(); draw();
+  })();
+
+  /* The round-trip counter ticks while the pain section is on screen */
+  (() => {
+    const el = document.querySelector('#trips b'); if (!el || reduce) return; let n = 1, t = 0;
+    new IntersectionObserver((es) => es.forEach((e) => {
+      clearInterval(t); if (e.isIntersecting) t = setInterval(() => { n = n >= 14 ? 14 : n + 1; el.textContent = n; if (n === 14) clearInterval(t); }, 650);
+    }), { threshold: 0.6 }).observe(el.closest('p'));
+  })();
+
 
   if (reduce || !window.gsap || !window.ScrollTrigger) {
     document.querySelectorAll('[data-reveal]').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; });
