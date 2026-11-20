@@ -2,6 +2,15 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## Unreleased — Velaria Sound: the mix reaches the headset from a Fairlight bus (20 Nov 2026)
+
+Headset **1.1.0-dome+80**, driver rebuilt the same morning, plugin `VelariaSound.vst3` 0.1. **Confirmed by Nelson, 20 Nov 09:18–09:48:** ambisonic bus → headset, head-tracked, no patching; stereo bus → headset; insert survives a Resolve restart.
+
+- **Velaria Sound** (VST3; "Velaria Tap" for one night): an insert for any Fairlight bus or track. Audio passes through untouched; a copy of every channel goes to the Velaria driver with the timeline position, and the driver feeds the headset from it — **a stereo bus for "Sound: in headset", a first-order Ambisonics bus for "Sound: ambisonic"** — aligned to the picture by timecode. Patch Input/Output is no longer part of the setup. The Sound chip shows "· bus" when the plugin is the source.
+- Clock work it took (+76–+79): Fairlight processes a bus near its play time while Resolve hands the Decklink audio out up to 300 ms early, so the driver holds each block until the plugin's audio for it exists; the headset's presentation delay now follows the **worst** audio arrival in its window (sound cannot afford the 2% a picture can); a block that overlaps the FIFO by a few milliseconds is trimmed and crossfaded in rather than restarting the FIFO (the restart was a hole at every delay step; easing a sample at a time buzzed at 480 Hz). Stale blocks from a stop or seek are discarded, never sent.
+- Plugin state: a small versioned record, because Fairlight dropped an insert whose saved state was empty.
+- Not yet: the installer does not copy the plugin (hand `ditto` into `/Library/Audio/Plug-Ins/VST3`); the Steinberg VST 3 licence agreement must be signed before the plugin reaches a customer; the decode is still the first-order cardioid pair (Resonance Audio HRTF next).
+
 ## Unreleased — Velaria Sound and DeckLink coexistence (19 Nov 2026, late)
 
 - **Velaria Sound** (`mac/sound/`, VST3): an insert for a Fairlight bus that passes audio through untouched and sends a copy of every channel, with the timeline position, to the Velaria driver. Resolve 21 accepts it on an **Ambisonics 1st order bus** and feeds it the four raw channels after the panner plus `projectTimeSamples` (checked on Bruce 19 Nov 22:32). The driver (`src/Tap.*`) listens on 127.0.0.1:47813 and, when the plugin is running, builds the headset's four-channel ambisonic message from the bus aligned by timecode instead of Decklink 1–4 — so an ambisonic mix is heard head-tracked in the headset with **no Patch Input/Output**, panned sources included. Falls back to Decklink 1–4 when the plugin stops. UNTESTED end to end in the headset (driver built, not installed); the licence agreement for the VST3 SDK has to be signed before this ships.
