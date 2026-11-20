@@ -239,7 +239,8 @@ struct EditModel;
 struct UiState {
     HudInfo info;
     std::shared_ptr<const EditModel> edit;
-    int lookTab = 0;                       // 0 = View (settings), then the macro's sections
+    int lookTab = 0;                       // Settings panel: 0 = View, 1 = Dome
+    int selTab = 0;                        // Selected panel: 0 = Placement, then the card's sections
     bool notePick = false;                 // Timeline panel: Drop note was tapped, the row shows the note presets
     HudButton hover = HudButton::None, pressed = HudButton::None;
     int hoverArg = 0, pressedArg = 0;
@@ -297,6 +298,12 @@ struct Chrome {
         return chip3(id, arg, x, y, size, size, st, "", (int)icon, "", tip);
     }
     bool focused() const { return s.hoverPanel == (int)panel || s.pressedPanel == (int)panel; }
+    // hover words for icon-only chips are drawn last, over everything, so a later row cannot cover them (+87: the
+    // strip's panel-toggle words sat behind the Hide / Copy chips)
+    struct Tip { float x, y, w, h; std::string word; };
+    std::vector<Tip> tips;
+    ~Chrome() { drawTips(); }
+    void drawTips();
 };
 
 class HudRenderer {

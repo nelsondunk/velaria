@@ -57,7 +57,7 @@ void keyDiamond(Chrome& ch, float cx, float cy, const EditParam& p, int pi) {
     } else {
         c.icon(Icon::Keyframe, cx, cy, 28, khov ? kText : kDim);
     }
-    ch.rects.push_back({HudButton::Key, cx - 26, cy - 26, 52, 52, pi});
+    ch.rects.push_back({HudButton::Key, cx - 18, cy - 18, 36, 36, pi});
 }
 
 // polished copper, the fill of every bar and throttle
@@ -194,7 +194,16 @@ void arcWidget(Chrome& ch, const EditParam& p, int pi, float cx, float cy, float
     Canvas& c = ch.c;
     const float T = 22;
     const float lim = 90 * kDeg;
-    c.strokeArc(cx, cy, R, T, -lim, lim, Colour{0, 0, 0, 0.45f});
+    // the well is a true half-ring with square ends (+87: the old rounded caps read as a pill, unlike the ring):
+    // the arc stops short so its round caps stay right of the centre line, and flat pieces finish the ends
+    {
+        float eps = std::asin((T / 2) / R);
+        Colour well{0, 0, 0, 0.45f};
+        c.strokeArc(cx, cy, R, T, -lim + eps, lim - eps, well);
+        c.fillRoundRect(cx, cy - R - T / 2, T + 4, T, 0, well);
+        c.fillRoundRect(cx, cy + R - T / 2, T + 4, T, 0, well);
+        c.strokeArc(cx, cy, R + T / 2, 1, -lim, lim, Colour{1, 1, 1, 0.08f});
+    }
     for (int k = -6; k <= 6; k++) {
         float a = k * 15 * kDeg;
         bool major = k % 3 == 0;
@@ -375,7 +384,7 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         c.inWell = false;
         // panel toggles: raised = shown, flat = hidden; then the roll-up chevron
         struct Dock { PanelId id; Icon icon; const char* tip; };
-        static const Dock dock[4] = {{PanelId::Placement, Icon::Placement, "Placement"}, {PanelId::Look, Icon::Look, "Look"}, {PanelId::Deck, Icon::Timeline, "Timeline"}, {PanelId::Scopes, Icon::Scopes, "Scopes"}};
+        static const Dock dock[4] = {{PanelId::Placement, Icon::Placement, "Selected"}, {PanelId::Look, Icon::Look, "Settings"}, {PanelId::Deck, Icon::Timeline, "Timeline"}, {PanelId::Scopes, Icon::Scopes, "Scopes"}};
         float rx = sp.w - 14 - 52;
         ch.chip3(HudButton::Roll, 0, rx, barCy - 26, 52, 52, ChipState::Flat, "", (int)Icon::RollUp, "", rolled ? "Open" : "Roll up");
         rx -= 14;
@@ -410,6 +419,15 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
             return c.text(x + 30, y + 37, fitText(s.info.setup, S20, sp.w - padR - (x + 30)), S20, kIce);
         }
         x = c.text(x, y + 37, st, S20, kIce);
+        // +87: the numbers live on the Settings panel; here only what is out of range, while it is (spec item 4)
+        std::string worry;
+        if (!s.info.warning.empty()) worry = s.info.warning;
+        else if (s.info.connected && s.info.hasVideo && s.info.delayMs > 250) worry = "Delay " + std::to_string(s.info.delayMs) + " ms";
+        if (!worry.empty()) {
+            c.fillRoundRect(x + 12, y + 18, 1, 24, 0.5f, Colour{1, 1, 1, 0.20f});
+            c.icon(Icon::Warning, x + 25 + 12, y + 30, 24, kSignal);
+            x = c.text(x + 25 + 30, y + 37, worry, S20, kSignal);
+        }
         char rb[64];
         std::string rs;
         if (s.info.rendering) snprintf(rb, sizeof rb, "Rendering\xE2\x80\xA6 %.1f s", s.info.renderWaitMs / 1000), rs = rb;
@@ -548,21 +566,21 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
     // ---- row C: status left, hint right
     {
         float x = statusLine(rowC);
+        // a notice or the lock state only; the standing instructions are gone (+87, spec item 5)
         std::string hint;
         if (!m->notice.empty()) hint = m->notice;
         else if (locked) hint = "Locked. Tap Locked to edit this patch.";
-        else if (g && g->kind == "trim") hint = "Trim pass on the whole picture: its bars are on the Placement panel.";
-        else if (g && g->kind == "stereo") hint = "Stereo: convergence and eye swap for the whole picture, on the Placement panel.";
-        else if (patches) hint = "Patches aren't pickable in the picture. Tap a name, then use Placement.";
-        else hint = "Pinch the card in the picture to pick it, or tap a name.";
-        float avail = sp.w - padR - x - 24;
-        std::string h = fitText(hint, S20, avail);
-        c.text(sp.w - padR - Canvas::measure(h, S20), rowC + 37, h, S20, locked || !m->notice.empty() ? kText : kDim);
+        if (!hint.empty()) {
+            float avail = sp.w - padR - x - 24;
+            std::string h = fitText(hint, S20, avail);
+            c.text(sp.w - padR - Canvas::measure(h, S20), rowC + 37, h, S20, kText);
+        }
     }
     return rects;
 }
 
 void sectionRows(Chrome& ch, const EditModel& m, const EditGroup& g, const std::string& section, float y, float pad);
+static float tabRow(Chrome& ch, const std::vector<std::string>& tabs, int tab, float y, int argBase);
 
 std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
     std::vector<ButtonRect> rects;
@@ -576,8 +594,27 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
     bool locked = g && m->isLocked(*g);
     // the bar names the clip being controlled (Nelson, 2 Nov: "just give me the name of the clip")
     if (g) ch.subtitle = !g->label.empty() ? g->label : g->clipName;
-    float y = ch.begin(g && g->kind == "patch" ? "PATCH WINDOW" : g && g->kind == "trim" ? "TRIM" : g && g->kind == "stereo" ? "STEREO" : sphere ? "FOOTAGE \xC2\xB7 WHOLE SPHERE" : "PLACEMENT");
+    float y = ch.begin(g && g->kind == "patch" ? "PATCH WINDOW" : g && g->kind == "trim" ? "TRIM" : g && g->kind == "stereo" ? "STEREO" : sphere ? "FOOTAGE \xC2\xB7 WHOLE SPHERE" : "SELECTED");
     if (y < 0) return rects;
+    // +87: everything about the selected card lives here, under tabs: Placement, then the card's own sections
+    // (Text, Plate, Lighting, Stereo...). Nelson, 20 Nov: "all the stuff that's controlling that thing that we've
+    // selected is in one panel. Not in a totally different panel."
+    std::vector<std::string> tabs;
+    int tab = 0;
+    if (g && !g->barsOnly()) {
+        tabs = m->selectedTabs();
+        tab = std::max(0, std::min((int)tabs.size() - 1, s.selTab));
+        if (tabs.size() > 1) y = tabRow(ch, tabs, tab, y, 100);
+        if (tab > 0) {
+            if (locked) {
+                float tw = Canvas::measure("LOCKED", S20, 3) + 20;
+                c.fillRoundRect(sp.w - 40 - tw, y - 56, tw, 32, 8, Colour{kIce.r, kIce.g, kIce.b, 0.22f});
+                c.text(sp.w - 40 - tw + 10, y - 34, "LOCKED", S20, kIce, 3);
+            }
+            sectionRows(ch, *m, *g, tabs[tab], y, 40);
+            return rects;
+        }
+    }
     if (g && g->barsOnly()) {
         // a trim or a stereo pass has nothing to place: its bars take the panel (+50; they were a Look tab in +48/49)
         bool st = g->kind == "stereo";
@@ -621,13 +658,11 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
     int dragRow = m->dragRow;
     c.text(40, y + 14, sphere ? "SPHERE \xC2\xB7 PAN AND TILT" : "POSITION ON SPHERE", S16, kDim, 3);
     // row 1: ring + arc
-    float ry = y + 190;
-    if (ring >= 0) ringWidget(ch, g->params[ring], ring, 220, ry, 140, dragRow == ring);
-    if (arc >= 0) arcWidget(ch, g->params[arc], arc, 520, ry, 140, dragRow == arc);
-    // row 2: throttles left, dials right
-    float ty = ry + 262;
-    if (!throttles.empty()) c.text(40, ty - 22, "SCALE \xC2\xB7 DISTANCE", S16, kDim, 3);
-    if (!dials.empty()) c.text(throttles.empty() ? 40 : 400, ty - 22, sphere ? "ROLL \xC2\xB7 LEVEL THE HORIZON" : "CARD ROTATION", S16, kDim, 3);
+    float ry = y + 176;
+    if (ring >= 0) ringWidget(ch, g->params[ring], ring, 220, ry, 136, dragRow == ring);
+    if (arc >= 0) arcWidget(ch, g->params[arc], arc, 520, ry, 136, dragRow == arc);
+    // row 2: throttles left, dials right (+87: bigger dials, two rows of two, no caption clutter)
+    float ty = ry + 250;   // no group captions: each control carries its own name (+87)
     float tx = 48;
     for (int i : throttles) {
         const EditParam& p = g->params[i];
@@ -643,15 +678,12 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
                             : p.id == "@turn" || p.id == "ObjectTurn" ? "CARD YAW" : p.id == "@tilt" || p.id == "ObjectTilt" ? "CARD PITCH"
                             : fitText(p.name, S16, cell - 20);
         for (auto& ch_ : label) ch_ = (char)toupper((unsigned char)ch_);
-        float cx = dx0 + cell * (k % 2) + cell / 2, cy = ty + 62 + (k / 2) * 182;
-        if (cy + 118 > sp.h - 40) break;
-        dialWidget(ch, p, dials[k], cx, cy, 54, label, dragRow == dials[k]);
+        float cx = dx0 + cell * (k % 2) + cell / 2, cy = ty + 66 + (k / 2) * 200;
+        if (cy + 126 > sp.h - 16) break;
+        dialWidget(ch, p, dials[k], cx, cy, 66, label, dragRow == dials[k]);
     }
-    // footer hint
-    std::string hint = !m->notice.empty() ? m->notice
-                       : sphere ? "Level grid (View tab) shows true level \xC2\xB7 bring the horizon to the line"
-                                : "Pinch a dot and move \xC2\xB7 tap a dial to zero it";
-    c.text(40, sp.h - 30, fitText(hint, S20, sp.w - 80), S20, !m->notice.empty() ? kText : kDim);
+    // footer: a notice when there is one; no standing instructions (+87, spec item 5)
+    if (!m->notice.empty()) c.text(40, sp.h - 30, fitText(m->notice, S20, sp.w - 80), S20, kText);
     return rects;
 }
 
@@ -868,21 +900,10 @@ void drawViewTab(Chrome& ch, float y) {
     }
 }
 
-std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
-    std::vector<ButtonRect> rects;
-    Chrome ch{c, rects, s, PanelId::Look};
-    const PanelSpec& sp = kSpecs[(int)PanelId::Look];
-    c.reset(sp.w, sp.h);
-    if (const EditModel* mm = s.edit.get()) {
-        if (const EditGroup* gg = mm->current()) ch.subtitle = !gg->label.empty() ? gg->label : gg->clipName;
-    }
-    float y = ch.begin("LOOK");
-    if (y < 0) return rects;
-    const EditModel* m = s.edit.get();
-    std::vector<std::string> tabs = m ? m->lookTabs() : std::vector<std::string>{"View"};
-    if (s.info.projection == "dome") tabs.insert(tabs.begin() + 1, "Dome");   // the venue lives on its own tab (+70)
-    int tab = std::max(0, std::min((int)tabs.size() - 1, s.lookTab));
-    // tabs row
+// A row of tab chips in a well; returns the content top. `argBase` keeps the two tabbed panels' Tab presses apart.
+static float tabRow(Chrome& ch, const std::vector<std::string>& tabs, int tab, float y, int argBase) {
+    Canvas& c = ch.c;
+    const PanelSpec& sp = kSpecs[(int)ch.panel];
     const float pad = 40;
     float tx = pad + 4, th = 52;
     std::vector<float> tw;
@@ -896,21 +917,36 @@ std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
     c.wellV3(pad, y - 4, segW, th + 8, 18);
     c.inWell = true;
     for (size_t i = 0; i < tw.size(); i++) {
-        ch.chip3(HudButton::Tab, (int)i, tx, y, tw[i], th, (int)i == tab ? ChipState::On : ChipState::Flat, tabs[i]);
+        ch.chip3(HudButton::Tab, argBase + (int)i, tx, y, tw[i], th, (int)i == tab ? ChipState::On : ChipState::Flat, tabs[i]);
         tx += tw[i] + 4;
     }
     c.inWell = false;
     y += th + 28;
     c.fillRoundRect(pad, y - 12, sp.w - 2 * pad, 1, 0.5f, Colour{1, 1, 1, 0.08f});
+    return y;
+}
+
+std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
+    std::vector<ButtonRect> rects;
+    Chrome ch{c, rects, s, PanelId::Look};
+    const PanelSpec& sp = kSpecs[(int)PanelId::Look];
+    c.reset(sp.w, sp.h);
+    if (const EditModel* mm = s.edit.get()) {
+        if (const EditGroup* gg = mm->current()) ch.subtitle = !gg->label.empty() ? gg->label : gg->clipName;
+    }
+    ch.subtitle.clear();
+    float y = ch.begin("SETTINGS");
+    if (y < 0) return rects;
+    // +87: the per-card sections moved to the Selected panel; this is the headset's own settings, closed by default
+    std::vector<std::string> tabs{"View"};
+    if (s.info.projection == "dome") tabs.push_back("Dome");   // the venue lives on its own tab (+70)
+    int tab = std::max(0, std::min((int)tabs.size() - 1, s.lookTab));
+    if (tabs.size() > 1) y = tabRow(ch, tabs, tab, y, 0);
     if (tabs[tab] == "Dome") {
         drawDomeTab(ch, y);
         return rects;
     }
-    if (tab == 0 || !m || !m->current()) {
-        drawViewTab(ch, y);
-        return rects;
-    }
-    sectionRows(ch, *m, *m->current(), tabs[tab], y, pad);
+    drawViewTab(ch, y);
     return rects;
 }
 
@@ -1170,17 +1206,25 @@ float Chrome::chip3(HudButton id, int arg, float x, float y, float w, float h, C
     if (tw > 0) px = c.text(px, cy + 8, label, S22, ink);
     if (tagW > 0) c.text(px + 10, cy + 7, tag, B18, Colour{ink.r, ink.g, ink.b, ink.a * 0.65f}, 1);
     if (!tip.empty() && (hv || pr) && st != ChipState::Off) {
-        // the word for an icon-only chip: a small dark pill above it (below, when the chip sits at the top edge)
+        // the word for an icon-only chip: a small dark pill below it (above, when it would leave the texture);
+        // drawn after everything else so no later chip covers it
         float tw2 = Canvas::measure(tip, S16) + 20, th = 30;
         float tx = std::max(6.0f, std::min((float)c.width() - tw2 - 6, cx - tw2 / 2));
         float ty = y + h + 8 + th <= (float)c.height() - 4 ? y + h + 8 : y - th - 8;
-        c.shadow(tx, ty, tw2, th, 8, 4, 6, 0.5f);
-        c.fillRoundRect(tx, ty, tw2, th, 8, hex(0x15181d, 0.96f));
-        c.strokeRoundRect(tx, ty, tw2, th, 8, 1, Colour{1, 1, 1, 0.12f});
-        c.text(tx + 10, ty + 21, tip, S16, kText);
+        tips.push_back({tx, ty, tw2, th, tip});
     }
     if (id != HudButton::None) rects.push_back({id, x, y, w, h, arg});
     return w;
+}
+
+void Chrome::drawTips() {
+    for (auto& t : tips) {
+        c.shadow(t.x, t.y, t.w, t.h, 8, 4, 6, 0.5f);
+        c.fillRoundRect(t.x, t.y, t.w, t.h, 8, hex(0x15181d, 0.96f));
+        c.strokeRoundRect(t.x, t.y, t.w, t.h, 8, 1, Colour{1, 1, 1, 0.12f});
+        c.text(t.x + 10, t.y + 21, t.word, S16, kText);
+    }
+    tips.clear();
 }
 
 // ---- Scopes: waveform / parade / vectorscope / histograms, from the raster the Mac measured (protocol.h layout)

@@ -279,6 +279,17 @@ Widget widgetFor(const EditParam& p) {
 
 bool onPlacementPanel(const EditParam& p) { return p.section == "Placement" || p.section == "Object"; }
 
+std::vector<std::string> EditModel::selectedTabs() const {
+    std::vector<std::string> tabs{"Placement"};
+    const EditGroup* g = current();
+    if (!g || g->barsOnly()) return tabs;
+    for (auto& p : g->params) {
+        if (onPlacementPanel(p)) continue;
+        if (std::find(tabs.begin(), tabs.end(), p.section) == tabs.end()) tabs.push_back(p.section);
+    }
+    return tabs;
+}
+
 std::vector<std::string> EditModel::lookTabs() const {
     std::vector<std::string> tabs{"View"};
     const EditGroup* g = current();

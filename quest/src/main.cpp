@@ -77,7 +77,7 @@ struct Settings {
     int domeVenue = 1;         // venue size (dome_seats.h): 0 Small 12 m, 1 Medium 18 m, 2 Large 26 m
     bool domeTheatre = true;   // show the rendered theatre interior behind the dome picture
     float domeFov = 180;       // field of view the master's circle covers; the dome shows its inner 180
-    bool panelOn[kPanelCount] = {true, true, true, true, false};   // dock: which panels exist at all (Instance strip always); Scopes off until asked
+    bool panelOn[kPanelCount] = {true, true, false, true, false};  // dock: which panels exist at all (Instance strip always); Settings and Scopes off until asked (+87)
     int scopesView = 0;
     std::string source = "auto";   // auto | resolve | ndi (which Mac-side server to follow)
     std::set<std::string> locked;  // patch / orientation groups (clip|tool) the headset must not change
@@ -197,6 +197,7 @@ struct Pointer {
     // picking cards in the scene (ray not on a panel)
     int sceneHover = -1;       // group index under the ray
     int sceneDrag = -1;        // group being moved by this pinch
+    float freeDist = 1.5f;     // where the off-panel reticle sits along the ray (eased; +87)
     float dragPan0 = 0, dragTilt0 = 0, rayPan0 = 0, rayTilt0 = 0;   // card and ray angles when the drag began
 };
 
@@ -307,6 +308,7 @@ struct App {
     int hoverArg = 0, pressedArg = 0, hoverPanel = -1, pressedPanel = -1;
     std::string lastUiKey;
     int lookTab = 0;
+    int selTab = 0;            // Selected panel tab (+87)
     bool notePick = false;     // Timeline panel: choosing a note preset
 
     // edit mode
@@ -858,7 +860,8 @@ static void activate(HudButton b, int arg = 0) {
     LOGI("activate %d arg %d", (int)b, arg);
     switch (b) {
         case HudButton::Tab:
-            g.lookTab = arg;
+            // 0..99: Settings panel tabs; 100..: the Selected panel's (Placement, then the card's sections)
+            if (arg >= 100) g.selTab = arg - 100; else g.lookTab = arg;
             g.edit.firstRow = 0;
             g.hudForce = true;
             return;
@@ -1181,7 +1184,7 @@ static void activate(HudButton b, int arg = 0) {
         case HudButton::PanelToggle:
             if (arg > 0 && arg < kPanelCount) {
                 g.settings.panelOn[arg] = !g.settings.panelOn[arg];
-                static const char* names[] = {"Instance", "Placement", "Look", "Timeline", "Scopes"};
+                static const char* names[] = {"Instance", "Selected", "Settings", "Timeline", "Scopes"};
                 showNotice(std::string(names[arg]) + (g.settings.panelOn[arg] ? " panel on" : " panel hidden"));
             }
             break;
@@ -1468,7 +1471,21 @@ static void dragArc(int row, float u, float v, bool release) {
 static void dragDial(int row, const Pointer& ptr, bool release) {
     EditParam* p = editParam(row);
     if (!p) return;
-    double v = ptr.pressValue + (ptr.pressV - ptr.hitV) * 0.25;
+    // +87: a dial turns. The value follows the angle the ray has swept around the dial's centre since the press
+    // (relative, so grabbing it anywhere works and nothing jumps); a dial too small to find falls back to the old
+    // vertical drag. Nelson, 20 Nov: "I should be able to just turn it as opposed to pulling up and down."
+    double v;
+    const ButtonRect* r = findRect(HudButton::Dial, row);
+    if (r && r->w > 20) {
+        float cx = r->x + r->w / 2, cy = r->y + r->h / 2;
+        double a0 = std::atan2(ptr.pressU - cx, -(ptr.pressV - cy));
+        double a1 = std::atan2(ptr.hitU - cx, -(ptr.hitV - cy));
+        double d = (a1 - a0) * 180.0 / M_PI;
+        while (d > 180) d -= 360;
+        while (d < -180) d += 360;
+        v = ptr.pressValue + d;
+    } else
+        v = ptr.pressValue + (ptr.pressV - ptr.hitV) * 0.25;
     double lo = std::min(p->min, p->max), hi = std::max(p->min, p->max);
     if (hi - lo >= 359) {   // full-circle dials wrap
         while (v > 180) v -= 360;
@@ -1561,16 +1578,32 @@ struct CardGeom {
     int panRow = -1, tiltRow = -1;
     float pan = 0, tilt = 0;        // degrees
     float dist = 1.5f, scale = 1;   // metres, Fusion units
+    float width = 1, height = 0.5625f;   // the card's real extent in Fusion units at scale 1 (+87: outline fits it)
 };
 static CardGeom cardGeom(const EditGroup& gr) {
     CardGeom c;
     if (!gr.isCard() || g.edit.layer != 0) return c;   // only overlays are picked or outlined in the scene
+    float aspect = 0, fill = 1, plateW = 0, plateH = 0;
+    int shows = 0;
     for (int i = 0; i < (int)gr.params.size(); i++) {
         const EditParam& p = gr.params[i];
         if (p.id == "Yaw") { c.panRow = i; c.pan = (float)p.value; }
         else if (p.id == "Pitch") { c.tiltRow = i; c.tilt = (float)p.value; }
         else if (p.id == "Distance") c.dist = std::max(0.3f, std::min(6.0f, (float)std::fabs(p.value)));
         else if (p.id == "@size" || p.id == "Size") c.scale = std::max(0.1f, (float)p.value);
+        else if (p.id == "WindowAspect") aspect = (float)p.value;
+        else if (p.id == "WindowSize") fill = (float)p.value;
+        else if (p.id == "Source") shows = (int)std::lround(p.value);
+        else if (p.id[0] == '>' && p.section == "Plate" && (p.name == "Width" || p.name == "Slab width")) plateW = (float)p.value;
+        else if (p.id[0] == '>' && p.section == "Plate" && (p.name == "Height" || p.name == "Slab height")) plateH = (float)p.value;
+    }
+    if (shows == 2 && plateW > 0 && plateH > 0) {
+        // a 3D title: its backing plate is the thing you see (Fusion units; the window plane is 1 unit wide)
+        c.width = plateW; c.height = plateH;
+    } else {
+        // the footage / graphic window: 1 unit wide times the fill, height from the window aspect
+        c.width = std::max(0.2f, fill > 0 ? fill : 1.0f) * 1.0f;
+        c.height = c.width / (aspect > 0.1f ? aspect : 1.778f);
     }
     c.valid = c.panRow >= 0 && c.tiltRow >= 0;
     return c;
@@ -1590,7 +1623,7 @@ static void rayAngles(const XrVector3f& d, float& panDeg, float& tiltDeg) {
 // Half-angle a card covers as seen from the viewer (the plane is `scale` units wide at `dist`), with a floor so
 // small distant cards can still be picked.
 static float cardHalfAngle(const CardGeom& c) {
-    return std::max(5.0f * (float)M_PI / 180, std::atan(0.55f * c.scale / c.dist));
+    return std::max(5.0f * (float)M_PI / 180, std::atan(0.55f * c.scale * std::max(c.width, c.height) / c.dist));
 }
 // Monitor mode: the picture comes from an NDI source (Premiere, After Effects...) or the Resolve bridge is not
 // there, so there is nothing to edit; only the View panel shows and the scene is not pickable.
@@ -2306,6 +2339,7 @@ static void updateHud(int64_t now, bool playing) {
     UiState s;
     s.info = in;
     s.lookTab = g.lookTab;
+    s.selTab = g.selTab;
     s.notePick = g.notePick;
     for (int i = 0; i < kPanelCount; i++) s.enabled[i] = g.settings.panelOn[i];
     s.hover = g.hover;
@@ -2813,7 +2847,7 @@ static void renderFrame() {
             float yaw = std::atan2(-d.x, -d.z), pitch = std::asin(std::max(-1.0f, std::min(1.0f, d.y)));
             q.pose.orientation = qMul(qYaw(yaw), qPitch(pitch));
             q.pose.position = vAdd(g.head.position, vScale(d, dist));
-            float w = c.scale * dist / c.dist, h = w * 0.5625f;   // apparent size at the outline's distance (16:9 guess)
+            float w = c.scale * c.width * dist / c.dist, h = c.scale * c.height * dist / c.dist;   // apparent size at the outline's distance
             // the texture's box is inset kOutlineM texels on each side; scale so the box lands 3% outside the card
             q.size = {w * (float)kOutlineW / (kOutlineW - 2 * kOutlineM) * 1.03f, h * (float)kOutlineH / (kOutlineH - 2 * kOutlineM) * 1.03f};
             layers.push_back((XrCompositionLayerBaseHeader*)&q);
@@ -2922,14 +2956,32 @@ static void renderFrame() {
         for (auto& pn : g.panels) anyPanel = anyPanel || pn.visible;
         for (auto& p : g.pointers) {
             if (!anyPanel || nc >= 2 || !p.valid || p.panel >= 0 || (p.pressed && p.pressPanel >= 0)) continue;
-            float d = 1.5f;
+            float want = 1.5f;
             int card = p.sceneDrag >= 0 ? p.sceneDrag : p.sceneHover;
+            XrVector3f dir = qRotate(p.aim.orientation, {0, 0, -1});
+            XrVector3f pt;
+            bool onCard = false;
             if (card >= 0 && card < (int)g.edit.groups.size()) {
                 CardGeom c = cardGeom(g.edit.groups[card]);
-                if (c.valid) d = std::max(0.9f, std::min(3.5f, c.dist));
+                if (c.valid) {
+                    // the reticle sits where the ray meets the card's plane (the plane faces the head at the card's
+                    // distance), not at a fixed distance along the ray from the hand
+                    float dist = std::max(0.9f, std::min(3.5f, c.dist));
+                    XrVector3f n = cardDir(c.pan, c.tilt);
+                    XrVector3f p0 = vAdd(g.head.position, vScale(n, dist));
+                    float denom = dir.x * n.x + dir.y * n.y + dir.z * n.z;
+                    if (std::fabs(denom) > 1e-3f) {
+                        XrVector3f rel = vSub(p0, p.aim.position);
+                        float t = (rel.x * n.x + rel.y * n.y + rel.z * n.z) / denom;
+                        if (t > 0.05f && t < 10) { want = t; onCard = true; }
+                    }
+                }
             }
-            XrVector3f dir = qRotate(p.aim.orientation, {0, 0, -1});
-            XrVector3f pt = vAdd(p.aim.position, vScale(dir, d));
+            // ease the distance (a card at 3 m next to empty space at 1.5 m used to make the reticle skip)
+            float k = onCard ? 0.5f : 0.25f;
+            p.freeDist += (want - p.freeDist) * k;
+            if (onCard && std::fabs(want - p.freeDist) < 0.02f) p.freeDist = want;
+            pt = vAdd(p.aim.position, vScale(dir, p.freeDist));
             XrVector3f v = vSub(pt, g.head.position);
             float dist = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
             if (!(dist > 0.05f)) continue;

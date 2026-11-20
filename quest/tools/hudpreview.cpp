@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
     Canvas c;
     auto dump = [&](PanelId id, const char* state) {
         drawPanelById(c, id, s);
-        const char* names[] = {"strip", "placement", "look", "deck", "scopes"};
+        const char* names[] = {"strip", "selected", "settings", "deck", "scopes"};
         writePpm(out + "/" + names[(int)id] + "-" + state + ".ppm", c);
     };
     dump(PanelId::Instance, "overlays");
@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
     s.lookTab = 1;
     dump(PanelId::Look, "frame");
     // the folded title's pages as Look tabs (View, Frame, Glow, Stereo, Text, Plate, Lighting)
-    { auto tabs = m.lookTabs(); for (size_t i = 0; i < tabs.size(); i++) { if (tabs[i] == "Text") { s.lookTab = (int)i; dump(PanelId::Look, "text"); } if (tabs[i] == "Lighting") { s.lookTab = (int)i; dump(PanelId::Look, "lighting"); } } }
+    { auto tabs = m.selectedTabs(); for (size_t i = 0; i < tabs.size(); i++) { if (tabs[i] == "Text") { s.selTab = (int)i; dump(PanelId::Placement, "text"); } if (tabs[i] == "Lighting") { s.selTab = (int)i; dump(PanelId::Placement, "lighting"); } if (tabs[i] == "Frame") { s.selTab = (int)i; dump(PanelId::Placement, "frame"); } } s.selTab = 0; }
     s.lookTab = 0;
     dump(PanelId::Look, "view");
     dump(PanelId::Deck, "timeline");

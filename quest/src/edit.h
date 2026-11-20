@@ -124,6 +124,8 @@ struct EditModel {
     const EditGroup* current() const { return group >= 0 && group < (int)groups.size() && inLayer(groups[group]) ? &groups[group] : nullptr; }
     // Look tabs: "View" then the current macro's sections that are not on the Placement panel.
     std::vector<std::string> lookTabs() const;
+    // Selected panel tabs (+87): Placement, then the card's sections in the bridge's order
+    std::vector<std::string> selectedTabs() const;
     // Frames shown in the timeline strip at the current zoom.
     void viewRange(int64_t& a, int64_t& b) const;
     // Slider position <-> value; logarithmic when the range spans more than 10x on one side of zero.

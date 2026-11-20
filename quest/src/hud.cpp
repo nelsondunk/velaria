@@ -604,7 +604,14 @@ void drawLift(Canvas& c, float boxW, float boxH, float r, float texPerPx) {
     r = std::min(r, std::min(boxW, boxH) / 2);
     float s = std::max(1.0f, 2.0f * texPerPx);
     c.fillRoundRect(x, y, boxW, boxH, r, Colour{1, 1, 1, 0.08f});
-    c.fillRoundRect(x + r / 2, y + s, boxW - r, s, s / 2, Colour{1, 1, 1, 0.22f});
+    bool round = r >= std::min(boxW, boxH) / 2 - 0.5f;
+    if (round) {
+        // a circle gets a short arc of sheen at the top instead of a straight line (+87: "because it's a circle, it
+        // just looks like a line" on the dials and the pan ring)
+        float cx = x + boxW / 2, cy = y + boxH / 2, rr = std::min(boxW, boxH) / 2 - s * 1.5f;
+        c.strokeArc(cx, cy, rr, s, 55 * 3.14159265f / 180, 125 * 3.14159265f / 180, Colour{1, 1, 1, 0.22f});
+    } else
+        c.fillRoundRect(x + r / 2, y + s, boxW - r, s, s / 2, Colour{1, 1, 1, 0.22f});
 }
 
 void drawOutline(Canvas& c) {

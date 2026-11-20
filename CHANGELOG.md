@@ -2,6 +2,19 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## Headset +86/+87 and bridge 1.0.14: the UI pass, first half (20 Nov 2026, evening)
+
+From Nelson's headset walkthrough at 16:30 (spec: project doc "Headset UI pass spec"). Installed on the Quest and Bruce.
+
+- **One card, named for what it is (bridge 1.0.14 + +86).** A macro plugged into Canvas Control's 3D Scene (a title) is folded into that card: its controls appear under the card with the macro's own pages as tabs (Text, Plate, Lighting), its R/G/B inputs become one swatch (Fusion's ControlGroup), names are tidied ("Slab Width" on the Slab page → "Width"; "Key Light Yaw (deg, + = from the left)" → "Key light yaw"), 0/1 inputs are switches. Cards are called *Title · Editorial*, *Footage window*, *Graphic* or *3D scene*; the V-track tag only appears when cards sit on several tracks. A window that shows nothing loses its Image / Border / Glow tabs. The Picture layer is now **Footage**.
+- **Selected panel (+87).** The Placement panel is now *Selected*: Placement first, then every tab of the picked card (Frame, Glow, Stereo, Text, Plate, Lighting…). The old Look panel is **Settings** (View, and Dome when the projection is dome), closed by default — nothing about the headset's own setup is on screen until you open it from the strip.
+- **Dials turn (+87).** Roll / card yaw / card pitch / card roll follow the angle you sweep around the dial, relative to where you grabbed; bigger dials in two rows; the tilt arc is a true half-ring with square ends; a circle's hover highlight is a short arc, not a straight line; the keyframe diamond's hit box is smaller so its highlight stays off the dial.
+- **Less text (+87).** The standing instructions ("Pinch a dot to move", "Tap a dial to zero it", "Pinch the card in the picture…") are gone; notices and Locked remain. The strip's status line shows a problem only while there is one (dropping frames, a delay over 250 ms, a Resolve setup issue); the numbers are on Settings.
+- **Strip hover words (+87)** draw over everything, so Timeline / Settings / Scopes are no longer hidden behind the Hide / Copy / Undo chips.
+- **Outline and reticle (+87).** The card outline follows the card's real extent (window fill × aspect, or a 3D title's plate width × height) instead of a 16:9 guess; the reticle sits where the ray meets the card's plane and eases between distances, so it no longer skips when crossing a card's edge.
+
+Not yet from the spec: a separate dock (the strip's top bar is the dock for now), the Footage layer rename in the docs.
+
 ## Review fixes, bridge 1.0.13, Canvas Control stereo rig (20 Nov 2026, evening)
 
 Built from the two fresh-eyes reviews (ChatGPT and a second Claude) plus Nelson's first real session with a 3D title in Canvas Control. Headset **+84/+85** and **bridge 1.0.13** are installed; the **driver and plugin are built and tested on Bruce but not swapped in** (needs Resolve closed and an admin password — Monday). Canvas Control is installed in the menus but **not yet rendered in Resolve** (see the last item).
