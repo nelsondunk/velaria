@@ -41,7 +41,7 @@ os.environ.setdefault("RESOLVE_SCRIPT_LIB",
                       "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so")
 sys.path.append(RESOLVE_API + "/Modules")
 
-BRIDGE_VERSION = "1.0.11"
+BRIDGE_VERSION = "1.0.12"
 PORT = int(os.environ.get("VRLINK_BRIDGE_PORT", "47812"))
 LOG = os.path.expanduser("~/Library/Logs/Velaria/bridge.log")
 CONFIG = os.path.expanduser("~/Library/Application Support/Velaria/config.plist")
@@ -372,6 +372,27 @@ class Bridge:
             return
         key = self.timeline_key(tl)
         if key in self.scaled:
+            # Trust, but verify: Resolve re-asserts "match timeline resolution" when the user saves the Timeline
+            # Settings dialog (seen 20 Nov: a 5760 TB timeline the bridge had set to 3840 came back at 5760 while
+            # the record still said scaled, and the headset got the full square). Back at the original -> set it
+            # again. Any other value -> the user chose it; the record is dropped and their value stands.
+            rec = self.scaled[key]
+            get, put = self.settings_target(tl)
+            now = (str(get("timelineOutputResolutionWidth")), str(get("timelineOutputResolutionHeight")))
+            if now == (str(rec["setW"]), str(rec["setH"])):
+                return
+            if now == (str(rec["ow"]), str(rec["oh"])) or (get("timelineOutputResMatchTimelineRes") or "0") == "1":
+                ok = put("timelineOutputResMatchTimelineRes", "0")
+                ok = put("timelineOutputResolutionWidth", str(rec["setW"])) and ok
+                ok = put("timelineOutputResolutionHeight", str(rec["setH"])) and ok
+                log("output scaling: '%s' had reverted to %sx%s (Resolve re-applied its settings); set %dx%d again%s"
+                    % (rec["name"], now[0], now[1], rec["setW"], rec["setH"], "" if ok else " -- Resolve refused"))
+                if ok:
+                    self.refresh_timeline()
+            else:
+                log("output scaling: '%s' was changed by hand to %sx%s; leaving it" % (rec["name"], now[0], now[1]))
+                del self.scaled[key]
+                self.save_sidecar()
             return
         name = tl.GetName()
         project = self.project.GetName() if self.project else None

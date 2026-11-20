@@ -752,6 +752,34 @@ def test_autoscale_respects_a_hand_change(tmp_path):
     assert b.scaled == {}
 
 
+def test_autoscale_reapplies_when_resolve_reverts_the_scaling(tmp_path):
+    # 20 Nov: saving the Timeline Settings dialog re-asserted "match timeline resolution" on a scaled timeline;
+    # the record said scaled, the headset got the full 5760 square
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResolutionWidth"] == "3840"
+    tl.d["timelineOutputResMatchTimelineRes"] = "1"
+    tl.d["timelineOutputResolutionWidth"] = tl.d["timelineOutputResolutionHeight"] = "5760"
+    b.autoscale_tick()
+    assert (tl.d["timelineOutputResolutionWidth"], tl.d["timelineOutputResMatchTimelineRes"]) == ("3840", "0")
+    assert list(b.scaled)                                   # still managed
+    b.clients = []
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResolutionWidth"] == "5760" and b.scaled == {}
+
+
+def test_autoscale_hand_change_while_connected_drops_the_record(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick()
+    tl.d["timelineOutputResolutionWidth"] = tl.d["timelineOutputResolutionHeight"] = "4320"   # the user's own choice
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResolutionWidth"] == "4320" and b.scaled == {} and not os.path.exists(vb.SIDECAR)
+
+
 def test_autoscale_switching_timelines_restores_the_old_one(tmp_path):
     a = _Tl("A square", SQUARE, uid="a")
     c = _Tl("B square", SQUARE, uid="b")
