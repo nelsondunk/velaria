@@ -19,7 +19,7 @@ BACKUP="/Library/Frameworks/DeckLinkAPI.framework.blackmagic-backup"
 # it from here. The path is compiled into the driver (mac/driver/src/Coexist.h): change both or neither.
 COEXIST_DIR="/Library/Application Support/Velaria/Blackmagic"
 UNDER="$COEXIST_DIR/DeckLinkAPI.framework"
-USER_NAME="${SUDO_USER:-$(id -un)}"
+USER_NAME="${SUDO_USER:-$(stat -f %Su /dev/console 2>/dev/null || id -un)}"   # console user when sudo did not set it (GUI admin prompt)
 # The name goes through eval on the next line and into paths this script writes as root: accept account names only.
 case "$USER_NAME" in ""|*[!A-Za-z0-9._-]*) echo "install.sh: unexpected user name '$USER_NAME'" >&2; exit 1;; esac
 USER_HOME=$(eval echo "~$USER_NAME")

@@ -10,7 +10,8 @@
 # path is install.sh --coexist, which does the same framework moves plus everything else.
 set -euo pipefail
 
-OWNER="${SUDO_USER:-$(id -un)}"
+# SUDO_USER is empty under an AppleScript "with administrator privileges" prompt: fall back to the console user
+OWNER="${SUDO_USER:-$(stat -f %Su /dev/console 2>/dev/null || id -un)}"
 BUILD="/Users/$OWNER/VRLink/xfer/velaria-branch/mac/driver/build/DeckLinkAPI.framework"
 CUR=/Library/Frameworks/DeckLinkAPI.framework
 UNDER_DIR="/Library/Application Support/Velaria/Blackmagic"
