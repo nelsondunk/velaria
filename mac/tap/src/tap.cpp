@@ -115,7 +115,7 @@ void Processor::openSink() {
             a.sin_family = AF_INET;
             a.sin_port = htons(kTapPort);
             a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-            connect(m_sock, (sockaddr*)&a, sizeof a);   // fixes the destination; sends never block
+            ::connect(m_sock, (sockaddr*)&a, sizeof a);   // fixes the destination; sends never block
         }
     }
     if (!m_log) {
