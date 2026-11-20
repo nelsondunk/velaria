@@ -1377,7 +1377,7 @@ class Bridge:
 
     def grab_still(self):
         # Project.ExportCurrentFrameAsStill writes the current frame at the timeline's output size, stays on the
-        # current page (0.1-0.3 s on Bruce, 18 Nov) and picks the format from the extension. GrabStill, the gallery
+        # current page (0.1-0.3 s on the development Mac, 18 Nov) and picks the format from the extension. GrabStill, the gallery
         # route, flipped Resolve to the Color page, which is why it was dropped.
         page = None
         try:

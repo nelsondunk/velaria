@@ -165,7 +165,7 @@ fi
 #    (default)             refuse, so nobody loses a DeckLink / UltraStudio by surprise;
 #    --replace-blackmagic  set it aside at $BACKUP; only Velaria appears in Resolve until --uninstall;
 #    --coexist             set it aside at $UNDER, where Velaria's driver loads it underneath, so Resolve lists both
-#                          (Resolve restarts between switching cards). Run on Bruce with Desktop Video 16.5, 19 Nov 2026.
+#                          (Resolve restarts between switching cards). Run on the development Mac with Desktop Video 16.5, 19 Nov 2026.
 MODE="${1:-}"
 KIND=$(fw_kind "$FW_DST")
 if [ -d "$BACKUP" ] && [ -d "$UNDER" ]; then
@@ -184,7 +184,7 @@ if [ "$MODE" = "--coexist" ]; then
       echo "Desktop Video was installed again after Velaria: kept the older copy at $UNDER.previous and using the new one."
     fi
     # Copy, then delete, rather than rename: macOS's launch cache follows a renamed framework by file, so a
-    # relaunched Resolve kept loading the moved one until a reboot (seen on Bruce, 19 Nov 2026). A fresh copy at
+    # relaunched Resolve kept loading the moved one until a reboot (seen on the development Mac, 19 Nov 2026). A fresh copy at
     # the set-aside path and no file left at the old one makes the next launch look the path up again.
     ditto "$FW_DST" "$UNDER" && rm -rf "$FW_DST"
     echo "Set aside Blackmagic Desktop Video framework ($(fw_version "$UNDER")) at $UNDER (restored by --uninstall)."
