@@ -37,7 +37,7 @@ case "${1:-}" in
     [ "$(kind "$UNDER")" = blackmagic ] || { echo "nothing of Blackmagic's is set aside at $UNDER; nothing to restore"; exit 1; }
     [ "$(kind "$CUR")" = velaria ] && rm -rf "$CUR"
     [ -d "$CUR" ] && { echo "$CUR is not Velaria's; leaving it alone"; exit 1; }
-    mv "$UNDER" "$CUR"
+    ditto "$UNDER" "$CUR" && rm -rf "$UNDER"
     echo "Restored Blackmagic's framework ($(ver "$CUR")). Velaria is out of Resolve until the next swap."
     status; exit 0;;
   "")
@@ -48,7 +48,7 @@ case "${1:-}" in
       blackmagic)
         [ -d "$UNDER" ] && { echo "$UNDER already exists; refusing to overwrite it. --restore first, or move it by hand."; exit 1; }
         mkdir -p "$UNDER_DIR"
-        mv "$CUR" "$UNDER"
+        ditto "$CUR" "$UNDER" && rm -rf "$CUR"   # copy + delete, not rename: dyld's launch cache follows a renamed file
         chown -R root:wheel "$UNDER"
         echo "Set aside Blackmagic's framework ($(ver "$UNDER")) at $UNDER.";;
       velaria)

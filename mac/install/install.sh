@@ -89,7 +89,7 @@ if [ "${1:-}" = "--uninstall" ]; then
   for aside in "$BACKUP" "$UNDER"; do
     [ -d "$aside" ] || continue
     if [ ! -e "$FW_DST" ]; then
-      mv "$aside" "$FW_DST"; echo "Restored Blackmagic Desktop Video framework (from $aside)."
+      ditto "$aside" "$FW_DST" && rm -rf "$aside"; echo "Restored Blackmagic Desktop Video framework (from $aside)."
     elif [ "$aside" = "$UNDER" ]; then
       rm -rf "$UNDER"; echo "Blackmagic Desktop Video is already in place (installed or updated after Velaria); removed the older copy Velaria had set aside."
     else
@@ -178,8 +178,11 @@ if [ "$MODE" = "--coexist" ]; then
       rm -rf "$UNDER.previous"; mv "$UNDER" "$UNDER.previous"
       echo "Desktop Video was installed again after Velaria: kept the older copy at $UNDER.previous and using the new one."
     fi
-    mv "$FW_DST" "$UNDER"
-    echo "Moved Blackmagic Desktop Video framework ($(fw_version "$UNDER")) to $UNDER (restored by --uninstall)."
+    # Copy, then delete, rather than rename: macOS's launch cache follows a renamed framework by file, so a
+    # relaunched Resolve kept loading the moved one until a reboot (seen on Bruce, 19 Nov 2026). A fresh copy at
+    # the set-aside path and no file left at the old one makes the next launch look the path up again.
+    ditto "$FW_DST" "$UNDER" && rm -rf "$FW_DST"
+    echo "Set aside Blackmagic Desktop Video framework ($(fw_version "$UNDER")) at $UNDER (restored by --uninstall)."
   elif [ -d "$BACKUP" ]; then
     # an earlier --replace-blackmagic install: move its backup to where the driver looks
     mkdir -p "$COEXIST_DIR"; mv "$BACKUP" "$UNDER"
