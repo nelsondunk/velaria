@@ -352,7 +352,9 @@
 						UseFrameFormatSettings = Input { Value = 0, },   -- never the timeline's square frame: each eye must be 2:1 (20 Nov: eyes were cropped at the horizon on a 3840x3840 timeline)
 						["RendererSoftware.LightingEnabled"] = Input { Value = 1, },
 						Eye = Input { Value = 1, },   -- Left
-						Width = Input { Expression = "iif(Velaria_Controls.OutputWidth > 0, Velaria_Controls.OutputWidth, comp:GetPrefs('Comp.FrameFormat.Width') or 3840)", },
+						-- Renderer3D with a SphericalCamera3D outputs 2W x W for a Width of W (measured 20 Nov: Width 512 -> 1024x512,
+						-- 2880 -> 5760x2880, whatever Height says), so half the wanted equirect width goes in here
+						Width = Input { Expression = "iif(Velaria_Controls.OutputWidth > 0, Velaria_Controls.OutputWidth, comp:GetPrefs('Comp.FrameFormat.Width') or 3840)/2", },
 						Height = Input { Expression = "Render_LeftEye.Width/2", },
 						SceneInput = Input {
 							SourceOp = "Left_Scene",
