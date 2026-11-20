@@ -1984,13 +1984,17 @@ static void updateAutoDelay(bool playing) {
     // Sound has to be here before it is due as well. Decklink audio arrives well ahead of its pts; a bus tapped in
     // Fairlight by the Velaria Tap plugin trails the picture by up to ~150 ms, so the presentation delay (picture
     // and sound alike, lip sync kept) stretches to cover it.
+    // Sound needs every block in time, not 98% of them (each late block is an audible hole), so it is the worst
+    // arrival in the window plus a margin, and the figure is logged with the step.
+    double audioWant = 0;
     {
         std::lock_guard<std::mutex> lk(g.audioLatenessMx);
-        if (g.audioLateness.count() >= 24) want = std::max(want, g.audioLateness.percentile(98) + 12.0);
+        if (g.audioLateness.count() >= 24) audioWant = g.audioLateness.percentile(100) + 25.0;
     }
+    want = std::max(want, audioWant);
     int64_t wantNs = (int64_t)(std::min(500.0, want) * 1e6);
     if (wantNs > g.autoDelayNs + 2000000) {
-        LOGI("auto delay up: %.0f -> %.0f ms (p98 lateness %.1f ms)", g.autoDelayNs / 1e6, wantNs / 1e6, g.lateness.percentile(98));
+        LOGI("auto delay up: %.0f -> %.0f ms (p98 picture lateness %.1f ms, sound needs %.0f ms)", g.autoDelayNs / 1e6, wantNs / 1e6, g.lateness.percentile(98), audioWant);
         g.autoDelayNs = wantNs;
         g.shrinkSinceNs = 0;
     } else if (wantNs + 15000000 < g.autoDelayNs) {
