@@ -45,7 +45,7 @@
 				FrameThickness = InstanceInput {
 					SourceOp = "FrameThickness_Value", Source = "TopLeftRed",
 					Name = "Frame Thickness (0 = none)",
-					Default = 0.012, MinScale = 0, MaxScale = 0.08, Page = "Frame",
+					Default = 0, MinScale = 0, MaxScale = 0.08, Page = "Frame",
 				},
 				WindowSize = InstanceInput {
 					SourceOp = "Window_Size_Value", Source = "TopLeftRed",
@@ -85,7 +85,7 @@
 				},
 				-- ===== PLACEMENT =====
 				Yaw = InstanceInput {
-					SourceOp = "Left_Place_On_Sphere", Source = "Transform3DOp.Rotate.Y",
+					SourceOp = "Velaria_Controls", Source = "Yaw",
 					Name = "Yaw (Pan)",
 					Default = 0, MinScale = -180, MaxScale = 180, Page = "Placement",
 				},
@@ -122,9 +122,14 @@
 				},
 				-- ===== STEREO / OUTPUT =====
 				Mode = InstanceInput {
-					SourceOp = "Mode_Mono0_Stereo1", Source = "TopLeftRed",
-					Name = "Mono (0) / Stereo (1)",
-					Default = 0, MinScale = 0, MaxScale = 1, Page = "Stereo / Output",
+					SourceOp = "Velaria_Controls", Source = "StereoFootage",
+					Name = "Stereo footage (uses the Right Footage input)",
+					Default = 0, Page = "Stereo / Output",
+				},
+				EyeSeparation = InstanceInput {
+					SourceOp = "Velaria_Controls", Source = "EyeSeparation",
+					Name = "Eye Separation (m; 0 = flat)",
+					Default = 0.065, MinScale = 0, MaxScale = 0.2, Page = "Stereo / Output",
 				},
 				WindowDepth = InstanceInput {
 					SourceOp = "Depth_Convergence", Source = "TopLeftRed",
@@ -132,9 +137,9 @@
 					Default = 0, MinScale = 0, MaxScale = 0.02, Page = "Stereo / Output",
 				},
 				OutputWidth = InstanceInput {
-					SourceOp = "Render_LeftEye", Source = "Width",
-					Name = "Equirect Width (per eye)",
-					Default = 2880, MinScale = 512, MaxScale = 8192, Page = "Stereo / Output",
+					SourceOp = "Velaria_Controls", Source = "OutputWidth",
+					Name = "Equirect Width (per eye; set it to the timeline width; 0 = Fusion frame format)",
+					Default = 3840, MinScale = 0, MaxScale = 8192, Page = "Stereo / Output",
 				},
 			},
 			Outputs = ordered() {
@@ -151,7 +156,11 @@
 			Tools = ordered() {
 				Right_Depth_Shift = Transform {
 					Inputs = {
-						Center = Input { Expression = "Point(0.5 - Depth_Convergence.TopLeftRed, 0.5)", },
+						-- Yaw is a rotation about the vertical axis = a wrapped horizontal shift of the equirect, applied after
+						-- the render so the stereo baseline stays square to the card at any yaw (a card rendered at 90 deg
+						-- from a fixed left-right camera pair would have no parallax at all)
+						Center = Input { Expression = "Point(0.5 - Depth_Convergence.TopLeftRed + Velaria_Controls.Yaw/360, 0.5)", },
+						Edges = Input { Value = 1, },   -- wrap (Transform edges: 0 canvas, 1 wrap, 2 duplicate, 3 mirror)
 						Input = Input {
 							SourceOp = "Render_RightEye",
 							Source = "Output",
@@ -164,6 +173,7 @@
 						["RendererOpenGL.LightingEnabled"] = Input { Value = 1, },
 						UseFrameFormatSettings = Input { Value = 0, },   -- never the timeline's square frame: each eye must be 2:1 (20 Nov: eyes were cropped at the horizon on a 3840x3840 timeline)
 						["RendererSoftware.LightingEnabled"] = Input { Value = 1, },
+						Eye = Input { Value = 2, },   -- Right (20 Nov: both eyes were rendered from one Mono camera; cards had no depth of their own)
 						Width = Input { Expression = "Render_LeftEye.Width", },
 						Height = Input { Expression = "Render_LeftEye.Width/2", },
 						SceneInput = Input {
@@ -208,14 +218,14 @@
 							Source = "Output",
 						},
 						["Transform3DOp.Rotate.X"] = Input { Expression = "Left_Place_On_Sphere.Transform3DOp.Rotate.X", },
-						["Transform3DOp.Rotate.Y"] = Input { Expression = "Left_Place_On_Sphere.Transform3DOp.Rotate.Y", },
 						["Transform3DOp.Rotate.Z"] = Input { Expression = "Left_Place_On_Sphere.Transform3DOp.Rotate.Z", }
 					},
 					ViewInfo = OperatorInfo { Pos = { -1247.54, 45.0019 } },
 				},
 				Right_Camera = SphericalCamera3D {
 					Inputs = {
-						["Stereo.Mode"] = Input { Value = FuID { "ToeIn" }, }
+						["Stereo.Mode"] = Input { Value = FuID { "Parallel" }, },   -- zero parallax at infinity, as a headset expects
+						["Stereo.EyeSeparation"] = Input { Expression = "Velaria_Controls.EyeSeparation", },
 					},
 					ViewInfo = OperatorInfo { Pos = { -1247.54, 125.002 } },
 				},
@@ -252,7 +262,8 @@
 				},
 				Left_Camera = SphericalCamera3D {
 					Inputs = {
-						["Stereo.Mode"] = Input { Value = FuID { "ToeIn" }, }
+						["Stereo.Mode"] = Input { Value = FuID { "Parallel" }, },   -- zero parallax at infinity, as a headset expects
+						["Stereo.EyeSeparation"] = Input { Expression = "Velaria_Controls.EyeSeparation", },
 					},
 					ViewInfo = OperatorInfo { Pos = { -1247.54, -314.998 } },
 				},
@@ -340,7 +351,8 @@
 						["RendererOpenGL.LightingEnabled"] = Input { Value = 1, },
 						UseFrameFormatSettings = Input { Value = 0, },   -- never the timeline's square frame: each eye must be 2:1 (20 Nov: eyes were cropped at the horizon on a 3840x3840 timeline)
 						["RendererSoftware.LightingEnabled"] = Input { Value = 1, },
-						Width = Input { Value = 2880, },
+						Eye = Input { Value = 1, },   -- Left
+						Width = Input { Expression = "iif(Velaria_Controls.OutputWidth > 0, Velaria_Controls.OutputWidth, comp:GetPrefs('Comp.FrameFormat.Width') or 3840)", },
 						Height = Input { Expression = "Render_LeftEye.Width/2", },
 						SceneInput = Input {
 							SourceOp = "Left_Scene",
@@ -352,7 +364,8 @@
 				},
 				Left_Depth_Shift = Transform {
 					Inputs = {
-						Center = Input { Expression = "Point(0.5 + Depth_Convergence.TopLeftRed, 0.5)", },
+						Center = Input { Expression = "Point(0.5 + Depth_Convergence.TopLeftRed + Velaria_Controls.Yaw/360, 0.5)", },
+						Edges = Input { Value = 1, },   -- wrap (Transform edges: 0 canvas, 1 wrap, 2 duplicate, 3 mirror)
 						Input = Input {
 							SourceOp = "Render_LeftEye",
 							Source = "Output",
@@ -484,7 +497,7 @@
 						[0] = "DFTDissolve"
 					},
 					Inputs = {
-						Mix = Input { Expression = "Mode_Mono0_Stereo1.TopLeftRed", },
+						Mix = Input { Expression = "Velaria_Controls.StereoFootage", },
 						Background = Input {
 							SourceOp = "Left_Footage_Input",
 							Source = "Output",
@@ -574,7 +587,7 @@
 					Inputs = {
 						Width = Input { Value = 4, },
 						Height = Input { Value = 4, },
-						TopLeftRed = Input { Value = 0.012, }
+						TopLeftRed = Input { Value = 0, }
 					},
 					ViewInfo = OperatorInfo { Pos = { -2127.54, -724.998 } },
 				},
@@ -626,9 +639,51 @@
 					CtrlWZoom = false,
 					Inputs = {
 						WindowShows = Input { Value = 0, },
+						Yaw = Input { Value = 0, },
+						EyeSeparation = Input { Value = 0.065, },
+						OutputWidth = Input { Value = 3840, },
+						StereoFootage = Input { Value = 0, },
 					},
 					ViewInfo = PipeRouterInfo { Pos = { -2237.54, -504.998 } },
 					UserControls = ordered() {
+						Yaw = {
+							LINKID_DataType = "Number",
+							INPID_InputControl = "SliderControl",
+							INP_Default = 0,
+							INP_MinScale = -180,
+							INP_MaxScale = 180,
+							LINKS_Name = "Yaw (Pan)",
+							ICS_ControlPage = "Placement",
+						},
+						EyeSeparation = {
+							LINKID_DataType = "Number",
+							INPID_InputControl = "SliderControl",
+							INP_Default = 0.065,
+							INP_MinScale = 0,
+							INP_MaxScale = 0.2,
+							LINKS_Name = "Eye Separation (m)",
+							ICS_ControlPage = "Stereo / Output",
+						},
+						OutputWidth = {
+							LINKID_DataType = "Number",
+							INPID_InputControl = "SliderControl",
+							INP_Integer = true,
+							INP_Default = 3840,
+							INP_MinScale = 0,
+							INP_MaxScale = 8192,
+							LINKS_Name = "Equirect Width (per eye)",
+							ICS_ControlPage = "Stereo / Output",
+						},
+						StereoFootage = {
+							LINKID_DataType = "Number",
+							INPID_InputControl = "CheckboxControl",
+							INP_Integer = true,
+							INP_Default = 0,
+							INP_MinScale = 0,
+							INP_MaxScale = 1,
+							LINKS_Name = "Stereo footage (Right Footage input)",
+							ICS_ControlPage = "Stereo / Output",
+						},
 						WindowShows = {
 							LINKID_DataType = "Number",
 							INPID_InputControl = "ComboControl",
@@ -764,14 +819,6 @@
 						}
 					},
 					ViewInfo = OperatorInfo { Pos = { -1302.54, 45.0019 } },
-				},
-				Mode_Mono0_Stereo1 = Background {
-					CtrlWZoom = false,
-					Inputs = {
-						Width = Input { Value = 4, },
-						Height = Input { Value = 4, }
-					},
-					ViewInfo = OperatorInfo { Pos = { -2127.54, -834.998 } },
 				}
 			},
 		}
