@@ -61,9 +61,9 @@ FAQ = [
   ["Yes. Velaria and your Blackmagic device can both appear in Resolve's Video and Audio I/O, and you switch between them there. Resolve asks for a restart each time you switch, which is how it behaves with any two Blackmagic devices. We have tested this with a DeckLink Mini Monitor 4K; the setup guide has the install step.",
    "If a Desktop Video update replaces Velaria's driver, the headset tells you, and running the installer again puts it back. On macOS 26, if your card doesn't show up at all, approve Blackmagic's driver extension under System Settings, General, Login Items & Extensions. That one is on Blackmagic's side, and it catches people out whether Velaria is installed or not."]),
  ("Does it work with Premiere Pro, Final Cut Pro or on Windows?",
-  ["No. Velaria is for DaVinci Resolve Studio on a Mac."]),
- ("Does it work with Apple Vision Pro, Pico or other headsets?",
-  ["No. Velaria is for Meta Quest. If you work on Apple Vision Pro, DaVinci Resolve Studio has its own monitoring for that headset."]),
+  ["Not today. Velaria is for DaVinci Resolve Studio on a Mac. A Windows version is planned for early 2027 if enough editors ask for it, so if you want it, write and tell us. Premiere Pro and Final Cut Pro are not planned."]),
+ ("Does it work with Pico, Apple Vision Pro or other headsets?",
+  ["Velaria is for Meta Quest today. Pico headsets are next, soon after launch. Apple Vision Pro is not planned: DaVinci Resolve Studio has its own monitoring for that headset."]),
  ("Which formats and resolutions can I preview?",
   ["360 in mono or over/under stereo; 180 as side-by-side VR180 or as dual fisheye with lens presets from 144 to 220 degrees; and dome, from a standard domemaster.",
    "Pictures up to 5760 pixels wide reach the headset at full size (a 5760 x 2880 VR180 timeline, for example); wider pictures are scaled down to 5760. Resolve's monitoring picture is no taller than 4320 pixels, so a square 360 timeline such as 5760 x 5760 is monitored at 3840 x 3840 while you work. Velaria sets that output scaling in Resolve for you while the headset is connected, and puts your own setting back when you disconnect."]),
@@ -72,7 +72,7 @@ FAQ = [
    "It is a preview for composition, pacing and comfort, not a substitute for a check in the real theater."]),
  ("Can I hear my mix in the headset?",
   ["Yes. Put the Velaria Sound plug-in on a Fairlight bus and that bus plays through the Quest in step with the picture, with no patching. A stereo bus plays as stereo. A first-order ambisonic bus turns with your head, so a sound placed behind you stays behind you as you look around.",
-   "It is for reviewing a cut, not for mixing: the headset's sound is an approximate spatial check, so do your final mix on studio monitors or headphones."]),
+   "It is a spatialized review, not a mix monitor: mix on your studio system."]),
  ("Can I finish a color grade in the headset?",
   ["No. A Quest is not a reference display. Velaria gives you scopes measured on the Mac, and Canvas adds a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor."]),
  ("Cable or Wi-Fi?",
@@ -242,7 +242,7 @@ see = '''  <section class="see wrap" id="view" aria-labelledby="view-title">
       <p class="lead muted" data-reveal>Everything you need to review a cut from inside it, in both versions: the live picture in every format, your mix, and notes that land in your Resolve project.</p>
     </div>
     <ul class="flist">
-      <li data-reveal><h3>Your mix, in sync</h3><p>Put the Velaria Sound plug-in on a Fairlight bus and the mix plays in the headset in step with the picture, with no patching. An ambisonic mix turns with your head. It's for review; mix on your studio monitors.</p></li>
+      <li data-reveal><h3>Your mix, in sync</h3><p>Put the Velaria Sound plug-in on a Fairlight bus and the mix plays in the headset in step with the picture, with no patching. An ambisonic mix turns with your head. A spatialized review, not a mix monitor.</p></li>
       <li data-reveal><h3>Notes that land in Resolve</h3><p>Drop a note from the headset and it becomes a marker at the playhead, colored by kind: Editing, Sound, Color, Graphics, Immersive, or Love this.</p></li>
       <li data-reveal><h3>Grab a still</h3><p>Save the frame you're looking at to a Velaria Stills folder beside your media, without Resolve changing pages.</p></li>
       <li data-reveal><h3>Hide a layer</h3><p>Switch a title or a footage window off to see the plate behind it, and bring it back with one tap.</p></li>
@@ -336,14 +336,19 @@ fit = '''  <section class="isnt wrap" id="fit" aria-labelledby="fit-title">
       <article class="tier" data-reveal>
         <p class="tier__name">Velaria isn't</p>
         <ul>
-          <li class="no">For Windows, Premiere Pro or Final Cut Pro</li>
-          <li class="no">For Apple Vision Pro, Pico or the free version of Resolve</li>
+          <li class="no">For Premiere Pro, Final Cut Pro or the free version of Resolve</li>
+          <li class="no">On Windows or Pico yet. Both are coming, below</li>
+          <li class="no">For Apple Vision Pro</li>
           <li class="no">A Meta Horizon Store app. You load it with developer mode</li>
           <li class="no">Signed by Apple. macOS may ask you to approve it</li>
           <li class="no">A reference display, a stitcher or an encoder</li>
-          <li class="no">A place to mix sound. Headset audio is for review</li>
+          <li class="no">A mix monitor. Headset sound is a spatialized review</li>
         </ul>
       </article>
+    </div>
+    <div class="tiers__note" data-reveal>
+      <p><b>Coming next:</b> Pico headsets, soon after launch. Then Windows, planned for early 2027 if enough editors ask for it.</p>
+      <a class="textlink" data-mail="Velaria for Windows">Tell us you want Windows</a>
     </div>
   </section>
 '''
