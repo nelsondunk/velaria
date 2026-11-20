@@ -642,3 +642,128 @@ def test_stills_land_beside_the_clip_media(tmp_path):
     for v in (1, 2):
         for it in b.timeline.tracks[v]: it.mpi = MPI()
     assert b.stills_dir() == str(tmp_path / "footage" / "Velaria Stills")
+
+
+# ---------------------------------------------------------------- output scaling for the headset (19 Nov)
+class _Tl:
+    """A timeline (or project) with settable settings, the way the bridge drives Resolve's."""
+    def __init__(self, name, d, uid=None):
+        self.name, self.d, self.uid, self.writes = name, dict(d), uid or name, []
+    def GetName(self): return self.name
+    def GetUniqueId(self): return self.uid
+    def GetSetting(self, k=None): return self.d if k is None else self.d.get(k, "")
+    def SetSetting(self, k, v):
+        self.d[k] = v
+        self.writes.append((k, v))
+        return True
+
+
+SQUARE = {"useCustomSettings": "1", "timelineResolutionWidth": "5760", "timelineResolutionHeight": "5760",
+          "timelineOutputResMatchTimelineRes": "1", "timelineOutputResolutionWidth": "5760", "timelineOutputResolutionHeight": "5760"}
+
+
+def _scaling_bridge(tmp_path, tl):
+    b, sent = make_bridge()
+    vb.SIDECAR = str(tmp_path / "output-scaling.json")
+    b.timeline, b.fps = tl, 30.0
+    b.project = _project(tl, {"timelineResolutionWidth": "1920", "timelineResolutionHeight": "1080"})
+    b.refresh_timeline()
+    return b, sent
+
+
+def _project(tl, d):
+    p = _Tl("Proj", d)
+    p.GetCurrentTimeline = lambda: tl
+    p.GetTimelineCount = lambda: 1
+    p.GetTimelineByIndex = lambda i: tl
+    return p
+
+
+def test_autoscale_sets_square_on_connect_and_restores_on_disconnect(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    assert "Output scaling > 3840 x 3840" in b.warnings[0]
+    b.autoscale_tick()                       # no headset: nothing happens
+    assert tl.writes == [] and not os.path.exists(vb.SIDECAR)
+    b.clients = [object()]
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResMatchTimelineRes"] == "0"
+    assert (tl.d["timelineOutputResolutionWidth"], tl.d["timelineOutputResolutionHeight"]) == ("3840", "3840")
+    assert b.format["outWidth"] == 3840 and "set to 3840 x 3840 for the headset" in b.warnings[0]
+    assert os.path.exists(vb.SIDECAR)
+    b.autoscale_tick()                       # idempotent while connected
+    assert len(tl.writes) == 3
+    b.clients = []
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResMatchTimelineRes"] == "1"
+    assert (tl.d["timelineOutputResolutionWidth"], tl.d["timelineOutputResolutionHeight"]) == ("5760", "5760")
+    assert b.scaled == {} and not os.path.exists(vb.SIDECAR)
+    assert "Output scaling > 3840 x 3840" in b.warnings[0]     # the plain advice is back
+
+
+def test_autoscale_leaves_fitting_timelines_alone(tmp_path):
+    tl = _Tl("01 180 SBS", {"useCustomSettings": "1", "timelineResolutionWidth": "7680", "timelineResolutionHeight": "3840",
+                            "timelineOutputResMatchTimelineRes": "1"})
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick()
+    assert tl.writes == [] and b.scaled == {}
+
+
+def test_autoscale_wide_fit_and_project_level_settings(tmp_path):
+    # the timeline inherits the project's 8192x4096: the project's settings are what get scaled, aspect kept
+    tl = _Tl("wide", {"useCustomSettings": "0"})
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.project = _project(tl, {"timelineResolutionWidth": "8192", "timelineResolutionHeight": "4096", "timelineOutputResMatchTimelineRes": "1"})
+    b.refresh_timeline()
+    b.clients = [object()]
+    b.autoscale_tick()
+    assert tl.writes == []
+    assert (b.project.d["timelineOutputResolutionWidth"], b.project.d["timelineOutputResolutionHeight"]) == ("7680", "3840")
+    b.clients = []
+    b.autoscale_tick()
+    assert b.project.d["timelineOutputResMatchTimelineRes"] == "1"
+
+
+def test_autoscale_restores_from_sidecar_after_a_crash(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResolutionWidth"] == "3840"
+    # a new bridge (crash, restart) on the same project finds the sidecar and puts the timeline back first thing
+    b2, _ = _scaling_bridge(tmp_path, tl)
+    assert not b2.scaled_loaded
+    b2.autoscale_tick()
+    assert tl.d["timelineOutputResMatchTimelineRes"] == "1" and tl.d["timelineOutputResolutionWidth"] == "5760"
+    assert not os.path.exists(vb.SIDECAR)
+
+
+def test_autoscale_respects_a_hand_change(tmp_path):
+    tl = _Tl("13 Chart 360 TB", SQUARE)
+    b, _ = _scaling_bridge(tmp_path, tl)
+    b.clients = [object()]
+    b.autoscale_tick()
+    tl.d["timelineOutputResolutionWidth"] = tl.d["timelineOutputResolutionHeight"] = "4320"   # the user's own choice
+    b.clients = []
+    b.autoscale_tick()
+    assert tl.d["timelineOutputResolutionWidth"] == "4320" and tl.d["timelineOutputResMatchTimelineRes"] == "0"
+    assert b.scaled == {}
+
+
+def test_autoscale_switching_timelines_restores_the_old_one(tmp_path):
+    a = _Tl("A square", SQUARE, uid="a")
+    c = _Tl("B square", SQUARE, uid="b")
+    b, _ = _scaling_bridge(tmp_path, a)
+    b.project.GetTimelineCount = lambda: 2
+    b.project.GetTimelineByIndex = lambda i: [a, c][i - 1]
+    b.clients = [object()]
+    b.autoscale_tick()
+    assert a.d["timelineOutputResolutionWidth"] == "3840"
+    b.timeline = c
+    b.project.GetCurrentTimeline = lambda: c
+    b.refresh_timeline()
+    b.autoscale_tick()
+    assert a.d["timelineOutputResolutionWidth"] == "5760" and a.d["timelineOutputResMatchTimelineRes"] == "1"
+    assert c.d["timelineOutputResolutionWidth"] == "3840"
+    assert list(b.scaled) == ["b"]

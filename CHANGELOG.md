@@ -2,6 +2,10 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## Unreleased — Output scaling handled by the bridge (19 Nov 2026, overnight)
+
+Bridge 1.0.10 (installed on Bruce 19 Nov night; UNTESTED with a headset — tests only). A square 360 timeline is taller than Resolve's 7680×4320 monitor raster, so until now the headset showed a cropped picture until you set **Timeline Settings › Output scaling › 3840 × 3840** by hand — and a forgotten setting shipped a 3840² export. Now, while a headset is connected, the bridge sets that scaling itself (square → 3840 × 3840; anything else keeps its aspect inside the raster) and puts the original back when the last headset disconnects, or when you switch to another timeline. The headset's status line says *Output scaling set to 3840 x 3840 for the headset … put back when it disconnects* while it is in force. The originals are kept in `~/Library/Application Support/Velaria/output-scaling.json`, so a bridge that is killed mid-session restores them the next time it starts. A value you change by hand while it is in force is left as you set it.
+
 ## Unreleased — 180, stereo and dome output (18 Nov 2026, overnight)
 
 Headset app 1.1.0-dome+62 (installed on Nelson's Quest 18 Nov 20:30, **not yet seen by him**). Macros verified by rendering the labelled charts in the "Velaria Format Tests" project on Bruce; the headset half is UNTESTED.

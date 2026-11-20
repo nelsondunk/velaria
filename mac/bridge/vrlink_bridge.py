@@ -20,6 +20,10 @@ Bridge -> headset:
   The timeline message also carries "format" (timeline and output size, fps, custom flag) and "warnings": the
   setup mistakes Resolve's own settings reveal (square 360 without output scaling). The headset adds the ones only
   it can see (raster and frame rate from the driver, no picture) and shows them in the status line.
+  Output scaling: while a headset is connected the bridge sets Timeline Settings > Output scaling itself on a
+  timeline too large for the monitor raster (square -> 3840 x 3840) and restores it when the last headset leaves;
+  the originals live in ~/Library/Application Support/Velaria/output-scaling.json until then, so a bridge that
+  dies mid-session restores them on its next start.
 """
 import json
 import re
@@ -37,7 +41,7 @@ os.environ.setdefault("RESOLVE_SCRIPT_LIB",
                       "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so")
 sys.path.append(RESOLVE_API + "/Modules")
 
-BRIDGE_VERSION = "1.0.9"
+BRIDGE_VERSION = "1.0.10"
 PORT = int(os.environ.get("VRLINK_BRIDGE_PORT", "47812"))
 LOG = os.path.expanduser("~/Library/Logs/Velaria/bridge.log")
 CONFIG = os.path.expanduser("~/Library/Application Support/Velaria/config.plist")
@@ -71,23 +75,40 @@ HIDDEN_IDS = {"HideInputs", "CommentsNest", "Comments", "OutputWidth", "Blend", 
 
 
 # Resolve's monitor raster tops out at 7680 x 4320; anything taller is cropped, so a square (over/under) 360
-# timeline has to be scaled on output. These are the mistakes a new user makes that scripting can see.
+# timeline has to be scaled on output. While a headset is connected the bridge sets that scaling itself and puts
+# the original back when the last headset leaves (see Bridge.autoscale_*); the preflight line then says so instead
+# of asking the user to do it.
 MONITOR_MAX_W, MONITOR_MAX_H = 7680, 4320
+SIDECAR = os.path.expanduser("~/Library/Application Support/Velaria/output-scaling.json")
 
 
-def preflight(fmt):
-    """One short line per setup problem, with the fix in Resolve's own menu words. fmt is timeline_format()."""
+def fit_size(ow, oh):
+    """The output size the headset path wants for a picture Resolve's monitor raster cannot carry: square stays
+    square at 3840 (the encoder's sweet spot, square at any rate), anything else keeps its aspect inside the raster
+    on multiples of 16. Returns None when the size already fits."""
+    if ow <= MONITOR_MAX_W and oh <= MONITOR_MAX_H:
+        return None
+    if ow == oh:
+        return 3840, 3840
+    k = min(MONITOR_MAX_W / float(ow), MONITOR_MAX_H / float(oh))
+    return int(ow * k) // 16 * 16, int(oh * k) // 16 * 16
+
+
+def preflight(fmt, managed=None):
+    """One short line per setup problem, with the fix in Resolve's own menu words. fmt is timeline_format().
+    managed: the (w, h) the bridge has set for the headset on this timeline, if it has; the line then reports
+    that instead of asking for it."""
     out = []
     w, h, ow, oh = fmt.get("width", 0), fmt.get("height", 0), fmt.get("outWidth", 0), fmt.get("outHeight", 0)
-    if ow > MONITOR_MAX_W or oh > MONITOR_MAX_H:
-        if ow == oh:
-            fit = "3840 x 3840"   # square 360: the value the setup guide gives
-        else:
-            k = min(MONITOR_MAX_W / float(ow), MONITOR_MAX_H / float(oh))
-            fit = "%d x %d" % (int(ow * k) // 16 * 16, int(oh * k) // 16 * 16)
+    if managed:
+        out.append("Output scaling set to %d x %d for the headset (timeline %dx%d); put back when it disconnects"
+                   % (managed[0], managed[1], w, h))
+        return out
+    fit = fit_size(ow, oh)
+    if fit:
         what = "Timeline %dx%d" % (w, h) if (ow, oh) == (w, h) else "Output scaling %dx%d" % (ow, oh)
-        out.append("%s exceeds the %dx%d monitor: Timeline Settings > Output scaling > %s"
-                   % (what, MONITOR_MAX_W, MONITOR_MAX_H, fit))
+        out.append("%s exceeds the %dx%d monitor: Timeline Settings > Output scaling > %d x %d"
+                   % (what, MONITOR_MAX_W, MONITOR_MAX_H, fit[0], fit[1]))
     return out
 
 
@@ -171,6 +192,8 @@ class Bridge:
         self.animated = {}         # (tool name, input id) -> bool, so a set doesn't re-read the input list
         self.kids = {}             # id(macro tool) -> its inner tools by name, so a set doesn't re-list them
         self.last_set = 0.0        # when a change was last applied (the periodic re-scan stays out of a drag's way)
+        self.scaled = {}           # timeline key -> original output settings while the bridge has scaled it, see autoscale_*
+        self.scaled_loaded = False
 
     # ---------------------------------------------------------------- resolve
     def versions(self):
@@ -220,7 +243,8 @@ class Bridge:
         drop = tl.GetSetting("timelineDropFrameTimecode") == "1"
         self.drop = drop
         self.format = self.timeline_format(tl)
-        warnings = preflight(self.format)
+        managed = self.scaled.get(self.timeline_key(tl))
+        warnings = preflight(self.format, managed and (managed["setW"], managed["setH"]))
         if warnings != getattr(self, "warnings", None):
             self.warnings = warnings
             for w in warnings:
@@ -243,6 +267,141 @@ class Bridge:
         if not ow or not oh:
             ow, oh = w, h
         return {"width": w, "height": h, "outWidth": ow, "outHeight": oh, "fps": self.fps, "custom": custom}
+
+    # ------------------------------------------------------------ output scaling for the headset
+    # A square 360 timeline (5760² is common) is taller than Resolve's 7680x4320 monitor raster: without Output
+    # scaling the headset gets a cropped picture, and a user who sets it by hand and forgets ships a 3840² export.
+    # So while a headset is connected the bridge sets the scaling to what the headset path needs and puts the
+    # original back when the last headset leaves. The originals also go to a sidecar file, so a bridge that
+    # crashed or was killed mid-session restores them the next time it starts rather than leaving a timeline
+    # silently scaled. A value the user changed by hand while scaled is left alone (the record is dropped).
+
+    def timeline_key(self, tl):
+        try:
+            uid = tl.GetUniqueId()
+        except Exception:
+            uid = None
+        return str(uid or tl.GetName())
+
+    def settings_target(self, tl):
+        """(GetSetting, SetSetting) of whatever holds this timeline's output size: the timeline when it uses custom
+        settings, else the project."""
+        custom = (tl.GetSetting("useCustomSettings") or "0") == "1"
+        obj = tl if custom else self.project
+        return obj.GetSetting, obj.SetSetting
+
+    def save_sidecar(self):
+        try:
+            os.makedirs(os.path.dirname(SIDECAR), exist_ok=True)
+            if self.scaled:
+                with open(SIDECAR, "w") as f:
+                    json.dump({"project": self.project.GetName() if self.project else "", "scaled": self.scaled}, f)
+            elif os.path.exists(SIDECAR):
+                os.remove(SIDECAR)
+        except Exception as e:
+            log("output scaling: sidecar not written: %s" % e)
+
+    def load_sidecar(self):
+        """Once per bridge start: anything a previous bridge left scaled is restored now, before any headset asks."""
+        self.scaled_loaded = True
+        try:
+            if not os.path.exists(SIDECAR):
+                return
+            with open(SIDECAR) as f:
+                d = json.load(f)
+        except Exception as e:
+            log("output scaling: sidecar unreadable, ignored: %s" % e)
+            return
+        if d.get("project") and self.project and d["project"] != self.project.GetName():
+            log("output scaling: sidecar is for project '%s', not '%s'; left for later" % (d["project"], self.project.GetName()))
+            return
+        self.scaled = d.get("scaled") or {}
+        if self.scaled:
+            log("output scaling: a previous bridge left %d timeline(s) scaled; restoring" % len(self.scaled))
+            self.autoscale_restore()
+
+    def find_timeline(self, key):
+        tl = self.timeline
+        if tl and self.timeline_key(tl) == key:
+            return tl
+        try:
+            for i in range(1, self.project.GetTimelineCount() + 1):
+                t = self.project.GetTimelineByIndex(i)
+                if t and self.timeline_key(t) == key:
+                    return t
+        except Exception:
+            pass
+        return None
+
+    def autoscale_apply(self):
+        """Headset connected and the current timeline's output does not fit: set the scaling (once)."""
+        tl = self.timeline
+        if not tl:
+            return
+        key = self.timeline_key(tl)
+        if key in self.scaled:
+            return
+        fmt = getattr(self, "format", None) or self.timeline_format(tl)
+        fit = fit_size(fmt["outWidth"], fmt["outHeight"])
+        if not fit:
+            return
+        get, put = self.settings_target(tl)
+        rec = {"name": tl.GetName(), "custom": fmt["custom"],
+               "match": get("timelineOutputResMatchTimelineRes") or "1",
+               "ow": get("timelineOutputResolutionWidth") or "", "oh": get("timelineOutputResolutionHeight") or "",
+               "setW": fit[0], "setH": fit[1]}
+        ok = put("timelineOutputResMatchTimelineRes", "0")
+        ok = put("timelineOutputResolutionWidth", str(fit[0])) and ok
+        ok = put("timelineOutputResolutionHeight", str(fit[1])) and ok
+        if not ok:
+            log("output scaling: Resolve refused to set %dx%d on '%s'" % (fit[0], fit[1], rec["name"]))
+            return
+        self.scaled[key] = rec
+        self.save_sidecar()
+        log("output scaling: '%s' %dx%d -> %dx%d for the headset (was match=%s %sx%s)"
+            % (rec["name"], fmt["outWidth"], fmt["outHeight"], fit[0], fit[1], rec["match"], rec["ow"], rec["oh"]))
+        self.refresh_timeline()
+
+    def autoscale_restore(self, only=None):
+        """Put back every scaled timeline (or one key). A timeline whose scaling the user changed since is left as
+        the user left it."""
+        for key in list(self.scaled):
+            if only and key != only:
+                continue
+            rec = self.scaled[key]
+            tl = self.find_timeline(key)
+            if not tl:
+                log("output scaling: timeline '%s' not found; its original scaling stays on record" % rec["name"])
+                continue
+            get, put = self.settings_target(tl)
+            now_w, now_h = get("timelineOutputResolutionWidth"), get("timelineOutputResolutionHeight")
+            if (str(now_w), str(now_h)) != (str(rec["setW"]), str(rec["setH"])):
+                log("output scaling: '%s' was changed by hand (%sx%s); leaving it" % (rec["name"], now_w, now_h))
+            else:
+                put("timelineOutputResMatchTimelineRes", rec["match"])
+                if rec["ow"] and rec["oh"]:
+                    put("timelineOutputResolutionWidth", str(rec["ow"]))
+                    put("timelineOutputResolutionHeight", str(rec["oh"]))
+                log("output scaling: '%s' restored (match=%s %sx%s)" % (rec["name"], rec["match"], rec["ow"], rec["oh"]))
+            del self.scaled[key]
+        self.save_sidecar()
+        if self.timeline:
+            self.refresh_timeline()   # the format and the preflight line follow the restored settings
+
+    def autoscale_tick(self):
+        """Called from the main loop after each timeline refresh, with the lock held."""
+        if not self.scaled_loaded:
+            self.load_sidecar()
+        connected = bool(self.clients)
+        if connected:
+            if self.timeline:
+                here = self.timeline_key(self.timeline)
+                for key in list(self.scaled):     # the user moved to another timeline: put the old one back
+                    if key != here:
+                        self.autoscale_restore(only=key)
+            self.autoscale_apply()
+        elif self.scaled:
+            self.autoscale_restore()
 
     def clip_key(self, track, item):
         start = item.GetStart()
@@ -1213,6 +1372,7 @@ class Bridge:
                     if now >= next_sig and not dragging:
                         next_sig = now + 2.0
                         self.refresh_timeline()
+                        self.autoscale_tick()
                         sig = self.signature()
                         self.rebuild_index()
                         if sig != self.tl_signature:
