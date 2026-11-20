@@ -3,7 +3,7 @@
 // Each one answers for Velaria and, when Blackmagic's own framework has been set aside by `install.sh --coexist`
 // and loads underneath (Coexist.h), for Blackmagic as well. With nothing set aside the behaviour is what it was
 // before coexistence: one Velaria device, and nullptr from the helpers Velaria does not provide.
-// The coexistence path is UNTESTED (never compiled for or run on macOS as of 13 Nov 2026).
+// Coexistence first ran on hardware on 19 Nov 2026 (Bruce, Desktop Video 16.5, DeckLink Mini Monitor 4K).
 #include <unistd.h>
 
 #include "Coexist.h"
@@ -64,6 +64,35 @@ VRL_EXPORT IDeckLinkCocoaScreenPreviewCallback* CreateCocoaScreenPreview_0001(vo
     IDeckLinkCocoaScreenPreviewCallback* obj = nullptr;
     if (!coexist::Scope::entered()) {
         auto fn = reinterpret_cast<IDeckLinkCocoaScreenPreviewCallback* (*)(void*)>(coexist::underlyingSymbol(kSym));
+        if (fn) {
+            coexist::Scope s;
+            obj = fn(parentView);
+        }
+    }
+    VLOGI("%s -> %s", kSym, obj ? "Blackmagic's" : "unsupported (nullptr)");
+    return obj;
+}
+
+// Newer creators Blackmagic 16.5 exports (seen in its binary on 19 Nov 2026) that Velaria has no use for itself: handed
+// through untouched, as opaque pointers, so a client built against a newer SDK finds them when Blackmagic's framework
+// is underneath, and nullptr (as from a framework that predates them) when it is not. The Metal helper's interface is
+// not in the SDK headers this driver is built against, hence void*.
+#define VRL_FORWARD(name)                                                                     \
+    VRL_EXPORT void* name(void) { return passThrough<IUnknown>(#name); }
+VRL_FORWARD(CreateVideoConversionInstance_0002)
+VRL_FORWARD(CreateVideoConversionInstance_0003)
+VRL_FORWARD(CreateVideoFrameAncillaryPacketsInstance_0002)
+VRL_FORWARD(CreateVideoFrameAncillaryPacketsInstance_v15_2)
+VRL_FORWARD(CreateOpenGLScreenPreviewHelper_0002)
+VRL_FORWARD(CreateOpenGL3ScreenPreviewHelper_0002)
+VRL_FORWARD(CreateMetalScreenPreviewHelper_0001)
+VRL_FORWARD(CreateMetalScreenPreviewHelper_0002)
+#undef VRL_FORWARD
+VRL_EXPORT void* CreateCocoaScreenPreview_0002(void* parentView) {
+    static const char* kSym = "CreateCocoaScreenPreview_0002";
+    void* obj = nullptr;
+    if (!coexist::Scope::entered()) {
+        auto fn = reinterpret_cast<void* (*)(void*)>(coexist::underlyingSymbol(kSym));
         if (fn) {
             coexist::Scope s;
             obj = fn(parentView);

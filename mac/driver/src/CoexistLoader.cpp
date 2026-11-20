@@ -26,7 +26,7 @@ std::string cfStr(CFTypeRef v) {
     return buf;
 }
 
-// The creator functions a DeckLink client can ask for, as far as SDK 10.11 to 12.8 name them. Logged once at load
+// The creator functions a DeckLink client can ask for, as far as SDK 10.11 to 12.8 and Desktop Video 16.5 name them. Logged once at load
 // so a release of Desktop Video that drops or adds one shows up in the log, not as a silent missing device.
 const char* const kKnownCreators[] = {
     "CreateDeckLinkIteratorInstance_0004", "CreateDeckLinkIteratorInstance_0003", "CreateDeckLinkIteratorInstance_0002",
@@ -34,6 +34,11 @@ const char* const kKnownCreators[] = {
     "CreateDeckLinkAPIInformationInstance_0001", "CreateVideoConversionInstance_0001",
     "CreateVideoFrameAncillaryPacketsInstance_0001", "CreateOpenGLScreenPreviewHelper_0001",
     "CreateOpenGL3ScreenPreviewHelper_0001", "CreateCocoaScreenPreview_0001",
+    // Desktop Video 16.5 additions (forwarded opaquely by Exports.cpp)
+    "CreateVideoConversionInstance_0002", "CreateVideoConversionInstance_0003",
+    "CreateVideoFrameAncillaryPacketsInstance_0002", "CreateVideoFrameAncillaryPacketsInstance_v15_2",
+    "CreateOpenGLScreenPreviewHelper_0002", "CreateOpenGL3ScreenPreviewHelper_0002",
+    "CreateMetalScreenPreviewHelper_0001", "CreateMetalScreenPreviewHelper_0002", "CreateCocoaScreenPreview_0002",
 };
 
 struct State {
