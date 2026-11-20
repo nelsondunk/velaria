@@ -2911,6 +2911,38 @@ static void renderFrame() {
             layers.push_back((XrCompositionLayerBaseHeader*)&cq);
         }
     }
+    // Off the panels the reticle still shows while the UI is up (+84): on the card under the ray at that card's
+    // distance, else 1.5 m out along the ray, facing the head, at the same angular size as on a panel. Without it
+    // the ray was invisible between panels and cards were hard to find and grab (Nelson, 20 Nov).
+    if (fs.shouldRender && g.headValid) {
+        bool anyPanel = false;
+        for (auto& pn : g.panels) anyPanel = anyPanel || pn.visible;
+        for (auto& p : g.pointers) {
+            if (!anyPanel || nc >= 2 || !p.valid || p.panel >= 0 || (p.pressed && p.pressPanel >= 0)) continue;
+            float d = 1.5f;
+            int card = p.sceneDrag >= 0 ? p.sceneDrag : p.sceneHover;
+            if (card >= 0 && card < (int)g.edit.groups.size()) {
+                CardGeom c = cardGeom(g.edit.groups[card]);
+                if (c.valid) d = std::max(0.9f, std::min(3.5f, c.dist));
+            }
+            XrVector3f dir = qRotate(p.aim.orientation, {0, 0, -1});
+            XrVector3f pt = vAdd(p.aim.position, vScale(dir, d));
+            XrVector3f v = vSub(pt, g.head.position);
+            float dist = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+            if (!(dist > 0.05f)) continue;
+            float yaw = std::atan2(-v.x, -v.z), pitch = std::asin(std::max(-1.0f, std::min(1.0f, v.y / dist)));
+            XrCompositionLayerQuad& cq = cursorQuad[nc++];
+            cq.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+            cq.space = g.localSpace;
+            cq.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+            cq.subImage.swapchain = g.cursor.handle;
+            cq.subImage.imageRect = {{p.pressed ? 64 : 0, 0}, {64, 64}};
+            cq.pose = placeQuad(g.head.position, yaw, pitch, dist);
+            float s = 0.028f * dist / 0.7f;   // the panel reticle is 2.8 cm at roughly 0.7 m
+            cq.size = {s, s};
+            layers.push_back((XrCompositionLayerBaseHeader*)&cq);
+        }
+    }
     XrFrameEndInfo fei{XR_TYPE_FRAME_END_INFO};
     fei.displayTime = fs.predictedDisplayTime;
     fei.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
