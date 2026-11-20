@@ -960,7 +960,7 @@ static void activate(HudButton b, int arg = 0) {
             g.hudForce = true;
             showNotice(g.edit.layer == 0 ? "OVERLAYS: titles and footage windows placed on the picture. Pinch one in the scene to pick it."
                        : g.edit.layer == 1 ? "PATCHES: tripod and sky patch windows. Set up in Resolve; move here only on purpose."
-                                           : "PICTURE: the whole sphere (PanoMap / Velaria Orient 360) and the Velaria Trim pass.");
+                                           : "FOOTAGE: the whole sphere (PanoMap / Velaria Orient 360) and the Velaria Trim pass.");
             return;
         case HudButton::ScopesView:
             g.settings.scopesView = std::max(0, std::min(2, arg));

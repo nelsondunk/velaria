@@ -38,6 +38,8 @@ struct EditParam {
 
 struct EditGroup {
     std::string clip, clipName, tool, source;   // source: comp name / footage files the card is built from
+    std::string label;                          // what the bridge calls it (1.0.14+): "Title · Editorial", "Footage window"
+    std::vector<std::string> children;          // macros folded into this card (a title plugged into Canvas Control)
     std::string kind = "card";                  // card (Velaria macro) | patch (LatLong Patcher) | orient (PanoMap) | trim (Velaria Trim) | stereo (Velaria Stereo)
     int track = 0;
     std::vector<EditParam> params;
@@ -49,9 +51,11 @@ struct EditGroup {
     // what the strip calls it: FOOTAGE / TITLE / OVERLAY / PATCH / PICTURE / TRIM, from the macro's name
     std::string tag() const {
         if (kind == "patch") return "PATCH";
-        if (kind == "orient") return "PICTURE";
+        if (kind == "orient") return "FOOTAGE";
         if (kind == "trim") return "TRIM";
         if (kind == "stereo") return "STEREO";
+        if (!children.empty() || label.rfind("Title", 0) == 0) return "TITLE";
+        if (label == "Graphic") return "GRAPHIC";
         if (tool.find("FactWindow") != std::string::npos || tool.find("CanvasControl") != std::string::npos || tool.find("PIP") != std::string::npos) return "FOOTAGE";
         if (tool.find("FactCard") != std::string::npos || tool.find("Title") != std::string::npos || tool.find("Text") != std::string::npos) return "TITLE";
         return "OVERLAY";

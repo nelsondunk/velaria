@@ -73,6 +73,20 @@ int main(int argc, char** argv) {
     m.groups = {card("Velaria_CanvasControl", "Title card", 3), card("Velaria_CanvasControl", "Footage window", 4), card("Velaria_CanvasControl", "Lower third", 5),
                 patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2),
                 patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2), patch("LatLongPatcher", "C037_03122139", 2)};
+    // the first card is a 3D title plugged into Canvas Control: the bridge folds its controls in (1.0.14) and names it
+    m.groups[0].label = "Title \xC2\xB7 Editorial"; m.groups[0].children = {"VelariaTitle_Editorial"};
+    m.groups[1].label = "Footage window"; m.groups[2].label = "Graphic";
+    { EditGroup& t = m.groups[0];
+      EditParam col; col.id = ">VelariaTitle_Editorial|FaceR"; col.name = "Face colour"; col.section = "Text"; col.kind = "colour"; col.cr = 0.08f; col.cg = 0.09f; col.cb = 0.11f; t.params.push_back(col);
+      EditParam side; side.id = ">VelariaTitle_Editorial|SideR"; side.name = "Side / bevel colour"; side.section = "Text"; side.kind = "colour"; side.cr = 0.88f; side.cg = 0.28f; side.cb = 0.12f; t.params.push_back(side);
+      t.params.push_back(num(">VelariaTitle_Editorial|Extrude", "Extrusion depth", "Text", 0.06, 0, 0.3));
+      t.params.push_back(num(">VelariaTitle_Editorial|PlateW", "Width", "Plate", 2.6, 0.5, 5));
+      t.params.push_back(num(">VelariaTitle_Editorial|PlateRough", "Roughness", "Plate", 0.55, 0.05, 1));
+      EditParam pc; pc.id = ">VelariaTitle_Editorial|PlateR"; pc.name = "Colour"; pc.section = "Plate"; pc.kind = "colour"; pc.cr = 0.93f; pc.cg = 0.93f; pc.cb = 0.92f; t.params.push_back(pc);
+      t.params.push_back(num(">VelariaTitle_Editorial|KeyYaw", "Key light yaw", "Lighting", 55, -180, 180));
+      t.params.push_back(num(">VelariaTitle_Editorial|KeyPitch", "Key light pitch", "Lighting", 60, -90, 90));
+      t.params.push_back(num(">VelariaTitle_Editorial|KeyInt", "Key light intensity", "Lighting", 1.6, 0, 4));
+      EditParam env; env.id = ">VelariaTitle_Editorial|EnvOverUnder"; env.name = "Environment is over/under stereo"; env.section = "Lighting"; env.kind = "bool"; env.value = 1; env.min = 0; env.max = 1; t.params.push_back(env); }
     m.groups[3].clipName = "Nadir \xC2\xB7 left eye"; m.groups[4].clipName = "Nadir \xC2\xB7 right eye"; m.groups[5].clipName = "Tripod leg";
     EditGroup orient = patch("Velaria_Orient360", "C037_03122139", 2); orient.kind = "orient"; m.groups.push_back(orient);
     EditGroup trim = card("Velaria_Trim", "Adjustment Clip", 4); trim.kind = "trim";
@@ -114,6 +128,8 @@ int main(int argc, char** argv) {
     dump(PanelId::Placement, "card");
     s.lookTab = 1;
     dump(PanelId::Look, "frame");
+    // the folded title's pages as Look tabs (View, Frame, Glow, Stereo, Text, Plate, Lighting)
+    { auto tabs = m.lookTabs(); for (size_t i = 0; i < tabs.size(); i++) { if (tabs[i] == "Text") { s.lookTab = (int)i; dump(PanelId::Look, "text"); } if (tabs[i] == "Lighting") { s.lookTab = (int)i; dump(PanelId::Look, "lighting"); } } }
     s.lookTab = 0;
     dump(PanelId::Look, "view");
     dump(PanelId::Deck, "timeline");

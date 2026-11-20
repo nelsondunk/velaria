@@ -66,6 +66,8 @@ bool EditModel::apply(const Json& msg) {
             EditGroup e;
             e.clip = g.get("clip").stringOr("");
             e.clipName = g.get("clipName").stringOr("");
+            e.label = g.get("label").stringOr("");
+            for (auto& cj : g.get("children").arr) e.children.push_back(cj.stringOr(""));
             e.tool = g.get("tool").stringOr("");
             e.track = g.get("track").intOr(0);
             e.source = g.get("source").stringOr("");
@@ -302,7 +304,7 @@ std::string editInstanceKey(const EditModel* m) {
                     std::to_string(m->clipboard.size()) + "|" + (m->bridgeOk ? "1" : "0") + "|" + std::to_string(m->layer) +
                     std::to_string(m->countInLayer()) + "|";
     const EditGroup* g = m->current();
-    if (g) k += g->tool + "@" + std::to_string(g->track) + g->clipName + "|" + g->source + "|" + g->kind + (m->isLocked(*g) ? "|L" : "");
+    if (g) k += g->tool + "@" + std::to_string(g->track) + g->clipName + "|" + g->label + "|" + g->source + "|" + g->kind + (m->isLocked(*g) ? "|L" : "");
     return k;
 }
 

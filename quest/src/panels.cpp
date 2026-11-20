@@ -354,7 +354,7 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         rects.push_back({HudButton::Move, 0, 0, (float)sp.w - 80, barH, 0});
         int layer = m ? m->layer : 0;
         struct L { const char* label; Icon icon; };
-        static const L ls[3] = {{"Overlays", Icon::Overlays}, {"Patches", Icon::Patches}, {"Picture", Icon::Picture}};
+        static const L ls[3] = {{"Overlays", Icon::Overlays}, {"Patches", Icon::Patches}, {"Footage", Icon::Picture}};
         float x = 24 + 56 + 14;
         float segX = x;
         float ws[3];
@@ -508,15 +508,19 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         }
         // names: the picked one first in order, then as many neighbours as fit, then "n more"
         float nextW = many ? 60 + 10 : 0;
+        bool multiTrack = false;
+        for (size_t k = 1; k < idx.size(); k++) multiTrack = multiTrack || m->groups[idx[k]].track != m->groups[idx[0]].track;
         int shown = 0;
         for (size_t k = 0; k < idx.size(); k++) {
             int i = idx[k];
             const EditGroup& gi = m->groups[i];
-            std::string name = prettyTool(gi.tool);
+            // the bridge's label says what the card is (Title · Editorial, Footage window, Graphic); the track tag
+            // only when cards sit on more than one track, so one card is not "Footage window V2" for no reason
+            std::string name = !gi.label.empty() ? gi.label : prettyTool(gi.tool);
             name = fitText(name, S22, 420);
             bool lk = m->isLocked(gi);
             int icon = (gi.layer() != 0 && lk) ? (int)Icon::Lock : -1;
-            std::string tag = "V" + std::to_string(gi.track);
+            std::string tag = multiTrack ? "V" + std::to_string(gi.track) : "";
             float w = Chrome::chipWidth(name, icon, tag);
             int remaining = (int)idx.size() - (int)k - 1;
             float moreW = remaining > 0 ? Chrome::chipWidth(std::to_string(remaining) + " more", -1, "") + 10 : 0;
@@ -571,8 +575,8 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
     bool sphere = g && !g->isCard();
     bool locked = g && m->isLocked(*g);
     // the bar names the clip being controlled (Nelson, 2 Nov: "just give me the name of the clip")
-    if (g) ch.subtitle = g->clipName;
-    float y = ch.begin(g && g->kind == "patch" ? "PATCH WINDOW" : g && g->kind == "trim" ? "TRIM" : g && g->kind == "stereo" ? "STEREO" : sphere ? "PICTURE \xC2\xB7 WHOLE SPHERE" : "PLACEMENT");
+    if (g) ch.subtitle = !g->label.empty() ? g->label : g->clipName;
+    float y = ch.begin(g && g->kind == "patch" ? "PATCH WINDOW" : g && g->kind == "trim" ? "TRIM" : g && g->kind == "stereo" ? "STEREO" : sphere ? "FOOTAGE \xC2\xB7 WHOLE SPHERE" : "PLACEMENT");
     if (y < 0) return rects;
     if (g && g->barsOnly()) {
         // a trim or a stereo pass has nothing to place: its bars take the panel (+50; they were a Look tab in +48/49)
@@ -870,7 +874,7 @@ std::vector<ButtonRect> drawLook(Canvas& c, const UiState& s) {
     const PanelSpec& sp = kSpecs[(int)PanelId::Look];
     c.reset(sp.w, sp.h);
     if (const EditModel* mm = s.edit.get()) {
-        if (const EditGroup* gg = mm->current()) ch.subtitle = gg->clipName;
+        if (const EditGroup* gg = mm->current()) ch.subtitle = !gg->label.empty() ? gg->label : gg->clipName;
     }
     float y = ch.begin("LOOK");
     if (y < 0) return rects;

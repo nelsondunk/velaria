@@ -45,6 +45,53 @@ def params_of(b):
     return msg["groups"][0]
 
 
+def test_title_macro_folds_into_the_canvas_control_it_feeds():
+    """Nelson, 20 Nov: the headset listed 'title test editorial' and 'footage window' as two cards for one adjustment
+    clip, and the title's controls were 'green, blue, slab, key' — the card is one thing with the title's pages."""
+    b, _ = make_bridge()
+    tl = b.project.GetCurrentTimeline()
+    title = fake_resolve.title_macro()
+    tl.comp.tools.append(title)
+    title.output.connect(tl.macro.inputs["SceneInput"])
+    tl.macro.values["Source"] = 2.0
+    msg = b.macro_params()
+    cards = [g for g in msg["groups"] if g["kind"] == "card"]
+    assert [g["tool"] for g in cards] == ["Skylight_FactWindow"]           # one card, not two
+    g = cards[0]
+    assert g["label"] == "Title \u00b7 Editorial" and g["children"] == ["VelariaTitleTest_Editorial"]
+    by_id = {q["id"]: q for q in g["params"]}
+    assert "FrameColour" not in by_id and "GlowAmount" not in by_id and "Source" in by_id   # window shows nothing: no border/glow tabs
+    face = by_id[">VelariaTitleTest_Editorial|FaceR"]
+    assert face["kind"] == "colour" and face["name"] == "Face colour" and face["section"] == "Text"
+    assert face["ids"] == [">VelariaTitleTest_Editorial|FaceR", ">VelariaTitleTest_Editorial|FaceG", ">VelariaTitleTest_Editorial|FaceB"]
+    assert ">VelariaTitleTest_Editorial|FaceG" not in by_id                  # no loose Green / Blue sliders
+    assert by_id[">VelariaTitleTest_Editorial|PlateW"]["name"] == "Width" and by_id[">VelariaTitleTest_Editorial|PlateW"]["section"] == "Plate"
+    assert by_id[">VelariaTitleTest_Editorial|PlateR"]["name"] == "Colour"
+    key = by_id[">VelariaTitleTest_Editorial|KeyYaw"]
+    assert key["name"] == "Key light yaw" and key["section"] == "Lighting"
+    env = by_id[">VelariaTitleTest_Editorial|EnvOverUnder"]
+    assert env["kind"] == "bool" and env["name"] == "Environment is over/under stereo"
+    # writes through the folded id reach the title macro, and undo puts it back
+    b.comp_cache  # filled by macro_params
+    c = Client()
+    b.handle(c, {"cmd": "set", "clip": g["clip"], "tool": g["tool"], "input": ">VelariaTitleTest_Editorial|KeyYaw", "value": -30.0})
+    b.apply_pending()
+    assert title.values["KeyYaw"] == -30.0
+    assert b.undo() == ">VelariaTitleTest_Editorial|KeyYaw" or title.values["KeyYaw"] == 55.0
+    assert title.values["KeyYaw"] == 55.0
+
+
+def test_card_labels_follow_what_the_window_shows():
+    b, _ = make_bridge()
+    tl = b.project.GetCurrentTimeline()
+    g = params_of(b)
+    assert g["label"] == "Footage window"
+    tl.macro.values["Source"] = 1.0
+    assert params_of(b)["label"] == "Graphic"
+    tl.macro.values["Source"] = 2.0
+    assert params_of(b)["label"] == "3D scene"
+
+
 def test_timeline_snapshot():
     b, _ = make_bridge()
     t = b.timeline_snapshot()

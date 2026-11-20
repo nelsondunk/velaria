@@ -8,16 +8,44 @@ import re
 
 
 class Input:
-    def __init__(self, tool, pid, name, dtype="Number", ctl="SliderControl", lo=0.0, hi=1.0):
+    def __init__(self, tool, pid, name, dtype="Number", ctl="SliderControl", lo=0.0, hi=1.0, page=None, cgroup=0):
         self.tool, self.pid, self.name, self.dtype, self.ctl, self.lo, self.hi = tool, pid, name, dtype, ctl, lo, hi
+        self.page, self.cgroup = page, cgroup
         self.keys = {}
+        self.connected = None   # Output feeding this input
 
     def GetAttrs(self):
-        return {"INPS_ID": self.pid, "INPS_Name": self.name, "INPS_DataType": self.dtype,
-                "INPID_InputControl": self.ctl, "INPN_MinScale": self.lo, "INPN_MaxScale": self.hi}
+        a = {"INPS_ID": self.pid, "INPS_Name": self.name, "INPS_DataType": self.dtype,
+             "INPID_InputControl": self.ctl, "INPN_MinScale": self.lo, "INPN_MaxScale": self.hi,
+             "INPI_IC_ControlGroup": self.cgroup}
+        if self.page:
+            a["INPS_ICS_ControlPage"] = self.page
+        return a
 
     def GetKeyFrames(self):
         return dict(self.keys)
+
+    def GetTool(self):
+        return self.tool
+
+    def GetConnectedOutput(self):
+        return self.connected
+
+
+class Output:
+    def __init__(self, tool):
+        self.tool = tool
+        self.inputs = []
+
+    def GetTool(self):
+        return self.tool
+
+    def GetConnectedInputs(self):
+        return {i + 1: inp for i, inp in enumerate(self.inputs)}
+
+    def connect(self, inp):
+        self.inputs.append(inp)
+        inp.connected = self
 
 
 class Tool:
@@ -27,9 +55,12 @@ class Tool:
         self.inputs = {}
         for spec in inputs:
             pid = spec[0]
-            self.inputs[pid] = Input(self, *spec[:6])
+            # spec: (id, name, dtype, ctl, lo, hi, value, page, cgroup)
+            self.inputs[pid] = Input(self, *spec[:6], page=spec[7] if len(spec) > 7 else None,
+                                     cgroup=spec[8] if len(spec) > 8 else 0)
             self.values[pid] = spec[6] if len(spec) > 6 else 0.0
         self.children = children or []
+        self.output = Output(self)
         self.modifiers = set()
         self.set_log = []
 
@@ -56,6 +87,30 @@ class Tool:
 
     def GetChildrenList(self):
         return {i + 1: c for i, c in enumerate(self.children)}
+
+    def FindMainOutput(self, n=1):
+        return self.output
+
+    def GetOutputList(self):
+        return {1: self.output}
+
+
+def title_macro(name="VelariaTitleTest_Editorial"):
+    """A 3D title macro the way the dev Editorial test publishes its controls: pages and colour groups."""
+    return Tool(name, "MacroOperator", [
+        ("MainInput1", "Environment (the 360 frame)", "Image", "", 0.0, 1.0, None),
+        ("TitleText", "Title", "Text", "TextEditControl", 0.0, 1.0, "The Reef", "Text"),
+        ("TitleSize", "Size", "Number", "SliderControl", 0.05, 1.0, 0.34, "Text"),
+        ("FaceR", "Face Colour", "Number", "ColorControl", 0.0, 1.0, 0.08, "Text", 1),
+        ("FaceG", "Green", "Number", "ColorControl", 0.0, 1.0, 0.09, "Text", 1),
+        ("FaceB", "Blue", "Number", "ColorControl", 0.0, 1.0, 0.11, "Text", 1),
+        ("PlateW", "Slab Width", "Number", "SliderControl", 0.5, 5.0, 2.6, "Slab"),
+        ("PlateR", "Slab Colour", "Number", "ColorControl", 0.0, 1.0, 0.93, "Slab", 3),
+        ("PlateG", "Green", "Number", "ColorControl", 0.0, 1.0, 0.93, "Slab", 3),
+        ("PlateB", "Blue", "Number", "ColorControl", 0.0, 1.0, 0.92, "Slab", 3),
+        ("KeyYaw", "Key Light Yaw (deg, + = from the left)", "Number", "SliderControl", -180.0, 180.0, 55.0, "Light"),
+        ("EnvOverUnder", "Environment is over/under stereo (1) or mono (0)", "Number", "SliderControl", 0.0, 1.0, 1.0, "Light"),
+    ])
 
 
 def fact_window(name="Skylight_FactWindow"):
@@ -88,6 +143,8 @@ def fact_window(name="Skylight_FactWindow"):
         ("Distance", "Distance (-Z = forward)", "Number", "ScrewControl", -20.0, -0.5, -0.2),
         ("Mode", "Mono (0) / Stereo (1)", "Number", "ColorControl", 0.0, 1.0, 1.0),
         ("WindowDepth", "Window Depth in Z (+ = toward viewer)", "Number", "ColorControl", 0.0, 0.02, 0.01),
+        ("Source", "Window shows", "Number", "ComboControl", 0.0, 2.0, 0.0),
+        ("SceneInput", "3D Scene", "Image", "", 0.0, 1.0, None),
         ("Comments", "Comments", "Text", "TextEditControl", 0.0, 1.0, ""),
     ], children=[left, right, media, media2])
     return macro, [macro, left, right, media, media2]

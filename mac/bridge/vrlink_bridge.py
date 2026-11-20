@@ -41,7 +41,7 @@ os.environ.setdefault("RESOLVE_SCRIPT_LIB",
                       "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so")
 sys.path.append(RESOLVE_API + "/Modules")
 
-BRIDGE_VERSION = "1.0.13"
+BRIDGE_VERSION = "1.0.14"
 RESTORE_GRACE_S = 5.0   # headset gone this long before a scaled timeline is put back
 PORT = int(os.environ.get("VRLINK_BRIDGE_PORT", "47812"))
 LOG = os.path.expanduser("~/Library/Logs/Velaria/bridge.log")
@@ -221,7 +221,8 @@ class Bridge:
         self.comp_cache = {}       # clip key -> (item, comp, {tool name: tool})
         self.clip_index = None     # [(track, item, start, end)] for the Fusion clips, see rebuild_index
         self.animated = {}         # (tool name, input id) -> bool, so a set doesn't re-read the input list
-        self.kids = {}             # id(macro tool) -> its inner tools by name, so a set doesn't re-list them
+        self.kids = {}
+        self.folded = {}           # parent macro object id -> {child tool name: child tool}, see fold_children             # id(macro tool) -> its inner tools by name, so a set doesn't re-list them
         self.last_set = 0.0        # when a change was last applied (the periodic re-scan stays out of a drag's way)
         self.scaled = {}           # timeline key -> original output settings while the bridge has scaled it, see autoscale_*
         self.scaled_loaded = False
@@ -704,12 +705,25 @@ class Bridge:
                             val = float(val)
                         except Exception:
                             continue
-                    params.append({"id": pid, "name": a.get("INPS_Name") or pid, "kind": kind,
-                                   "min": a.get("INPN_MinScale", 0.0), "max": a.get("INPN_MaxScale", 1.0),
-                                   "value": val, "animated": bool(inp.GetKeyFrames())})
+                    q = {"id": pid, "name": a.get("INPS_Name") or pid, "kind": kind,
+                         "min": a.get("INPN_MinScale", 0.0), "max": a.get("INPN_MaxScale", 1.0),
+                         "value": val, "animated": bool(inp.GetKeyFrames())}
+                    # the macro author's page and colour grouping: the headset's tabs and swatches follow them
+                    page = a.get("INPS_ICS_ControlPage")
+                    if page and page not in ("Controls", "Common"):
+                        q["page"] = str(page)
+                    cg = a.get("INPI_IC_ControlGroup")
+                    if cg:
+                        q["cgroup"] = int(cg)
+                    params.append(q)
                 if allowed is None:
                     params += self.virtual_params(tool, {q["id"] for q in params})
                 params = self.organise(params)
+                # a Canvas Control whose window shows nothing (3D scene only) has no image, border or glow to set:
+                # those controls go, so a title card is not three tabs of things that do nothing (Nelson, 20 Nov)
+                shows = next((q["value"] for q in params if q["id"] == "Source"), None)
+                if shows is not None and int(round(float(shows))) == 2:
+                    params = [q for q in params if q["id"] == "Source" or q.get("section") not in ("Image", "Border", "Glow")]
                 # slider ranges only ever widen during a session, so dragging a value back inside the macro's
                 # suggested range never takes away the room it had (e.g. a Distance someone set beyond the scale)
                 for q in params:
@@ -721,11 +735,79 @@ class Bridge:
                     self.ranges[rk] = (q["min"], q["max"])
                 if params:
                     groups.append({"clip": key, "clipName": it.GetName(), "track": v, "tool": tool.Name, "kind": gkind,
-                                   "params": params, "source": self.comp_source(it, comp)})
+                                   "params": params, "source": self.comp_source(it, comp), "_tool": tool})
                 self.comp_cache[key] = (it, comp, {t.Name: t for t, _, _ in tools})
+            self.fold_children(groups, key)
+        for g in groups:
+            g["label"] = self.group_label(g)
+            g.pop("_tool", None)
         order = {"card": 0, "orient": 1, "trim": 2, "stereo": 2, "patch": 3}
         groups.sort(key=lambda g: order.get(g["kind"], 3))
         return {"type": "params", "frame": self.current_frame(), "groups": groups}
+
+    def fold_children(self, groups, key):
+        """A macro whose output feeds another macro's input (a title plugged into Canvas Control's 3D Scene) is
+        part of that card, not a second card (Nelson, 20 Nov: "we want to control one thing, not two things").
+        Its controls join the parent's under the child's own pages; their ids carry the child's name so writes
+        reach the right tool (see targets)."""
+        mine = [g for g in groups if g["clip"] == key and "_tool" in g]
+        by_name = {g["tool"]: g for g in mine}
+        for g in mine:
+            tool = g["_tool"]
+            parent = None
+            try:
+                outs = tool.GetOutputList() or {}
+                out = outs[sorted(outs)[0]] if outs else tool.FindMainOutput(1)
+                for _, inp in (out.GetConnectedInputs() or {}).items():
+                    t = inp.GetTool()
+                    if t and t.Name in by_name and t.Name != tool.Name:
+                        parent = by_name[t.Name]
+                        break
+            except Exception:
+                continue
+            if not parent:
+                continue
+            child = re.sub(r"_\d+$", "", tool.Name)
+            for q in g["params"]:
+                q = dict(q)
+                q["id"] = ">%s|%s" % (tool.Name, q["id"])
+                if "ids" in q:
+                    q["ids"] = [">%s|%s" % (tool.Name, i) for i in q["ids"]]
+                q["section"] = q.get("section") or "Look"
+                parent["params"].append(q)
+            parent.setdefault("children", []).append(tool.Name)
+            self.folded.setdefault(id(parent["_tool"]), {})[tool.Name] = tool
+            g["_folded"] = True
+        groups[:] = [g for g in groups if not g.get("_folded")]
+
+    # Words that say what a macro is, for the card's name on the strip (the operator id minus the vendor prefix)
+    MACRO_WORDS = {"CanvasControl": "Window", "FactWindow": "Window", "Orient360": "Orient 360", "Orient180": "Orient 180",
+                   "Trim": "Trim", "Stereo360": "Stereo 360", "Stereo180": "Stereo 180"}
+
+    def group_label(self, g):
+        """What the card is called on the strip: a title macro plugged into it names it ("Title · Editorial"), else
+        what its window shows (Footage window / Graphic / 3D), else the macro's own name."""
+        if g["kind"] != "card":
+            name = re.sub(r"^(Velaria_|Kalyx_|Skylight_)", "", g["tool"])
+            return self.MACRO_WORDS.get(re.sub(r"_\d+$", "", name), name.replace("_", " "))
+        kids = g.get("children") or []
+        if kids:
+            k = re.sub(r"_\d+$", "", kids[0])
+            k = re.sub(r"^(Velaria|Kalyx|Skylight)_?", "", k)
+            k = re.sub(r"(?i)title\s*test\s*", "", k).replace("_", " ").strip(" -·")
+            k = re.sub(r"(?i)^3d\s*title\s*", "", k).strip(" -·")
+            return "Title · %s" % k if k else "Title"
+        shows = None
+        for q in g["params"]:
+            if q["id"] == "Source":
+                try: shows = int(round(float(q["value"])))
+                except Exception: pass
+        if shows == 1:
+            return "Graphic"
+        if shows == 2:
+            return "3D scene"
+        base = re.sub(r"^(Velaria_|Kalyx_|Skylight_)", "", re.sub(r"_\d+$", "", g["tool"]))
+        return "Footage window" if base in self.MACRO_WORDS and self.MACRO_WORDS[base] == "Window" else base.replace("_", " ")
 
     # Controls the macro doesn't publish but its inner tools have. Reached through GetChildrenList(), so every
     # FactWindow already in a comp gets them without re-inserting the macro. id -> (name, min, max, [(child, input)])
@@ -774,7 +856,12 @@ class Bridge:
         return out
 
     def targets(self, tool, pid):
-        """(tool, input) pairs that a control writes to: the macro input itself, or inner tools for a virtual one."""
+        """(tool, input) pairs that a control writes to: the macro input itself, inner tools for a virtual one, or a
+        child macro's input for a folded control (">Child|Input")."""
+        if pid.startswith(">"):
+            name, _, inner = pid[1:].partition("|")
+            child = self.folded.get(id(tool), {}).get(name)
+            return self.targets(child, inner) if child else []
         if not pid.startswith("@"):
             return [(tool, pid)]
         spec = self.VIRTUALS.get(pid)
@@ -831,13 +918,70 @@ class Bridge:
 
     PLACEMENT = ("yaw", "pitch", "roll", "pan", "tilt", "distance", "depth", "rotate", "rotation", "spin",
                  "position", "size", "scale", "offset")
+    # a macro author's page names -> what the tab says (dev names from the title tests included)
+    PAGE_NAMES = {"Slab": "Plate", "Light": "Lighting", "Lights": "Lighting", "Stereo / Output": "Stereo", "Settings": "Output",
+                  "Frame": "Border", "Window": "Image", "Env": "Reflections", "Environment": "Reflections", "Text": "Text",
+                  "3D Model": "Model", "Animation": "Animation"}
+    # pages whose name repeated at the front of a control is noise ("Slab Width" on the Slab page); not Text
+    STRIP_PAGE_WORD = {"Slab", "Plate", "Frame", "Window", "Glow", "Light", "Lights", "Border", "Image"}
+    # words in a control's name that read as node names, not as what the control does
+    WORD_NAMES = {"Slab": "Plate", "Key": "Key light", "Fill": "Fill light", "Env": "Reflections", "Spec": "Specular"}
+
+    def tidy_name(self, name, page):
+        """'Slab Width' on the Slab page -> 'Width'; 'Key Light Yaw (deg, + = from the left)' -> 'Key light yaw';
+        parentheticals go when the name is long enough to need the room."""
+        n = name.strip()
+        if page in self.STRIP_PAGE_WORD:
+            for w in (page, self.PAGE_NAMES.get(page, "")):
+                if w and n.lower().startswith(w.lower() + " ") and len(n) > len(w) + 3:
+                    n = n[len(w) + 1:]
+        if len(n) > 22:
+            n = re.sub(r"\s*\([^)]*\)\s*$", "", n).strip() or n
+        parts = n.split(" ")
+        if parts and parts[0] in self.WORD_NAMES and len(parts) > 1:
+            full = self.WORD_NAMES[parts[0]]
+            if not (parts[1].lower() == full.split(" ")[-1].lower()):
+                parts[0] = full
+                n = " ".join(parts)
+        # sentence case: lower-case the first letter of each later word unless the word is an acronym or a unit
+        words = n.split(" ")
+        for i in range(1, len(words)):
+            w = words[i]
+            if len(w) > 1 and w[0].isupper() and w[1:].islower() and w not in ("L/R", "X", "Y", "Z"):
+                words[i] = w[0].lower() + w[1:]
+        n = " ".join(words)
+        return n
 
     def organise(self, params):
         """Merges Fusion colour triplets (X, XG, XB) into one colour control and files every control in a section."""
         ids = {q["id"]: q for q in params}
+        # Fusion's ControlGroup ties the R/G/B(/A) inputs of one colour together; three or four numbers in a group
+        # are one swatch (the title macros publish FaceR/FaceG/FaceB that way and the headset showed "Green, Blue")
+        cgroups = {}
+        for q in params:
+            if q.get("cgroup") and q["kind"] == "number":
+                cgroups.setdefault(q["cgroup"], []).append(q)
+        in_cgroup = set()
+        for cg, members in cgroups.items():
+            if 3 <= len(members) <= 4:
+                for m in members[1:]:
+                    in_cgroup.add(m["id"])
         merged = []
         for q in params:
             pid = q["id"]
+            if pid in in_cgroup:
+                continue
+            cg = q.get("cgroup")
+            if cg and cg in cgroups and 3 <= len(cgroups[cg]) <= 4 and cgroups[cg][0] is q:
+                mem = cgroups[cg][:3]
+                name = q["name"]
+                for suffix in (" \u00b7 R", " Red", " R", " Colour Red", " Color Red"):
+                    if name.endswith(suffix):
+                        name = name[:-len(suffix)]
+                q = dict(q, kind="colour", name=name, ids=[m["id"] for m in mem],
+                         value=[m["value"] for m in mem], min=0.0, max=1.0)
+                merged.append(q)
+                continue
             if pid[-1:] in ("G", "B") and pid[:-1] in ids and ids[pid[:-1]]["kind"] == "number" \
                     and pid[:-1] + "G" in ids and pid[:-1] + "B" in ids:
                 continue   # folded into the colour below
@@ -860,11 +1004,13 @@ class Bridge:
             if q["kind"] != "number":
                 continue
             name = q["name"]
-            # "Mono (0) / Stereo (1)" style inputs are switches, not sliders
-            if re.search(r"\(0\).*\(1\)", name) and float(q["min"]) == 0.0 and float(q["max"]) == 1.0:
+            # "Mono (0) / Stereo (1)" and "over/under stereo (1) or mono (0)" style inputs are switches, not sliders
+            if re.search(r"\(0\).*\(1\)|\(1\).*\(0\)", name) and float(q["min"]) == 0.0 and float(q["max"]) == 1.0:
                 q["kind"] = "bool"
-                q["name"] = re.sub(r"\s*\(\d\)", "", name).replace(" / ", " / ")
-                if "stereo" in name.lower():
+                nm = re.sub(r"\s*\(\d\)", "", name)
+                nm = re.sub(r"\s+or\s+\w+$", "", nm)          # "... stereo or mono" -> "... stereo"
+                q["name"] = nm.replace(" / ", " / ").strip()
+                if name.lower().startswith("mono") and "stereo" in name.lower():
                     q["name"] = "Stereo source (L/R)"
             # slider ranges are only the macro's suggested scale; never clamp a value someone typed beyond them
             v = q["value"]
@@ -899,14 +1045,20 @@ class Bridge:
                 q["section"] = "Placement"
             else:
                 q["section"] = "Settings"
-        # friendly names and tab names
+        # friendly names and tab names; the macro's own page wins when it has one
         for q in merged:
             if q["id"] in self.SECTION_BY_ID:
                 q["section"] = self.SECTION_BY_ID[q["id"]]
+            elif q.get("page"):
+                q["section"] = self.PAGE_NAMES.get(q["page"], self.SECTION_NAMES.get(q["page"], q["page"]))
             else:
                 q["section"] = self.SECTION_NAMES.get(q["section"], q["section"])
             if q["id"] in self.DISPLAY_NAMES:
                 q["name"] = self.DISPLAY_NAMES[q["id"]]
+            else:
+                q["name"] = self.tidy_name(q["name"], q.get("page") or "")
+            q.pop("page", None)
+            q.pop("cgroup", None)
         # Placement first, then sections in order of appearance, Output last
         order = []
         for q in merged:
