@@ -52,7 +52,9 @@ $CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk
   -framework CoreFoundation -o $B/e2e_source
 $CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -I../../common ../tools/probe.cpp \
   ../../common/timing.cpp $FW -o $B/probe
-echo "Built build/e2e_source build/probe"
+$CXX -std=c++17 -O2 -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk ../tools/enum.cpp \
+  -framework CoreFoundation -o $B/enum
+echo "Built build/e2e_source build/probe build/enum"
 # NDI source helper (Premiere / After Effects via NDI Tools' Mercury Transmit plug-in)
 $CXX -std=c++17 -O2 -g -arch arm64 -isysroot "$SDK" -mmacosx-version-min=13.0 -Isdk -Isrc -I../../common \
   -Wall -Wno-unused-parameter ../ndi/vrlink_ndi.cpp src/Encoder.cpp src/ActiveArea.cpp src/Scopes.cpp src/Log.cpp src/Config.cpp \
