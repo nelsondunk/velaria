@@ -588,13 +588,16 @@ void NetClient::handle(const StreamParser::Message& m, int64_t rx) {
             b.frames = a.frames;
             b.channels = a.channels;
             b.discontinuity = (a.flags & kAudioDiscontinuity) != 0 || (m_audioLastSeq && a.seq != m_audioLastSeq + 1);
+            b.fromTap = (a.flags & kAudioFromTap) != 0;
+            b.rxNs = rx;
             m_audioLastSeq = a.seq;
             b.pcm.resize((size_t)a.frames * a.channels);
             std::memcpy(b.pcm.data(), pcm, (size_t)a.frames * a.channels * 2);
             std::function<void(AudioBlock&&)> sink;
             {
                 std::lock_guard<std::mutex> lk(m_mutex);
-                b.dueLocalNs = m_clock.senderToReceiver(a.ptsNs, rx) + m_audioDelayNs.load();
+                b.ptsLocalNs = m_clock.senderToReceiver(a.ptsNs, rx);
+                b.dueLocalNs = b.ptsLocalNs + m_audioDelayNs.load();
                 sink = m_audioSink;
             }
             m_audioBlocks++;

@@ -25,6 +25,7 @@
 #include <map>
 #include <sstream>
 #include <atomic>
+#include <mutex>
 #include <functional>
 #include <set>
 #include <string>
@@ -340,6 +341,9 @@ struct App {
     // timing stats
     int64_t autoDelayNs = 0;
     vrltime::RollingStat lateness{300};      // arrival - scanout (ms), last ~10 s of playback; negative = early
+    vrltime::RollingStat audioLateness{400}; // audio block arrival - its sender pts (ms): the Velaria Tap's bus can trail the picture
+    std::mutex audioLatenessMx;              // added on the network thread, read by updateAutoDelay
+    std::atomic<int64_t> audioTapNs{0};      // when a block from the Velaria Tap plugin last arrived
     vrltime::RollingStat photonOffset{240};  // photon time - scanout (ms); ~delay when on time
     int framesSincePlay = 0;
     int64_t lastMotionNs = 0;                // last time a new (non-parked) frame went on screen
@@ -1977,6 +1981,13 @@ static void updateAutoDelay(bool playing) {
     // Needed delay = worst-case arrival lateness + decode time + one refresh to get it into a frame, plus a small
     // margin: at p97 alone Wi-Fi jitter still dropped ~2% of frames.
     double want = std::max(0.0, g.lateness.percentile(98) + g.decoder.decodeMsP95() + refreshMs + 8.0);
+    // Sound has to be here before it is due as well. Decklink audio arrives well ahead of its pts; a bus tapped in
+    // Fairlight by the Velaria Tap plugin trails the picture by up to ~150 ms, so the presentation delay (picture
+    // and sound alike, lip sync kept) stretches to cover it.
+    {
+        std::lock_guard<std::mutex> lk(g.audioLatenessMx);
+        if (g.audioLateness.count() >= 24) want = std::max(want, g.audioLateness.percentile(98) + 12.0);
+    }
     int64_t wantNs = (int64_t)(std::min(500.0, want) * 1e6);
     if (wantNs > g.autoDelayNs + 2000000) {
         LOGI("auto delay up: %.0f -> %.0f ms (p98 lateness %.1f ms)", g.autoDelayNs / 1e6, wantNs / 1e6, g.lateness.percentile(98));
@@ -2145,6 +2156,7 @@ static void updateHud(int64_t now, bool playing) {
     in.outline = g.settings.outline;
     in.audio = g.settings.audio;
     in.audioAmbi = g.settings.ambisonic;
+    in.audioTap = g.audioTapNs.load() && now - g.audioTapNs.load() < 1500000000LL;
     {
         static uint64_t lastBlocks = 0; static int64_t lastBlockNs = 0;
         uint64_t nb = g.net.audioBlocks();
@@ -2957,7 +2969,11 @@ void android_main(android_app* app) {
         g.bridge.start();
         g.net.setSource(g.settings.source);
         g.net.wantAudio(g.settings.audio, g.settings.ambisonic ? 4 : 2);
-        g.net.setAudioSink([](AudioBlock&& b) { g.audio.push(std::move(b)); });
+        g.net.setAudioSink([](AudioBlock&& b) {
+            if (b.rxNs && b.ptsLocalNs) { std::lock_guard<std::mutex> lk(g.audioLatenessMx); g.audioLateness.add((b.rxNs - b.ptsLocalNs) / 1e6); }
+            if (b.fromTap) g.audioTapNs.store(b.rxNs);
+            g.audio.push(std::move(b));
+        });
         g.net.start(g.settings.lastHost == "-" ? "" : g.settings.lastHost, "Quest");
         g.decoder.start();
     }

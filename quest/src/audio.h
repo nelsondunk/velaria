@@ -19,7 +19,10 @@ namespace vrq {
 
 struct AudioBlock {
     int64_t dueLocalNs = 0;       // when the first sample should be heard, this device's monotonic clock
+    int64_t rxNs = 0;             // when it arrived (this device's clock); with ptsLocalNs it gives the arrival lateness
+    int64_t ptsLocalNs = 0;       // the sender's pts mapped to this device's clock, before the presentation delay
     bool discontinuity = false;   // does not follow the previous block (seek / stop / flush)
+    bool fromTap = false;         // the channels came from the Velaria Tap plugin (a Fairlight bus), not Decklink 1-4
     uint32_t frames = 0;
     uint16_t channels = 2;        // 2 stereo, 4 first-order AmbiX
     std::vector<int16_t> pcm;     // interleaved s16

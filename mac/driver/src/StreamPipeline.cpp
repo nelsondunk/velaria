@@ -452,12 +452,12 @@ public:
         // copy of the same moment can trail by up to ~100 ms (Fairlight's engine runs its own schedule). The headset
         // presents picture and sound a presentation delay after the sender's pts (auto, usually well over 100 ms on
         // Wi-Fi), so a block may leave here after its pts and still be in time. Wait up to this long past the pts.
-        const int64_t kAfterPtsNs = 60000000LL;
+        const int64_t kAfterPtsNs = 250000000LL;   // the headset's auto delay follows audio lateness (+76), so this can be generous
         while (!m_tapPending.empty()) {
             PendingQuad& p = m_tapPending.front();
             std::vector<uint8_t> pcm((size_t)p.frames * 4 * 2);
             uint32_t have = m_tap.read(p.at, p.frames, reinterpret_cast<int16_t*>(pcm.data()), 4);
-            bool due = all || now > p.a.ptsNs + kAfterPtsNs || m_tapPending.size() > 24;
+            bool due = all || now > p.a.ptsNs + kAfterPtsNs || m_tapPending.size() > 64;
             if (have >= p.frames - p.frames / 16) {
                 if (!m_tapActive) {
                     int64_t first, end;
