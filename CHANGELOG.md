@@ -2,6 +2,12 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## +88–+90, bridge 1.0.15, 1.1.0-rc1 packaged, driver and plugin swapped in (20 Nov 2026, 19:00)
+
+- Review leftovers closed: universal plugin (arm64 + x86_64), partly covered tap blocks only when due, headset audio start backoff, bridge None-safe restore and driver notice without the aside condition, tap at 48 kHz only, tap.log rotation, "Two Velaria Sound inserts – remove one" on the strip (+88).
+- **+90:** the sound map's **Map** switch sits on the strip's top bar while an ambisonic bus plays (its only switch was the View tab, which became the closed-by-default Settings panel in +87).
+- **Swapped in on Bruce at 19:00 (Resolve closed, Nelson's password):** the evening's driver and Velaria Sound 0.1.0.2; Resolve relaunched, `tap: listening`, plugin metering the bus from its worker thread. Headset +90 installed. `~/VRLink/release/Velaria-1.1.0-rc1/` holds the same driver, plugin and +90 APK; `check_release.sh` clean apart from the legal placeholders.
+
 ## Headset +86/+87 and bridge 1.0.14: the UI pass, first half (20 Nov 2026, evening)
 
 From Nelson's headset walkthrough at 16:30 (spec: project doc "Headset UI pass spec"). Installed on the Quest and Bruce.
