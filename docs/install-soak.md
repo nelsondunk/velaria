@@ -46,7 +46,7 @@ Run from the branch tip (`d773621` and after) on the build Mac; nothing installe
 | `hudpreview` renders of every panel | Linux | regenerated into `quest/host/ref/` (+87 layout) |
 | Headset `orbstest` (sound-orb peak tracker) | Linux | 15 checks passed (one source within 0.5°, 150° pair → two, 30° pair → one, all-W and diffuse → none, circling tone lag 4.8°, fade in/out) |
 | Headset `orbsview` (orb shader, Mesa) | Linux | compiles and links under GLES 3; stereo pair rendered, disparity as 2.5 m at 64 mm |
-| rc1 APK | Bruce | repackaged 20:13 with **+91** (clean start on the Quest, no shader errors) |
+| rc1 APK | Bruce | repackaged 20:35 with **+92** (clean start on the Quest, no shader errors) |
 | `package.sh 1.1.0-rc1` with `VELARIA_VST3_LICENSED=1` | build Mac | built, 52 MB, `~/VRLink/release/Velaria-1.1.0-rc1/` |
 | `check_release.sh` | build Mac | **clean** apart from the legal placeholders ([LEGAL ENTITY NAME], [MAILING ADDRESS], [SUPPORT EMAIL], the [VERIFY] items in THIRD-PARTY-NOTICES) — "do not sell this build" until those are filled |
 

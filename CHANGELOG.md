@@ -2,6 +2,10 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## +92 — the orbs reworked for crowds (20 Nov 2026, 20:30)
+
+- Nelson, on seeing the +91 host render: "The issue might be when the heat map fills up with a lot of sound… They should be semi transparent so we can see the video behind but density and colour are affected by intensity. And they should be able to mush together if the sounds are close or become close… like a camera's false colour but with a more limited spectrum." Done, same ray marcher (the right tool for all three: a summed density field is translucent by density and bridges by construction; particles would stack opaque): opacity ceiling 80 % and a thinner volume, so the picture reads through a full orb; density and colour both follow the orb's level on a limited warm ramp (deep red quiet → orange → yellow-white loud); metaball falloff reaching 1.25 radii, so two orbs within ~15° fuse into one shape before the tracker merges their peaks. Copper dropped. Host render over a stand-in frame: six sources, two bridged.
+
 ## +91 — the sound map as floating orbs (20 Nov 2026, 20:15)
 
 - **Volumetric sound orbs** (Nelson: "it would be cool if the heat map had some stereoscopy. If it floated like orbs instead of infinitely far blobs… 3d amorphous orbs"; on the options: fixed distance, "just for cool factor so it looks like it's floating. I like volumetric orbs"). **Map** now shows the peaks of the same first-order beam field as copper orbs floating 2.5 m from the head in the picture's frame, drawn per eye into a projection layer (the app's first; everything else is compositor quads and equirects), so they have real depth against the picture at infinity, and each orb has its own: a ray-marched lumpy surface (two octaves of slow value noise, lit by the density gradient, specular and rim, a brighter heart showing through), ~5–8° across by level. Up to 8 orbs; a source's orb fades in and out over 150 ms and follows a moving source (host test: 4.8° lag at 90°/s).

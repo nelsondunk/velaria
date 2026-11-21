@@ -5,7 +5,7 @@ Newest first. The Settings panel in the headset shows the versions you are runni
 ## 1.1 (release candidate)
 
 - **Sound in the headset.** Velaria plays Resolve's monitoring mix in step with the picture. With the **Velaria Sound** insert on a Fairlight bus, the headset hears that bus instead: a stereo bus as stereo, a first-order Ambisonics bus head-tracked through an HRTF (the same SADIE set YouTube uses). No patching in Fairlight. The headset's sound is a spatial review, not a mix monitor.
-- **Sound orbs.** With an Ambisonics bus live, the Map switch floats a copper orb a few metres out wherever the field is loudest, with its own depth. Up to eight; they follow a moving source and fade when it stops.
+- **Sound orbs.** With an Ambisonics bus live, the Map switch floats a see-through orb a few metres out wherever the field is loudest, with its own depth, coloured red to yellow by how loud. Up to eight; near sounds merge into one shape, and an orb follows its sound and fades when it stops.
 - **Output scaling, handled.** A square 360 timeline is taller than Resolve's monitor raster; the Mac side now sets Output scaling to 3840 × 3840 while a headset is connected and puts your setting back when it leaves. It stands aside while you render.
 - **Real stereo for cards and 3D titles** in Canvas Control, with an Eye Separation control; yaw keeps the depth at any angle. Equirect Width is per eye and should match your timeline width.
 - **180 and dome.** Velaria 180 to 360 / 360 to 180 adapters, Orient 180, a dome preview with a rendered theatre and seat positions.

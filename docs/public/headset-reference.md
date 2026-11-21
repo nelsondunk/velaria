@@ -11,7 +11,7 @@ The strip is always there when the panels are open. It answers two questions at 
 ![The strip on the Overlays layer with a footage window picked](ref/strip-overlays.png)
 
 - **Overlays · Patches · Footage** is the layer control, with a count of what is on this frame. Overlays are titles and footage windows, and you can pick them in the picture. Patches are LatLong Patcher windows. Footage is the whole sphere (PanoMap or Velaria Orient 360) and the Velaria Trim pass.
-- **Map**, left of the icons while an Ambisonics bus plays, floats the sound orbs: where the field is loudest, as orbs a few metres out (see the setup guide).
+- **Map**, left of the icons while an Ambisonics bus plays, floats the sound orbs: where the field is loudest, as see-through orbs a few metres out, red to yellow by level (see the setup guide).
 - The four icons on the right show and hide the **Selected**, **Settings**, **Timeline** and **Scopes** panels. A panel you hide comes back where you left it. The chevron rolls the strip up to this bar, which is all you need once the panels are placed.
 - Row two has one chip for each thing on this layer, named for what it is: *Title · Editorial*, *Footage window*, *Graphic*. A title plugged into a Canvas Control is one card with that Canvas Control, not two. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.
 - **Copy**, **Paste** and **Undo** act on the picked chip. Undo is Resolve's undo.

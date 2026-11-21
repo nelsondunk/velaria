@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     glGenVertexArrays(1, &vao);
 
     // three orbs as the tracker would place them: front-left at level 1, right a little up at 0.6, one low and back-right
-    struct O { float az, el, level, alpha, phase; } os[] = {{25, 5, 1.0f, 1.0f, 0.4f}, {-12, 14, 0.6f, 1.0f, 2.9f}, {5, -16, 0.8f, 0.6f, 5.1f}, {-30, -4, 0.3f, 1.0f, 1.3f}};
+    struct O { float az, el, level, alpha, phase; } os[] = {{25, 5, 1.0f, 1.0f, 0.4f}, {-12, 14, 0.6f, 1.0f, 2.9f}, {5, -16, 0.8f, 0.6f, 5.1f}, {-30, -4, 0.3f, 1.0f, 1.3f}, {-21, 2, 0.45f, 1.0f, 4.2f}, {38, -8, 0.15f, 1.0f, 0.9f}};
     const float dist = 2.5f;
     float orb[8 * 4] = {}, orbP[8 * 4] = {};
     int cnt = 0;
@@ -112,7 +112,12 @@ int main(int argc, char** argv) {
             float a = p[3] / 255.0f;
             if (p[3] > 8) covered[x / W]++;
             unsigned char o[3];
-            const float bg[3] = {0.11f, 0.11f, 0.12f};
+            // a stand-in picture: sky-to-ground gradient with a few vertical bars, so the orbs' transparency shows
+            int yy = H - 1 - y, xx = x % W;
+            float sky = (float)yy / H;
+            float bg[3] = {0.30f + 0.25f * (1 - sky), 0.42f + 0.20f * (1 - sky), 0.55f + 0.25f * (1 - sky)};
+            if (yy > H * 0.62) { bg[0] = 0.22f; bg[1] = 0.30f; bg[2] = 0.16f; }
+            if ((xx / 48) % 5 == 0 && yy > H * 0.3 && yy < H * 0.7) { bg[0] = 0.85f; bg[1] = 0.85f; bg[2] = 0.82f; }
             for (int c = 0; c < 3; c++) o[c] = (unsigned char)std::min(255.0f, p[c] + bg[c] * 255 * (1 - a));
             fwrite(o, 1, 3, f);
         }
