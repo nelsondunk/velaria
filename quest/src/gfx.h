@@ -45,6 +45,23 @@ public:
     bool blitVideo(AHardwareBuffer* ahb, GLuint dstTex, int w, int h, const Fisheye* fisheye = nullptr, const Dome* dome = nullptr);
     void dropImageCache();   // call when the image reader is replaced
 
+    // Sound orbs (+91): ray-marched volumetric blobs for one eye, drawn into the rect (x0, y0, w, h) of dstTex.
+    // The view is an OpenXR view: eye position, its orientation as a view->world matrix (column major), and the
+    // tangents of its four fov angles. Output is premultiplied alpha; pixels off every orb are transparent.
+    struct OrbView {
+        float eye[3];
+        float rot[9];
+        float tanL, tanR, tanU, tanD;
+    };
+    struct OrbDraw {
+        float pos[3];      // world centre
+        float radius;      // metres
+        float level;       // 0..1 brightness
+        float alpha;       // 0..1 fade
+        float phase;       // per-orb noise offset
+    };
+    bool drawOrbs(GLuint dstTex, int x0, int y0, int w, int h, const OrbView& view, const OrbDraw* orbs, int n, float timeS);
+
     // Uploads RGBA pixels into dstTex. `rgba` is top-row-first unless bottomUp (already in GL row order).
     void upload(GLuint dstTex, const uint8_t* rgba, int w, int h, bool bottomUp = false);
     // Uploads a 360 equirect with a one-texel wraparound margin on each side (dstTex is w + 2 wide): the compositor
@@ -68,6 +85,8 @@ private:
     GLint m_fiTex = -1, m_fiLayout = -1, m_fiHalfFov = -1, m_fiCircle = -1, m_fiAspect = -1;
     GLuint m_dome = 0;
     GLint m_doTex = -1, m_doEye = -1, m_doTilt = -1, m_doHalfFov = -1, m_doCircle = -1, m_doAspect = -1, m_doLat = -1, m_doRadiusPx = -1, m_doLon = -1;
+    GLuint m_orbs = 0;
+    GLint m_obEye = -1, m_obRot = -1, m_obTan = -1, m_obTime = -1, m_obCount = -1, m_obOrb = -1, m_obOrbP = -1;
     GLuint m_vao = 0;
     // Keyed by AHardwareBuffer_getId (never reused), not by pointer: the decoder reallocates buffers and a recycled
     // pointer would sample a stale image. Entries unused for a while are released so freed buffers don't pile up.

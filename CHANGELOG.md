@@ -2,6 +2,14 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## +91 — the sound map as floating orbs (20 Nov 2026, 20:15)
+
+- **Volumetric sound orbs** (Nelson: "it would be cool if the heat map had some stereoscopy. If it floated like orbs instead of infinitely far blobs… 3d amorphous orbs"; on the options: fixed distance, "just for cool factor so it looks like it's floating. I like volumetric orbs"). **Map** now shows the peaks of the same first-order beam field as copper orbs floating 2.5 m from the head in the picture's frame, drawn per eye into a projection layer (the app's first; everything else is compositor quads and equirects), so they have real depth against the picture at infinity, and each orb has its own: a ray-marched lumpy surface (two octaves of slow value noise, lit by the density gradient, specular and rim, a brighter heart showing through), ~5–8° across by level. Up to 8 orbs; a source's orb fades in and out over 150 ms and follows a moving source (host test: 4.8° lag at 90°/s).
+- **Peak tracker** (`quest/src/orbs.cpp`, host test `quest/tools/orbstest.cpp`, 15 checks): coarse-grid maxima above 35 % of the normalised range, refined to the texel, merged within 40°, matched to known orbs within 30°, EMA-smoothed. A diffuse or all-W field (contrast under 30 %) gives no orbs. Honest limit, in the test: a first-order cardioid beam is (1 + cos θ)², so two equal sources closer than ~130° merge into one orb between them; two at 150° give two. That is the format, not the tracker.
+- **Shader harness** (`quest/tools/orbsview.cpp`): the orb shader now lives in `quest/src/orbs_shader.h`, shared with a Mesa host render that writes a side-by-side stereo PPM, so a shader change is looked at (and a compile error caught) before an APK goes on the headset. Disparity in the host render matches 2.5 m at 64 mm IPD.
+- Setting `soundOrbs` (default 1) picks orbs; `soundOrbs 0` in settings.txt brings back the flat map on the sphere. No new chip: the strip's Map switch toggles whichever is chosen.
+- Cost: the orb swapchain is 2 × 640² and the march runs only on pixels inside an orb's bounding sphere (about 5 % of the view), 28 steps, one gradient per ray. Not yet measured on the Quest: if the frame-time line in Settings climbs with Map on, drop `kOrbEyeW/H` in `hud.h` first. Installed to the Quest (clean start, shader linked); the look in the headset is Nelson's call Monday.
+
 ## +88–+90, bridge 1.0.15, 1.1.0-rc1 packaged, driver and plugin swapped in (20 Nov 2026, 19:00)
 
 - Review leftovers closed: universal plugin (arm64 + x86_64), partly covered tap blocks only when due, headset audio start backoff, bridge None-safe restore and driver notice without the aside condition, tap at 48 kHz only, tap.log rotation, "Two Velaria Sound inserts – remove one" on the strip (+88).

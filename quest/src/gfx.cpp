@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "font.h"
+#include "orbs_shader.h"
 
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "VRLink", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "VRLink", __VA_ARGS__)
@@ -14,15 +15,8 @@
 namespace vrq {
 
 namespace {
-const char* kVS = R"(#version 300 es
-out vec2 vUv;
-void main() {
-    // full-screen triangle
-    vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));
-    vUv = vec2(p.x, 1.0 - p.y);   // decoded image row 0 is the top of the picture
-    gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
-}
-)";
+using shaders::kVS;
+using shaders::kFSOrbs;
 
 // The swapchain is sRGB, so the GPU encodes our output with the sRGB curve. Decoded video is already
 // display-encoded; decoding it with the inverse curve first makes the round trip a pass-through of code values.
@@ -140,6 +134,7 @@ GLuint compile(GLenum type, const char* src) {
     }
     return s;
 }
+
 }  // namespace
 
 bool Gfx::init() {
@@ -208,6 +203,23 @@ bool Gfx::init() {
         m_doLat = glGetUniformLocation(m_dome, "uLat");
         m_doRadiusPx = glGetUniformLocation(m_dome, "uRadiusPx");
         m_doLon = glGetUniformLocation(m_dome, "uLon");
+    }
+    m_orbs = glCreateProgram();
+    glAttachShader(m_orbs, compile(GL_VERTEX_SHADER, kVS));
+    glAttachShader(m_orbs, compile(GL_FRAGMENT_SHADER, kFSOrbs));
+    glLinkProgram(m_orbs);
+    glGetProgramiv(m_orbs, GL_LINK_STATUS, &ok);
+    if (!ok) {
+        LOGE("orbs program link failed");
+        m_orbs = 0;
+    } else {
+        m_obEye = glGetUniformLocation(m_orbs, "uEye");
+        m_obRot = glGetUniformLocation(m_orbs, "uRot");
+        m_obTan = glGetUniformLocation(m_orbs, "uTan");
+        m_obTime = glGetUniformLocation(m_orbs, "uTime");
+        m_obCount = glGetUniformLocation(m_orbs, "uCount");
+        m_obOrb = glGetUniformLocation(m_orbs, "uOrb");
+        m_obOrbP = glGetUniformLocation(m_orbs, "uOrbP");
     }
     glGenVertexArrays(1, &m_vao);
     LOGI("GL: %s / %s", glGetString(GL_RENDERER), glGetString(GL_VERSION));
@@ -313,6 +325,41 @@ bool Gfx::blitVideo(AHardwareBuffer* ahb, GLuint dstTex, int w, int h, const Fis
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);   // never hold a swapchain texture
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return true;
+}
+
+bool Gfx::drawOrbs(GLuint dstTex, int x0, int y0, int w, int h, const OrbView& view, const OrbDraw* orbs, int n, float timeS) {
+    if (!m_orbs) return false;
+    if (!m_fbo) glGenFramebuffers(1, &m_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dstTex, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return false;
+    }
+    glViewport(x0, y0, w, h);
+    glDisable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glUseProgram(m_orbs);
+    glUniform3fv(m_obEye, 1, view.eye);
+    glUniformMatrix3fv(m_obRot, 1, GL_FALSE, view.rot);
+    glUniform4f(m_obTan, view.tanL, view.tanR, view.tanU, view.tanD);
+    glUniform1f(m_obTime, timeS);
+    n = n > 8 ? 8 : n;
+    glUniform1i(m_obCount, n);
+    float o[8 * 4] = {}, op[8 * 4] = {};
+    for (int i = 0; i < n; i++) {
+        o[i * 4] = orbs[i].pos[0]; o[i * 4 + 1] = orbs[i].pos[1]; o[i * 4 + 2] = orbs[i].pos[2]; o[i * 4 + 3] = orbs[i].radius;
+        op[i * 4] = orbs[i].level; op[i * 4 + 1] = orbs[i].alpha; op[i * 4 + 2] = orbs[i].phase;
+    }
+    glUniform4fv(m_obOrb, 8, o);
+    glUniform4fv(m_obOrbP, 8, op);
+    glBindVertexArray(m_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return true;
 }

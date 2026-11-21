@@ -34,6 +34,7 @@
 
 #include "bridge.h"
 #include "decoder.h"
+#include "orbs.h"
 #include "edit.h"
 #include "gfx.h"
 #include "hud.h"
@@ -70,6 +71,7 @@ struct Settings {
     bool audio = true;     // Resolve's monitoring mix plays in the headset (+65)
     bool ambisonic = false; // the mix is a first-order AmbiX bus on channels 1-4 (W Y Z X), decoded with head tracking (+74)
     bool soundMap = false;  // paint where the ambisonic sound comes from over the sphere (+83)
+    bool soundOrbs = true;  // ... as floating volumetric orbs (+91); 0 = the flat map on the sphere
     float fisheyeFov = 190; // lens field of view for the dual-fisheye projection (Canon RF 5.2: 190)
     // Dome preview: the theatre the domemaster is judged in
     float domeTilt = 0;        // degrees the dome's front edge drops below level (0 = classic level dome, up to 30)
@@ -106,6 +108,7 @@ struct Settings {
             else if (k == "audio") audio = v == "1";
             else if (k == "ambisonic") ambisonic = v == "1";
             else if (k == "soundMap") soundMap = v == "1";
+            else if (k == "soundOrbs") soundOrbs = v == "1";
             else if (k == "fisheyeFov") fisheyeFov = (float)atof(v.c_str());
             else if (k == "domeTilt") domeTilt = std::max(0.0f, std::min(30.0f, (float)atof(v.c_str())));
             else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
@@ -140,7 +143,7 @@ struct Settings {
         std::ofstream f(path);
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
-          << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nambisonic " << (ambisonic ? 1 : 0) << "\nsoundMap " << (soundMap ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
+          << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nambisonic " << (ambisonic ? 1 : 0) << "\nsoundMap " << (soundMap ? 1 : 0) << "\nsoundOrbs " << (soundOrbs ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
           << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeVenue " << domeVenue << "\ndomeFov " << domeFov << "\ndomeTheatre " << (domeTheatre ? 1 : 0)
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
@@ -233,6 +236,9 @@ struct App {
     std::vector<uint8_t> soundMapPx;        // its pixels, rebuilt on the render thread
     float soundMapPeak = 0;                 // slow-decaying normaliser so the map does not flicker
     int64_t soundMapNs = 0;                 // last rebuild
+    OrbTracker orbTracker;                  // the map's peaks as orbs (+91)
+    Swapchain orbs;                         // both eyes side by side, a projection layer at kOrbDist
+    int64_t orbT0Ns = 0;                    // the orbs' wobble clock
     Swapchain theatre;                      // dome theatre background: top/bottom stereo equirect for the current seat (+68)
     std::string theatreKey;                 // which render is in the swapchain ("M15_seat2"); empty = none
     std::set<std::string> theatreMissing;   // assets absent or undecodable: don't retry every frame
@@ -658,6 +664,7 @@ static bool initXr() {
     createSwapchain(g.grid, kGridW, kGridH);
     createSwapchain(g.outline, kOutlineW, kOutlineH);
     createSwapchain(g.soundMap, kSoundMapW, kSoundMapH);
+    createSwapchain(g.orbs, 2 * kOrbEyeW, kOrbEyeH);
     {
         Canvas c;
         drawGrid(c);
@@ -1164,7 +1171,7 @@ static void activate(HudButton b, int arg = 0) {
         case HudButton::SoundMap:
             g.settings.soundMap = !g.settings.soundMap;
             g.settings.save();
-            showNotice(g.settings.soundMap ? "Sound map: where the first-order bus is loudest, on the sphere" : "Sound map off");
+            showNotice(g.settings.soundMap ? (g.settings.soundOrbs ? "Sound map: orbs where the first-order bus is loudest" : "Sound map: where the first-order bus is loudest, on the sphere") : "Sound map off");
             break;
         case HudButton::Outline:
             g.settings.outline = !g.settings.outline;
@@ -2769,6 +2776,8 @@ static void renderFrame() {
                 mean /= (double)p.size();
                 g.soundMapPeak = std::max(peak, g.soundMapPeak * 0.985f);   // decays ~2 s to a new quieter peak
                 float range = std::max(g.soundMapPeak - (float)mean, 1e-9f);
+                g.orbTracker.update(p.data(), kSoundMapW, kSoundMapH, g.soundMapPeak, now);
+                if (!g.settings.soundOrbs) {   // the orbs are drawn from the tracker; the flat map paints texels
                 g.soundMapPx.resize(p.size() * 4);
                 for (size_t k = 0; k < p.size(); k++) {
                     float t = (p[k] - (float)mean) / range;
@@ -2781,10 +2790,15 @@ static void renderFrame() {
                     o[0] = (uint8_t)(r * 255); o[1] = (uint8_t)(gch * 255); o[2] = (uint8_t)(b * 255); o[3] = (uint8_t)(a * 255);
                 }
                 renderInto(g.soundMap, [&](GLuint tex) { g.gfx.upload(tex, g.soundMapPx.data(), kSoundMapW, kSoundMapH); });
+                }
             }
+        } else if (!g.orbTracker.orbs().empty()) {
+            g.orbTracker.update(nullptr, 0, 0, g.soundMapPeak, now);   // no field: fade what is showing
         }
+    } else if (!g.orbTracker.orbs().empty()) {
+        g.orbTracker.update(nullptr, 0, 0, g.soundMapPeak, now);
     }
-    if (mapLive && g.soundMap.hasContent) {
+    if (mapLive && !g.settings.soundOrbs && g.soundMap.hasContent) {
         mapLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
         mapLayer.space = g.localSpace;
         mapLayer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
@@ -2797,6 +2811,64 @@ static void renderFrame() {
         mapLayer.upperVerticalAngle = (float)M_PI / 2;
         mapLayer.lowerVerticalAngle = -(float)M_PI / 2;
         layers.push_back((XrCompositionLayerBaseHeader*)&mapLayer);
+    }
+    // Sound orbs (+91): the same peaks as floating volumetric blobs, kOrbDist in front of the head in the picture's
+    // frame, drawn per eye into a projection layer so they have real depth against the picture at infinity.
+    XrCompositionLayerProjection orbLayer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
+    XrCompositionLayerProjectionView orbViews[2] = {{XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW}, {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW}};
+    if (fs.shouldRender && g.settings.soundMap && g.settings.soundOrbs && g.headValid && !g.orbTracker.orbs().empty() && g.orbs.handle != XR_NULL_HANDLE) {
+        XrViewLocateInfo vli{XR_TYPE_VIEW_LOCATE_INFO};
+        vli.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+        vli.displayTime = fs.predictedDisplayTime;
+        vli.space = g.localSpace;
+        XrViewState vs{XR_TYPE_VIEW_STATE};
+        XrView views[2] = {{XR_TYPE_VIEW}, {XR_TYPE_VIEW}};
+        uint32_t nv = 0;
+        if (XR_SUCCEEDED(xrLocateViews(g.session, &vli, &vs, 2, &nv, views)) && nv == 2 &&
+            (vs.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) && (vs.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT)) {
+            if (!g.orbT0Ns) g.orbT0Ns = now;
+            Gfx::OrbDraw draw[OrbTracker::kMaxOrbs];
+            int n = 0;
+            XrQuaternionf frame = qYaw(g.settings.yawDeg * deg);   // the picture's frame, like the flat map's pose
+            for (const Orb& o : g.orbTracker.orbs()) {
+                if (o.alpha <= 0 || n >= OrbTracker::kMaxOrbs) continue;
+                // ambisonic (x forward, y left, z up) -> OpenXR (x right, y up, z back)
+                XrVector3f d = qRotate(frame, {-o.dir[1], o.dir[2], -o.dir[0]});
+                XrVector3f c = vAdd(g.head.position, vScale(d, kOrbDist));
+                draw[n].pos[0] = c.x; draw[n].pos[1] = c.y; draw[n].pos[2] = c.z;
+                draw[n].radius = kOrbDist * (0.085f + 0.055f * o.level);   // ~5 to 8 degrees across
+                draw[n].level = o.level;
+                draw[n].alpha = o.alpha;
+                draw[n].phase = o.phase;
+                n++;
+            }
+            float timeS = (float)((now - g.orbT0Ns) * 1e-9);
+            renderInto(g.orbs, [&](GLuint tex) {
+                for (int e = 0; e < 2; e++) {
+                    Gfx::OrbView v;
+                    v.eye[0] = views[e].pose.position.x; v.eye[1] = views[e].pose.position.y; v.eye[2] = views[e].pose.position.z;
+                    XrVector3f cx = qRotate(views[e].pose.orientation, {1, 0, 0}), cy = qRotate(views[e].pose.orientation, {0, 1, 0}),
+                               cz = qRotate(views[e].pose.orientation, {0, 0, 1});
+                    float rot[9] = {cx.x, cx.y, cx.z, cy.x, cy.y, cy.z, cz.x, cz.y, cz.z};   // column major: view axes in world
+                    memcpy(v.rot, rot, sizeof rot);
+                    v.tanL = std::tan(views[e].fov.angleLeft); v.tanR = std::tan(views[e].fov.angleRight);
+                    v.tanU = std::tan(views[e].fov.angleUp); v.tanD = std::tan(views[e].fov.angleDown);
+                    g.gfx.drawOrbs(tex, e * kOrbEyeW, 0, kOrbEyeW, kOrbEyeH, v, draw, n, timeS);
+                }
+            });
+            for (int e = 0; e < 2; e++) {
+                orbViews[e].pose = views[e].pose;
+                orbViews[e].fov = views[e].fov;
+                orbViews[e].subImage.swapchain = g.orbs.handle;
+                orbViews[e].subImage.imageRect = {{e * kOrbEyeW, 0}, {kOrbEyeW, kOrbEyeH}};
+                orbViews[e].subImage.imageArrayIndex = 0;
+            }
+            orbLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+            orbLayer.space = g.localSpace;
+            orbLayer.viewCount = 2;
+            orbLayer.views = orbViews;
+            layers.push_back((XrCompositionLayerBaseHeader*)&orbLayer);
+        }
     }
     // Level grid: a world-level equirect sphere drawn over the picture (same recentre yaw, so its 0 deg tick is
     // the footage's centre). The horizon line is true level in the room; a wonky horizon in the footage shows

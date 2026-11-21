@@ -24,7 +24,7 @@ Velaria takes the place of Blackmagic Desktop Video while it is installed. A Dec
 
 ## Sound and transport
 
-- **Sound is the monitor mix**, or the bus **Velaria Sound** is inserted on. First-order ambisonics only (what the headsets' own players decode); higher orders are heard as first order. The headset decodes it binaurally (a generic HRTF, SADIE II), so the image is not identical to Fairlight's own Binaural monitor, which uses a different HRTF set.
+- **Sound is the monitor mix**, or the bus **Velaria Sound** is inserted on. First-order ambisonics only (what the headsets' own players decode); higher orders are heard as first order. The headset decodes it binaurally (a generic HRTF, SADIE II), so the image is not identical to Fairlight's own Binaural monitor, which uses a different HRTF set. The sound orbs are first-order beams too: sounds closer together than about 130° merge into one orb between them.
 - **Audio delay follows video delay.** The headset adds the delay the mix needs to stay in step with the picture; expect a short settling period after play starts.
 - **Play and stop are Resolve's.** The headset can scrub, step and jump between clips, but it cannot start or stop playback.
 
