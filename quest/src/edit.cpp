@@ -312,8 +312,8 @@ double EditModel::nudgeStep(const EditParam& p) {
 std::string editInstanceKey(const EditModel* m) {
     if (!m) return "-";
     std::string k = std::to_string(m->group) + "/" + std::to_string(m->groups.size()) + "|" + m->notice + "|" +
-                    std::to_string(m->clipboard.size()) + "|" + (m->bridgeOk ? "1" : "0") + "|" + std::to_string(m->layer) +
-                    std::to_string(m->countInLayer()) + "|";
+                    std::to_string(m->clipboard.size()) + "|" + (m->bridgeOk ? "1" : "0") + "|" + std::to_string(m->stage) +
+                    std::to_string(m->countInStage()) + "|";
     const EditGroup* g = m->current();
     if (g) k += g->tool + "@" + std::to_string(g->track) + g->clipName + "|" + g->label + "|" + g->source + "|" + g->kind + (m->isLocked(*g) ? "|L" : "");
     return k;
@@ -325,7 +325,7 @@ std::string editParamsKey(const EditModel* m, bool placement) {
                     (m->bridgeOk ? "1" : "0") + (m->haveTimeline ? "1" : "0") + "|";
     const EditGroup* g = m->current();
     if (!g) return k;
-    k += g->tool + "@" + g->clipName + (m->isLocked(*g) ? "#L" : "") + "#" + std::to_string(m->layer) + ":";
+    k += g->tool + "@" + g->clipName + (m->isLocked(*g) ? "#L" : "") + "#" + std::to_string(m->stage) + ":";
     for (auto& p : g->params) {
         // a trim's bars are drawn on the Placement panel, so its key carries them there (+50)
         if (onPlacementPanel(p) != placement && !(placement && g->barsOnly())) continue;

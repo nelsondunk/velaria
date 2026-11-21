@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
       st.params = {num("Convergence", "Convergence", "Stereo", 0.012, -0.05, 0.05), swap}; }
     m.groups.push_back(st);
     m.locked.insert(m.groups[3].key());
-    m.group = 0; m.layer = 0;
+    m.group = 0; m.stage = EditModel::Graphics;
 
     UiState s;
     s.edit = model;
@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
         const char* names[] = {"strip", "selected", "settings", "deck", "scopes"};
         writePpm(out + "/" + names[(int)id] + "-" + state + ".ppm", c);
     };
-    dump(PanelId::Instance, "overlays");
+    dump(PanelId::Instance, "graphics");
     // one card hidden (its clip disabled in Resolve): its name dims, the chips read Hide + "Show 1"
     for (auto& cl : m.clips) if (cl.key == "fw") { cl.key = m.groups[1].clip; cl.enabled = false; }
     dump(PanelId::Instance, "hidden");
@@ -139,22 +139,22 @@ int main(int argc, char** argv) {
     dump(PanelId::Deck, "marker");
     m.markers.pop_back();
     dump(PanelId::Scopes, "waveform");
-    // patches layer, locked patch picked
-    m.layer = 1; m.group = 3;
-    dump(PanelId::Instance, "patches");
+    // Edit stage (+94): patches, Orient 360 and the stereo pass; a locked patch picked
+    m.stage = EditModel::Edit; m.group = 3;
+    dump(PanelId::Instance, "edit-patch");
     dump(PanelId::Placement, "patch");
-    // picture layer: Orient 360, then the Trim pass
-    m.layer = 2; m.group = (int)m.groups.size() - 3;
-    dump(PanelId::Instance, "picture");
+    m.group = (int)m.groups.size() - 3;
+    dump(PanelId::Instance, "edit");
     dump(PanelId::Placement, "picture");
-    m.group = (int)m.groups.size() - 2;
-    dump(PanelId::Instance, "trim");
-    dump(PanelId::Placement, "trim");
-    s.lookTab = 1; dump(PanelId::Look, "trim"); s.lookTab = 0;
     m.group = (int)m.groups.size() - 1;   // the Stereo pass: bars-only like Trim, section "Stereo"
     dump(PanelId::Instance, "stereo");
     dump(PanelId::Placement, "stereo");
-    m.layer = 0; m.group = 0;
+    // Colour stage: the Trim pass
+    m.stage = EditModel::Grade; m.group = (int)m.groups.size() - 2;
+    dump(PanelId::Instance, "colour");
+    dump(PanelId::Placement, "trim");
+    s.lookTab = 1; dump(PanelId::Look, "trim"); s.lookTab = 0;
+    m.stage = EditModel::Graphics; m.group = 0;
     // look tabs
     s.lookTab = 2; dump(PanelId::Look, "glow");
     s.lookTab = 3; dump(PanelId::Look, "stereo");
@@ -207,9 +207,19 @@ int main(int argc, char** argv) {
     s.info.audio = true; s.info.audioAmbi = true; s.info.audioLive = true; s.info.audioTap = true; s.info.soundMap = true;
     s.lookTab = 0; dump(PanelId::Look, "sound");
     dump(PanelId::Instance, "soundmap");   // the Map switch on the strip's bar (+89)
+    // the Sound stage (+94): the strip and the SOUND panel
+    m.stage = EditModel::Sound;
+    dump(PanelId::Instance, "sound");
+    dump(PanelId::Placement, "sound");
+    // Velaria View: Preview · Sound only
+    s.info.canvas = false;
+    dump(PanelId::Instance, "view");
+    m.stage = EditModel::Edit;
+    dump(PanelId::Instance, "view-preview");
+    s.info.canvas = true;
     s.info.audioAmbi = false; s.info.soundMap = false;
-    // nothing on this layer
-    m.layer = 0; m.groups.clear(); m.frame = m.start + 1500; m.tc = "01:01:47:22";
+    // nothing on this stage
+    m.stage = EditModel::Graphics; m.groups.clear(); m.frame = m.start + 1500; m.tc = "01:01:47:22";
     dump(PanelId::Instance, "empty");
     printf("wrote previews to %s\n", out.c_str());
     return 0;

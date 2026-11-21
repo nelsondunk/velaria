@@ -217,6 +217,8 @@ struct HudInfo {
     bool soundMap = false;    // the sound map overlay is on (+83)
     bool audioLive = false;   // blocks are arriving and the output stream is open
     bool audioAmbiguous = false;   // two Velaria Sound inserts of equal rank on the Mac (+87): say so on the strip
+    bool canvas = true;            // Velaria Canvas (four stages) or Velaria View (preview and Sound) (+94)
+    bool soundOrbs = true;         // the Map shows orbs (else the flat map)
     float fisheyeFov = 190;   // lens FOV used by the fisheye projection
     float domeTilt = 0, domeFov = 180;   // dome preview: tilt (deg), master FOV (deg)
     int domeSeat = 0;         // 0 sweet spot, 1 front row, 2 rear row, 3 left, 4 right

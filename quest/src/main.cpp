@@ -72,6 +72,8 @@ struct Settings {
     bool ambisonic = false; // the mix is a first-order AmbiX bus on channels 1-4 (W Y Z X), decoded with head tracking (+74)
     bool soundMap = false;  // paint where the ambisonic sound comes from over the sphere (+83)
     bool soundOrbs = true;  // ... as floating volumetric orbs (+91); 0 = the flat map on the sphere
+    int stage = 0;          // the review stage the strip is on (+94): 0 Edit, 1 Graphics, 2 Colour, 3 Sound
+    bool canvas = true;     // Velaria Canvas (all four stages) or Velaria View (preview and Sound). Not wired to a licence yet.
     float fisheyeFov = 190; // lens field of view for the dual-fisheye projection (Canon RF 5.2: 190)
     // Dome preview: the theatre the domemaster is judged in
     float domeTilt = 0;        // degrees the dome's front edge drops below level (0 = classic level dome, up to 30)
@@ -109,6 +111,8 @@ struct Settings {
             else if (k == "ambisonic") ambisonic = v == "1";
             else if (k == "soundMap") soundMap = v == "1";
             else if (k == "soundOrbs") soundOrbs = v == "1";
+            else if (k == "stage") stage = std::max(0, std::min(3, atoi(v.c_str())));
+            else if (k == "tier") canvas = v != "view";
             else if (k == "fisheyeFov") fisheyeFov = (float)atof(v.c_str());
             else if (k == "domeTilt") domeTilt = std::max(0.0f, std::min(30.0f, (float)atof(v.c_str())));
             else if (k == "domeSeat") domeSeat = std::max(0, std::min(4, atoi(v.c_str())));
@@ -143,7 +147,7 @@ struct Settings {
         std::ofstream f(path);
         f << "layout " << layout << "\nprojection " << projection << "\nswapEyes " << (swapEyes ? 1 : 0) << "\ndelayMs "
           << delayMs << "\nautoDelayMs " << autoDelayMs << "\nstrip " << (strip ? 1 : 0) << "\ngrid " << (grid ? 1 : 0)
-          << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nambisonic " << (ambisonic ? 1 : 0) << "\nsoundMap " << (soundMap ? 1 : 0) << "\nsoundOrbs " << (soundOrbs ? 1 : 0) << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
+          << "\noutline " << (outline ? 1 : 0) << "\naudio " << (audio ? 1 : 0) << "\nambisonic " << (ambisonic ? 1 : 0) << "\nsoundMap " << (soundMap ? 1 : 0) << "\nsoundOrbs " << (soundOrbs ? 1 : 0) << "\nstage " << stage << "\ntier " << (canvas ? "canvas" : "view") << "\nsource " << source << "\nfisheyeFov " << fisheyeFov
           << "\ndomeTilt " << domeTilt << "\ndomeSeat " << domeSeat << "\ndomeVenue " << domeVenue << "\ndomeFov " << domeFov << "\ndomeTheatre " << (domeTheatre ? 1 : 0)
           << "\npanelOn " << (panelOn[0] ? 1 : 0) << "," << (panelOn[1] ? 1 : 0) << "," << (panelOn[2] ? 1 : 0) << "," << (panelOn[3] ? 1 : 0) << "," << (panelOn[4] ? 1 : 0)
           << "\nscopesView " << scopesView
@@ -529,6 +533,36 @@ static void showNotice(const std::string& s) {
     g.notice = s;
     g.noticeUntil = monoNs() + 2500000000LL;
     g.hudForce = true;
+}
+
+// Review stages (+94). Switching stage picks the groups the strip lists, what a pinch can grab, and the panels'
+// defaults; the Timeline and Settings are not touched (they belong to every stage). Defaults, not locks: a panel
+// toggled afterwards stays as toggled until the next switch. Velaria View has Edit (as plain preview) and Sound.
+static void setStage(int st, bool announce) {
+    if (!g.settings.canvas && st != EditModel::Edit && st != EditModel::Sound) st = EditModel::Sound;
+    g.edit.stage = st;
+    g.settings.stage = st;
+    g.edit.settle();
+    g.edit.firstRow = 0;
+    g.selTab = 0;
+    bool& sel = g.settings.panelOn[(int)PanelId::Placement];
+    bool& scopes = g.settings.panelOn[(int)PanelId::Scopes];
+    switch (st) {
+        case EditModel::Edit: sel = g.settings.canvas; scopes = false; break;
+        case EditModel::Graphics: sel = true; scopes = false; break;
+        case EditModel::Grade: sel = true; scopes = true; break;
+        case EditModel::Sound: sel = true; scopes = false; if (g.settings.audio && g.settings.ambisonic) g.settings.soundMap = true; break;
+    }
+    g.settings.save();
+    g.hudForce = true;
+    if (!announce) return;
+    static const char* notes[] = {
+        "EDIT: the whole sphere (PanoMap, Orient 360), patches and the stereo pass. Timeline and the picture.",
+        "GRAPHICS: titles, footage windows and 3D scenes on the picture. Pinch one to pick it.",
+        "COLOUR: the Velaria Trim pass with scopes measured on the Mac.",
+        "SOUND: the bus in the headset, head-tracked; the sound orbs show where it is loudest.",
+    };
+    showNotice(g.settings.canvas || st == EditModel::Sound ? notes[st] : "PREVIEW: the timeline in the headset. Velaria Canvas adds Edit, Graphics and Colour.");
 }
 
 // ------------------------------------------------------------------------------------------------ XR setup
@@ -933,7 +967,7 @@ static void activate(HudButton b, int arg = 0) {
             Json keys = Json::array();
             bool on = true;
             if (arg == 1) {
-                for (auto& gr : g.edit.groups) if (g.edit.inLayer(gr) && g.edit.isHidden(gr)) keys.arr.push_back(Json(gr.clip));
+                for (auto& gr : g.edit.groups) if (g.edit.inStage(gr) && g.edit.isHidden(gr)) keys.arr.push_back(Json(gr.clip));
                 on = false;
             } else {
                 const EditGroup* cg = g.edit.current();
@@ -961,20 +995,14 @@ static void activate(HudButton b, int arg = 0) {
         case HudButton::GroupPrev:
         case HudButton::GroupNext:
             if (!g.edit.groups.empty()) {
-                int i = g.edit.neighbourInLayer(b == HudButton::GroupNext ? 1 : -1);
+                int i = g.edit.neighbourInStage(b == HudButton::GroupNext ? 1 : -1);
                 if (i >= 0) g.edit.group = i;
                 g.edit.firstRow = 0;
                 g.hudForce = true;
             }
             return;
         case HudButton::Layer:
-            g.edit.layer = std::max(0, std::min(2, arg));
-            g.edit.settle();
-            g.edit.firstRow = 0;
-            g.hudForce = true;
-            showNotice(g.edit.layer == 0 ? "OVERLAYS: titles and footage windows placed on the picture. Pinch one in the scene to pick it."
-                       : g.edit.layer == 1 ? "PATCHES: tripod and sky patch windows. Set up in Resolve; move here only on purpose."
-                                           : "FOOTAGE: the whole sphere (PanoMap / Velaria Orient 360) and the Velaria Trim pass.");
+            setStage(std::max(0, std::min((int)EditModel::StageCount - 1, arg)), true);
             return;
         case HudButton::ScopesView:
             g.settings.scopesView = std::max(0, std::min(2, arg));
@@ -982,7 +1010,7 @@ static void activate(HudButton b, int arg = 0) {
             g.hudForce = true;
             return;
         case HudButton::GroupPick:
-            if (arg >= 0 && arg < (int)g.edit.groups.size() && g.edit.inLayer(g.edit.groups[arg])) {
+            if (arg >= 0 && arg < (int)g.edit.groups.size() && g.edit.inStage(g.edit.groups[arg])) {
                 g.edit.group = arg;
                 g.edit.firstRow = 0;
                 g.hudForce = true;
@@ -1593,7 +1621,7 @@ struct CardGeom {
 };
 static CardGeom cardGeom(const EditGroup& gr) {
     CardGeom c;
-    if (!gr.isCard() || g.edit.layer != 0) return c;   // only overlays are picked or outlined in the scene
+    if (!gr.isCard() || g.edit.stage != EditModel::Graphics) return c;   // cards are picked or outlined in the scene on Graphics only
     float aspect = 0, fill = 1, plateW = 0, plateH = 0;
     int shows = 0;
     for (int i = 0; i < (int)gr.params.size(); i++) {
@@ -2228,6 +2256,8 @@ static void updateHud(int64_t now, bool playing) {
     in.pinned = g.panelsPlaced;
     in.grid = g.settings.grid;
     in.soundMap = g.settings.soundMap;
+    in.canvas = g.settings.canvas;
+    in.soundOrbs = g.settings.soundOrbs;
     in.outline = g.settings.outline;
     in.audio = g.settings.audio;
     in.audioAmbi = g.settings.ambisonic;
@@ -2476,6 +2506,11 @@ static void pollDebugCommands(int64_t now) {
             }
         } else if (cmd == "tab") {
             activate(HudButton::Tab, atoi(a.c_str()));
+        } else if (cmd == "stage") {   // stage <0-3>
+            setStage(atoi(a.c_str()), true);
+        } else if (cmd == "tier") {    // tier view|canvas: how the strip looks for each product (no licence check yet)
+            g.settings.canvas = a != "view";
+            setStage(g.edit.stage, false);
         } else if (cmd == "open") {
             g.panelOpen = true;
             g.cockpitValid = false;
@@ -3258,6 +3293,7 @@ void android_main(android_app* app) {
     app->onAppCmd = onAppCmd;
     g.settings.load(app->activity->internalDataPath ? app->activity->internalDataPath : "/data/local/tmp");
     g.edit.locked = g.settings.locked;
+    g.edit.stage = g.settings.canvas || g.settings.stage == EditModel::Sound ? g.settings.stage : EditModel::Edit;   // restore the stage, not its panel defaults
     // Start from the last settled value, but never from an outlier: it re-grows within a second if really needed.
     g.autoDelayNs = (int64_t)std::max(0, std::min(120, g.settings.autoDelayMs)) * 1000000;
     LOGI("VR Link starting (layout %d projection %d swap %d delay %d auto %d)", g.settings.layout,

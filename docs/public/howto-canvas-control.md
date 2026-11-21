@@ -8,7 +8,7 @@ You need DaVinci Resolve Studio 19 or newer and the Velaria effects, which the i
 
 1. On the Edit page, put the clip you want in the window on a track **above** your 360 or 180 shot (V2 or higher).
 2. Drag **Velaria Canvas Control** from Effects > Velaria onto that upper clip. Do not drop it on the background shot itself: the effect outputs the window on a transparent background, and the timeline lays it over the shot.
-3. Put the headset on. The window is on the **Overlays** layer. Pinch it in the picture and move it, or tap its chip on the strip and use the Selected panel.
+3. Put the headset on. The window is on the **Graphics** stage. Pinch it in the picture and move it, or tap its chip on the strip and use the Selected panel.
 4. Let go. Resolve renders the change and the strip shows how long it took.
 
 ## A flat title or graphic
@@ -43,5 +43,5 @@ In the headset, the **Placement** panel carries the Placement page and the **Loo
 - **The window is black.** The clip carries an old copy of the effect. Delete it and drop the current one from Effects > Velaria. Resolve stores a copy of an effect in each clip.
 - **White bars above and below the footage.** Window Aspect is 1.778 but the footage is not 16:9. Set Window Aspect to the footage's ratio, or use Crop.
 - **After a Velaria update, an old clip lacks a new control.** Open the clip on the Fusion page and run **Workspace > Scripts > Comp > Skylight_UpgradeMacros**. It swaps each Velaria effect in that composition for the current one and keeps your values, keyframes and connections. It is one undo step.
-- **The window ignores the headset.** The strip is on another layer, or the window is locked (a lock on its chip).
+- **The window ignores the headset.** The strip is on another stage, or the window is locked (a lock on its chip).
 - **Nothing in Effects > Velaria.** Resolve reads its effects when it starts. Restart it after installing.

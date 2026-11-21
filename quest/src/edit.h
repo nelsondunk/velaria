@@ -48,6 +48,8 @@ struct EditGroup {
     // "bars only" kinds have nothing to place: their controls take the Placement panel as a list of bars
     bool barsOnly() const { return kind == "trim" || kind == "stereo"; }
     int layer() const { return kind == "patch" ? 1 : (kind == "orient" || barsOnly()) ? 2 : 0; }
+    // which review stage owns it (+94): 0 Edit (PanoMap / Orient, patches, stereo), 1 Graphics (cards), 2 Colour (trim)
+    int stage() const { return kind == "trim" ? 2 : isCard() ? 1 : 0; }
     // what the strip calls it: FOOTAGE / TITLE / OVERLAY / PATCH / PICTURE / TRIM, from the macro's name
     std::string tag() const {
         if (kind == "patch") return "PATCH";
@@ -86,29 +88,30 @@ struct EditModel {
     std::string tc = "--:--:--:--";
     std::vector<EditGroup> groups;
     int group = 0;                // which macro's controls are shown
-    // Layers: CARDS (the Velaria macros, pickable in the scene) or PATCHES (LatLong Patcher windows and PanoMap
-    // re-orientation, which are normally set up in Resolve). Only the current layer's groups are shown, so it is
-    // always obvious whether a drag moves a card or the plate's patch (Nelson, 30 Oct).
-    int layer = 0;                  // 0 OVERLAYS, 1 PATCHES, 2 PICTURE
+    // Stages (+94, Nelson 21 Nov: "like how Resolve has the different pages for different stages"): Edit, Graphics,
+    // Colour, Sound. A stage decides which groups the strip lists and what a pinch in the picture can grab (cards,
+    // on Graphics only), and sets the panels' defaults when you switch to it. Sound has no groups of its own.
+    enum Stage { Edit = 0, Graphics = 1, Grade = 2, Sound = 3, StageCount = 4 };   // Grade is the Colour stage (Colour is a type here)
+    int stage = Edit;
     std::set<std::string> locked;   // group keys whose controls are read-only in the headset
-    bool inLayer(const EditGroup& g) const { return g.layer() == layer; }
-    int countOnLayer(int l) const { int n = 0; for (auto& g : groups) if (g.layer() == l) n++; return n; }
-    int firstInLayer() const { for (size_t i = 0; i < groups.size(); i++) if (inLayer(groups[i])) return (int)i; return -1; }
-    int countInLayer() const { int n = 0; for (auto& g : groups) if (inLayer(g)) n++; return n; }
-    int indexInLayer() const { int n = 0; for (int i = 0; i < group && i < (int)groups.size(); i++) if (inLayer(groups[i])) n++; return n; }
-    int neighbourInLayer(int dir) const {
+    bool inStage(const EditGroup& g) const { return g.stage() == stage; }
+    int countOnStage(int st) const { int n = 0; for (auto& g : groups) if (g.stage() == st) n++; return n; }
+    int firstInStage() const { for (size_t i = 0; i < groups.size(); i++) if (inStage(groups[i])) return (int)i; return -1; }
+    int countInStage() const { int n = 0; for (auto& g : groups) if (inStage(g)) n++; return n; }
+    int indexInStage() const { int n = 0; for (int i = 0; i < group && i < (int)groups.size(); i++) if (inStage(groups[i])) n++; return n; }
+    int neighbourInStage(int dir) const {
         int n = (int)groups.size();
         if (n == 0) return -1;
-        for (int step = 1; step <= n; step++) { int i = ((group + dir * step) % n + n) % n; if (inLayer(groups[i])) return i; }
+        for (int step = 1; step <= n; step++) { int i = ((group + dir * step) % n + n) % n; if (inStage(groups[i])) return i; }
         return -1;
     }
     bool isLocked(const EditGroup& g) const { return locked.count(g.key()) > 0; }
     // hidden = the group's clip is disabled in Resolve (the headset's Hide chip, or D on the Edit page)
     bool isHidden(const EditGroup& g) const { for (auto& c : clips) if (c.key == g.clip) return !c.enabled; return false; }
-    int hiddenInLayer() const { int n = 0; for (auto& g : groups) if (inLayer(g) && isHidden(g)) n++; return n; }
+    int hiddenInStage() const { int n = 0; for (auto& g : groups) if (inStage(g) && isHidden(g)) n++; return n; }
     const EditMarker* markerAt(int64_t f) const { for (auto& m : markers) if (m.frame == f) return &m; return nullptr; }
     bool currentLocked() const { const EditGroup* g = current(); return g && isLocked(*g); }
-    void settle() { if (group < 0 || group >= (int)groups.size() || !inLayer(groups[group])) { int f = firstInLayer(); group = f < 0 ? 0 : f; } }
+    void settle() { if (group < 0 || group >= (int)groups.size() || !inStage(groups[group])) { int f = firstInStage(); group = f < 0 ? 0 : f; } }
     int firstRow = 0;             // scrolling within a Look tab
     std::string notice;
     // the control being dragged (-1 none); the renderer highlights it
@@ -121,7 +124,7 @@ struct EditModel {
 
     // Applies a bridge message; returns true if anything shown changed.
     bool apply(const Json& msg);
-    const EditGroup* current() const { return group >= 0 && group < (int)groups.size() && inLayer(groups[group]) ? &groups[group] : nullptr; }
+    const EditGroup* current() const { return group >= 0 && group < (int)groups.size() && inStage(groups[group]) ? &groups[group] : nullptr; }
     // Look tabs: "View" then the current macro's sections that are not on the Placement panel.
     std::vector<std::string> lookTabs() const;
     // Selected panel tabs (+87): Placement, then the card's sections in the bridge's order

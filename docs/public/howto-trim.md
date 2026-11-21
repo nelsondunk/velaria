@@ -6,7 +6,7 @@
 
 1. On the Edit page, put an **Adjustment Clip** over the section (Effects > Toolbox > Effects > Adjustment Clip), on the top track so it sees everything below it.
 2. Drag **Velaria Trim** from Effects > Velaria onto the adjustment clip.
-3. In the headset, switch the strip to **Footage** and tap **Trim**. The Selected panel becomes **TRIM**.
+3. In the headset, switch the strip to **Colour** and tap **Trim**. The Selected panel becomes **TRIM** and the Scopes open.
 
 ## The controls
 

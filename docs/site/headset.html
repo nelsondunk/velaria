@@ -95,20 +95,21 @@ img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(
 <p>Every panel as the headset draws it. These pictures come from the app's own drawing code, so they match the app.</p>
 <p><strong>Hands:</strong> pinch to press, pinch and hold to drag. <strong>Controllers:</strong> point and pull the trigger. <strong>Look down</strong> to open the panels and look back up past the horizon to close them. Grab a panel's top bar to move it. It stays where you put it.</p>
 <h2 id="the-strip">The strip</h2>
-<p>The strip is always there when the panels are open. It answers two questions at a glance: which layer am I on, and which thing will my hand move?</p>
-<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip on the Overlays layer with a footage window picked" src="ref/strip-overlays.png" />
+<p>The strip is always there when the panels are open. It answers two questions at a glance: which stage am I in, and which thing will my hand move?</p>
+<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip on the Graphics stage with a title picked" src="ref/strip-graphics.png" />
 <ul>
-<li><strong>Overlays · Patches · Footage</strong> is the layer control, with a count of what is on this frame. Overlays are titles and footage windows, and you can pick them in the picture. Patches are LatLong Patcher windows. Footage is the whole sphere (PanoMap or Velaria Orient 360) and the Velaria Trim pass.</li>
-<li><strong>Map</strong>, left of the icons while an Ambisonics bus plays, floats the sound orbs: where the field is loudest, as see-through orbs a few metres out, red to yellow by level (see the setup guide).</li>
-<li>The four icons on the right show and hide the <strong>Selected</strong>, <strong>Settings</strong>, <strong>Timeline</strong> and <strong>Scopes</strong> panels. A panel you hide comes back where you left it. The chevron rolls the strip up to this bar, which is all you need once the panels are placed.</li>
-<li>Row two has one chip for each thing on this layer, named for what it is: <em>Title · Editorial</em>, <em>Footage window</em>, <em>Graphic</em>. A title plugged into a Canvas Control is one card with that Canvas Control, not two. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.</li>
+<li><strong>Edit · Graphics · Colour · Sound</strong> is the stage control, like the pages in Resolve. <strong>Edit</strong> is the whole sphere (PanoMap, Velaria Orient 360), the patch windows and the stereo pass. <strong>Graphics</strong> is titles, footage windows and 3D scenes on the picture, and the only stage where you can pinch something in the picture to pick it. <strong>Colour</strong> is the Velaria Trim pass with the scopes. <strong>Sound</strong> is the bus in the headset. The small number is what the stage has at this frame; Sound shows what the bus is (<em>mix</em> or <em>ambi</em>). Switching stage opens the panels that stage uses (Scopes on Colour, the Sound panel on Sound) and leaves the Timeline and Settings as you had them; a panel you close afterwards stays closed until the next switch.</li>
+<li>In <strong>Velaria View</strong> the control reads <strong>Preview · Sound</strong>: the timeline in the headset, and the Sound stage.</li>
+<li>The four icons on the right show and hide the <strong>Selected</strong>, <strong>Settings</strong>, <strong>Timeline</strong> and <strong>Scopes</strong> panels. A panel you hide comes back where you left it. <strong>Map</strong>, left of them while an Ambisonics bus plays, floats the sound orbs. The chevron rolls the strip up to this bar, which is all you need once the panels are placed.</li>
+<li>Row two has one chip for each thing on this stage, named for what it is: <em>Title · Editorial</em>, <em>Footage window</em>, <em>Graphic</em>, <em>Patch</em>, <em>Trim</em>. A title plugged into a Canvas Control is one card with that Canvas Control, not two. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.</li>
 <li><strong>Copy</strong>, <strong>Paste</strong> and <strong>Undo</strong> act on the picked chip. Undo is Resolve's undo.</li>
-<li>Below that: timecode, track, clip, and what the overlay is built from. Then the status line: the link (USB or Wi-Fi), the software, and the last round trip (<em>Resolve updated in 0.4 s</em> or <em>Rendering… 1.2 s</em>). A problem shows there only while it lasts: dropping frames, a delay over 250 ms, or a Resolve setup issue with its fix.</li>
+<li>Below that: timecode, track, clip, and what the overlay is built from. Then the status line: the link (USB or Wi-Fi), the software, and the last round trip (<em>Resolve updated in 0.4 s</em> or <em>Rendering… 1.2 s</em>). A problem shows there only while it lasts: dropping frames, a delay over 250 ms, two Velaria Sound inserts, or a Resolve setup issue with its fix.</li>
 </ul>
-<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip on the Patches layer with a locked patch picked" src="ref/strip-patches.png" />
-<p>On Patches, nothing in the picture can be picked. Tap a chip instead. The lock switch on the right locks the picked patch. A locked patch shows a lock on its chip, and the panels refuse changes until you unlock it.</p>
-<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip when nothing is on this layer" src="ref/strip-empty.png" />
-<p>An empty layer says so and offers the nearest overlay on either side, with its timecode. One pinch jumps there.</p>
+<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip on the Edit stage with a locked patch picked" src="ref/strip-edit-patch.png" />
+<p>On Edit and Colour, nothing in the picture can be picked. Tap a chip instead. The lock switch on the right locks the picked patch or pass. A locked one shows a lock on its chip, and the panels refuse changes until you unlock it.</p>
+<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip on the Sound stage" src="ref/strip-sound.png" />
+<img loading="lazy" decoding="async" width="1280" height="272" alt="The strip when nothing is on this stage" src="ref/strip-empty.png" />
+<p>An empty stage says so and offers the nearest overlay on either side, with its timecode. One pinch jumps there.</p>
 <img loading="lazy" decoding="async" width="1280" height="272" alt="The strip while Resolve renders a change" src="ref/strip-rendering.png" />
 <img loading="lazy" decoding="async" width="1280" height="272" alt="The strip showing a setup warning" src="ref/strip-setup-warning.png" />
 <p>When Resolve's monitoring size, output scaling or frame rate is wrong, or no picture arrives, the status line says so with the fix in Resolve's own menu words. Fix it and the line clears on its own.</p>
@@ -127,8 +128,10 @@ img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(
 <p>Bars have nudge chips for exact steps. An on/off control is a switch. Colours get a wheel with a brightness bar and a swatch.</p>
 <img loading="lazy" decoding="async" width="900" height="1000" alt="The Selected panel for a patch" src="ref/selected-patch.png" />
 <p>For a patch or the whole picture, the same panel shows that tool's rotations. A locked patch shows LOCKED and ignores drags.</p>
+<img loading="lazy" decoding="async" width="900" height="1000" alt="The Selected panel as SOUND" src="ref/selected-sound.png" />
+<p>On the <strong>Sound</strong> stage the same panel is <strong>SOUND</strong>: what is in the headset and where it comes from, the Map switch for the orbs, and the delay.</p>
 <img loading="lazy" decoding="async" width="900" height="1000" alt="The Selected panel as TRIM" src="ref/selected-trim.png" />
-<p>With a <strong>Velaria Trim</strong> picked on the Footage layer, the Selected panel becomes <strong>TRIM</strong>: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.</p>
+<p>On the <strong>Colour</strong> stage with a <strong>Velaria Trim</strong> picked, the Selected panel becomes <strong>TRIM</strong>: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.</p>
 <h2 id="settings">Settings</h2>
 <p>Closed until you open it from the strip. It holds the app's own settings and the numbers you only need when something is wrong.</p>
 <img loading="lazy" decoding="async" width="900" height="1000" alt="The Settings panel" src="ref/settings-view.png" />
@@ -152,7 +155,7 @@ img { max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(
 <p>The scopes are measured on the Mac from the uncompressed picture Resolve plays out, before it is compressed for the headset. Choose waveform with vectorscope, RGB parade, or histograms. The lines at 0, 25, 50, 75 and 100 are video range. The vectorscope carries the 75% colour-bar targets and the skin-tone line.</p>
 <p>Scopes are off until you turn them on, in Settings or with the scopes icon on the strip.</p>
 <h2 id="level-grid">Level grid</h2>
-<p>Turn it on in Settings (Overlays, Level grid). A level copper horizon with yaw ticks and pitch lines sits over the footage. Use it with the Footage layer to re-level a shot: bring the real horizon to the line. The grid belongs to the room, not the footage, so it never moves with your edits.</p>
+<p>Turn it on in Settings (Overlays, Level grid). A level copper horizon with yaw ticks and pitch lines sits over the footage. Use it on the Edit stage to re-level a shot: bring the real horizon to the line. The grid belongs to the room, not the footage, so it never moves with your edits.</p>
 <h2 id="controller-shortcuts">Controller shortcuts</h2>
 <div class="table-wrap"><table>
 <thead>

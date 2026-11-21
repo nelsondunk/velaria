@@ -45,6 +45,9 @@ ICONS = [
     ("Warning", "M12 3L2 21h20z M12 10v5 M12 18v.01"),
     ("RollDown", "M6 9l6 6 6-6"),
     ("Hidden", "M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z M4 3l17 18"),
+    # stages (+94): a speaker for Sound, a half-toned disc for Colour; Edit uses Picture, Graphics uses Overlays
+    ("Sound", "M4 10v4h4l5 4V6l-5 4H4z M16.5 9.5a3.5 3.5 0 0 1 0 5 M19 7a7 7 0 0 1 0 10"),
+    ("Colour", "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M12 3v18 M12 7.5a4.5 4.5 0 0 1 0 9 M16.5 6.5l-9 11"),
 ]
 SIZES = [20, 24, 28, 32, 36]
 STROKE = 2.2

@@ -66,7 +66,7 @@ Sound plays in the headset too: Resolve's monitor mix (Fairlight's Control Room 
 ## 5. Place things from the headset
 
 - In Resolve, open the Edit page and go to **Effects > Velaria**. You get three effects: **Velaria Canvas Control** (a footage window, a flat title or your own 3D scene), **Velaria Orient 360** (re-orient a stereo 360 shot) and **Velaria Trim** (a trim pass on an adjustment clip). Each has its own how-to.
-- In the headset, the strip shows three layers: **Overlays**, **Patches** and **Footage**. On Overlays, pinch a window in the picture and move it, or tap its chip on the strip and use the Selected panel.
+- In the headset, the strip shows four stages: **Edit**, **Graphics**, **Colour** and **Sound** (Velaria View: **Preview** and **Sound**). On Graphics, pinch a window in the picture and move it, or tap its chip on the strip and use the Selected panel.
 - When you let go, Resolve renders the change and the strip reports the time: *Resolve updated in 0.4 s*.
 - Every change you make in the headset is a real change to the project. Undo is Resolve's undo. Save in Resolve as usual.
 

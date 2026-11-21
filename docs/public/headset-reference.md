@@ -6,24 +6,26 @@ Every panel as the headset draws it. These pictures come from the app's own draw
 
 ## The strip
 
-The strip is always there when the panels are open. It answers two questions at a glance: which layer am I on, and which thing will my hand move?
+The strip is always there when the panels are open. It answers two questions at a glance: which stage am I in, and which thing will my hand move?
 
-![The strip on the Overlays layer with a footage window picked](ref/strip-overlays.png)
+![The strip on the Graphics stage with a title picked](ref/strip-graphics.png)
 
-- **Overlays · Patches · Footage** is the layer control, with a count of what is on this frame. Overlays are titles and footage windows, and you can pick them in the picture. Patches are LatLong Patcher windows. Footage is the whole sphere (PanoMap or Velaria Orient 360) and the Velaria Trim pass.
-- **Map**, left of the icons while an Ambisonics bus plays, floats the sound orbs: where the field is loudest, as see-through orbs a few metres out, red to yellow by level (see the setup guide).
-- The four icons on the right show and hide the **Selected**, **Settings**, **Timeline** and **Scopes** panels. A panel you hide comes back where you left it. The chevron rolls the strip up to this bar, which is all you need once the panels are placed.
-- Row two has one chip for each thing on this layer, named for what it is: *Title · Editorial*, *Footage window*, *Graphic*. A title plugged into a Canvas Control is one card with that Canvas Control, not two. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.
+- **Edit · Graphics · Colour · Sound** is the stage control, like the pages in Resolve. **Edit** is the whole sphere (PanoMap, Velaria Orient 360), the patch windows and the stereo pass. **Graphics** is titles, footage windows and 3D scenes on the picture, and the only stage where you can pinch something in the picture to pick it. **Colour** is the Velaria Trim pass with the scopes. **Sound** is the bus in the headset. The small number is what the stage has at this frame; Sound shows what the bus is (*mix* or *ambi*). Switching stage opens the panels that stage uses (Scopes on Colour, the Sound panel on Sound) and leaves the Timeline and Settings as you had them; a panel you close afterwards stays closed until the next switch.
+- In **Velaria View** the control reads **Preview · Sound**: the timeline in the headset, and the Sound stage.
+- The four icons on the right show and hide the **Selected**, **Settings**, **Timeline** and **Scopes** panels. A panel you hide comes back where you left it. **Map**, left of them while an Ambisonics bus plays, floats the sound orbs. The chevron rolls the strip up to this bar, which is all you need once the panels are placed.
+- Row two has one chip for each thing on this stage, named for what it is: *Title · Editorial*, *Footage window*, *Graphic*, *Patch*, *Trim*. A title plugged into a Canvas Control is one card with that Canvas Control, not two. The copper chip is the one your hand moves, and there is only ever one. The arrows page through them.
 - **Copy**, **Paste** and **Undo** act on the picked chip. Undo is Resolve's undo.
-- Below that: timecode, track, clip, and what the overlay is built from. Then the status line: the link (USB or Wi-Fi), the software, and the last round trip (*Resolve updated in 0.4 s* or *Rendering… 1.2 s*). A problem shows there only while it lasts: dropping frames, a delay over 250 ms, or a Resolve setup issue with its fix.
+- Below that: timecode, track, clip, and what the overlay is built from. Then the status line: the link (USB or Wi-Fi), the software, and the last round trip (*Resolve updated in 0.4 s* or *Rendering… 1.2 s*). A problem shows there only while it lasts: dropping frames, a delay over 250 ms, two Velaria Sound inserts, or a Resolve setup issue with its fix.
 
-![The strip on the Patches layer with a locked patch picked](ref/strip-patches.png)
+![The strip on the Edit stage with a locked patch picked](ref/strip-edit-patch.png)
 
-On Patches, nothing in the picture can be picked. Tap a chip instead. The lock switch on the right locks the picked patch. A locked patch shows a lock on its chip, and the panels refuse changes until you unlock it.
+On Edit and Colour, nothing in the picture can be picked. Tap a chip instead. The lock switch on the right locks the picked patch or pass. A locked one shows a lock on its chip, and the panels refuse changes until you unlock it.
 
-![The strip when nothing is on this layer](ref/strip-empty.png)
+![The strip on the Sound stage](ref/strip-sound.png)
 
-An empty layer says so and offers the nearest overlay on either side, with its timecode. One pinch jumps there.
+![The strip when nothing is on this stage](ref/strip-empty.png)
+
+An empty stage says so and offers the nearest overlay on either side, with its timecode. One pinch jumps there.
 
 ![The strip while Resolve renders a change](ref/strip-rendering.png)
 
@@ -52,9 +54,13 @@ Bars have nudge chips for exact steps. An on/off control is a switch. Colours ge
 
 For a patch or the whole picture, the same panel shows that tool's rotations. A locked patch shows LOCKED and ignores drags.
 
+![The Selected panel as SOUND](ref/selected-sound.png)
+
+On the **Sound** stage the same panel is **SOUND**: what is in the headset and where it comes from, the Map switch for the orbs, and the delay.
+
 ![The Selected panel as TRIM](ref/selected-trim.png)
 
-With a **Velaria Trim** picked on the Footage layer, the Selected panel becomes **TRIM**: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.
+On the **Colour** stage with a **Velaria Trim** picked, the Selected panel becomes **TRIM**: exposure, lift, gamma, gain, contrast, saturation, temperature, tint and amount, as bars.
 
 ## Settings
 
@@ -93,7 +99,7 @@ Scopes are off until you turn them on, in Settings or with the scopes icon on th
 
 ## Level grid
 
-Turn it on in Settings (Overlays, Level grid). A level copper horizon with yaw ticks and pitch lines sits over the footage. Use it with the Footage layer to re-level a shot: bring the real horizon to the line. The grid belongs to the room, not the footage, so it never moves with your edits.
+Turn it on in Settings (Overlays, Level grid). A level copper horizon with yaw ticks and pitch lines sits over the footage. Use it on the Edit stage to re-level a shot: bring the real horizon to the line. The grid belongs to the room, not the footage, so it never moves with your edits.
 
 ## Controller shortcuts
 

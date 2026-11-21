@@ -6,7 +6,7 @@ Every panel as the headset draws it (these pictures come from the app's own rend
 
 Always on screen when the panels are open. Its job is to answer two questions at a glance: which layer am I on, and which thing will my hand move?
 
-![Strip, Overlays layer, a card picked](ref/strip-overlays.png)
+![Strip, Graphics stage, a card picked](ref/strip-graphics.png)
 
 - **Overlays · Patches · Picture** — the layer control, with a count of what is at this frame. Overlays are titles and footage windows (pickable in the picture). Patches are LatLong Patcher windows. Picture is the whole sphere (PanoMap, Velaria Orient 360) and the **Velaria Trim** pass (its bars take over the Placement panel).
 - The four icons on the right show and hide the **Placement**, **Look**, **Timeline** and **Scopes** panels (raised = shown). The chevron rolls the strip up to its bar.
@@ -14,11 +14,11 @@ Always on screen when the panels are open. Its job is to answer two questions at
 - **Copy · Paste · Undo** act on the picked chip. Undo is Resolve's undo.
 - Below: timecode · track · clip · what the overlay is built from, then the ice status line: link (USB / Wi-Fi), software, and the last round trip ("Resolve updated in 0.4 s" or "Rendering… 1.2 s").
 
-![Strip, Patches layer, a locked patch picked](ref/strip-patches.png)
+![Strip, Edit stage, a locked patch picked](ref/strip-edit-patch.png)
 
 On Patches nothing in the picture is pickable; tap a name instead. **Locked** on the right is the switch for the picked patch; locked patches show a lock on their name and the panels refuse changes until you unlock.
 
-![Strip, nothing on this layer](ref/strip-empty.png)
+![Strip, nothing on this stage](ref/strip-empty.png)
 
 An empty layer says why and offers the nearest overlay on either side, with its timecode: one pinch to jump there.
 
@@ -28,7 +28,7 @@ An empty layer says why and offers the nearest overlay on either side, with its 
 
 When Resolve's monitoring, output scaling or frame rate is wrong, or no picture arrives, the status line says so with the fix in Resolve's own menu words. Fix it and the line clears on its own.
 
-![Strip on the Picture layer, the Trim pass picked](ref/strip-trim.png)
+![Strip on the Colour stage, the Trim pass picked](ref/strip-colour.png)
 
 ## Placement
 

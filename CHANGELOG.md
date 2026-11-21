@@ -2,6 +2,15 @@
 
 For alpha testers. Newest first. Headset builds are numbered `version+build`; the View tab in the headset shows the build you are on, next to the Mac package, bridge and Resolve versions.
 
+## +94 — the four stages (21 Nov 2026, 06:30)
+
+- **Stages** (Nelson, 06:17: "is this how it's organized in the headset panels? Almost like how Resolve has the different pages for different stages" → "I think this is a better approach. Let's do it"). The strip's layer control (Overlays · Patches · Footage) is now the stage control: **Edit** (PanoMap / Orient 360, patches, the stereo pass), **Graphics** (cards on the picture; the only stage where a pinch in the picture picks something), **Colour** (the Trim pass), **Sound** (the bus). Each shows a count of what it has at this frame; Sound shows *mix* or *ambi*. Switching stage sets the panels' defaults (Selected on; Scopes on for Colour, off otherwise; Map on when entering Sound with an ambisonic bus) and leaves Timeline and Settings alone; defaults, not locks. The stage is remembered across sessions. Notices and empty-stage lines rewritten per stage; "next overlay" jumps stay off Sound.
+- **Sound panel:** on the Sound stage the Selected panel is **SOUND**: the Sound switch with where it comes from, the Map switch, the delay chips. One line of plain description each, no instructions. (It sits in the Selected panel's 900 × 1000 glass, so its lower half is empty for now; a shorter panel is a layout change for later if it bothers.)
+- **Velaria View form:** `tier view` in settings.txt (or the `tier` debug command) makes the control read **Preview · Sound**: the timeline in the headset with the Timeline and Settings panels, and the Sound stage. Not wired to a licence; it is the shape of the product, so the two tiers can be judged in the headset. Default is Canvas.
+- Icons: Sound (speaker) and Colour (half-toned disc) baked into the icon atlas; Edit uses the sphere, Graphics the overlays glyph.
+- Docs: headset reference (strip and Selected sections), setup guide, the Orient/Patches, Canvas Control and Trim how-tos now say stages; new reference renders (`strip-graphics`, `strip-edit-patch`, `strip-colour`, `strip-sound`, `strip-view`, `selected-sound`).
+- Internals: `EditModel::layer` → `stage` with `EditGroup::stage()` (card → Graphics, trim → Colour, the rest → Edit); `setStage()` in main.cpp owns the defaults; `HudInfo.canvas/soundOrbs`. The dock question (UI spec item 1) is answered by this: the stage control is the centralised global control.
+
 ## +93 — orbs review fixes, strip drop warning on a 2 s window (20 Nov 2026, 22:40)
 
 - **Fresh-eyes review of the orbs** (a separate agent that had not seen them written): 2 bugs, 3 risks, 7 nits. Fixed here:

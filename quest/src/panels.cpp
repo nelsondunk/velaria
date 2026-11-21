@@ -361,24 +361,32 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         bool grab = ch.hov(HudButton::Move) || ch.prs(HudButton::Move);
         c.fillRoundRect(24, barCy - 4, 56, 8, 4, Colour{1, 1, 1, grab ? 0.6f : g ? 0.30f : 0.20f});
         rects.push_back({HudButton::Move, 0, 0, (float)sp.w - 80, barH, 0});
-        int layer = m ? m->layer : 0;
-        struct L { const char* label; Icon icon; };
-        static const L ls[3] = {{"Overlays", Icon::Overlays}, {"Patches", Icon::Patches}, {"Footage", Icon::Picture}};
+        // the stage control (+94): Edit · Graphics · Colour · Sound, like Resolve's pages. Velaria View shows
+        // Preview · Sound. The count is what the stage has at this frame; Sound shows what the bus is.
+        int stage = m ? m->stage : 0;
+        struct L { const char* label; Icon icon; int stage; };
+        static const L canvasStages[4] = {{"Edit", Icon::Picture, EditModel::Edit}, {"Graphics", Icon::Overlays, EditModel::Graphics}, {"Colour", Icon::Colour, EditModel::Grade}, {"Sound", Icon::Sound, EditModel::Sound}};
+        static const L viewStages[2] = {{"Preview", Icon::Picture, EditModel::Edit}, {"Sound", Icon::Sound, EditModel::Sound}};
+        const L* ls = s.info.canvas ? canvasStages : viewStages;
+        const int nStages = s.info.canvas ? 4 : 2;
+        auto badge = [&](const L& l) -> std::string {
+            if (l.stage == EditModel::Sound) return !s.info.audio ? "" : s.info.audioAmbi ? "ambi" : "mix";
+            if (!s.info.canvas) return "";
+            return std::to_string(m ? m->countOnStage(l.stage) : 0);
+        };
         float x = 24 + 56 + 14;
         float segX = x;
-        float ws[3];
+        float ws[4];
         float segW = 8;
-        for (int l = 0; l < 3; l++) {
-            int n = m ? m->countOnLayer(l) : 0;
-            ws[l] = Chrome::chipWidth(ls[l].label, (int)ls[l].icon, std::to_string(n), 52, 18);
+        for (int l = 0; l < nStages; l++) {
+            ws[l] = Chrome::chipWidth(ls[l].label, (int)ls[l].icon, badge(ls[l]), 52, 18);
             segW += ws[l] + (l ? 4 : 0);
         }
         c.wellV3(segX, barCy - 30, segW, 60, 18);
         x = segX + 4;
         c.inWell = true;
-        for (int l = 0; l < 3; l++) {
-            int n = m ? m->countOnLayer(l) : 0;
-            ch.chip3(HudButton::Layer, l, x, barCy - 26, ws[l], 52, layer == l ? ChipState::On : ChipState::Flat, ls[l].label, (int)ls[l].icon, std::to_string(n));
+        for (int l = 0; l < nStages; l++) {
+            ch.chip3(HudButton::Layer, ls[l].stage, x, barCy - 26, ws[l], 52, stage == ls[l].stage ? ChipState::On : ChipState::Flat, ls[l].label, (int)ls[l].icon, badge(ls[l]));
             x += ws[l] + 4;
         }
         c.inWell = false;
@@ -446,11 +454,15 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
     };
     if (!g) {
         // ---- nothing on this layer at this frame: say why, and point at the nearest overlay either side
-        const char* what = m->layer == 0 ? "place" : m->layer == 1 ? "patch" : "re-orient";
-        std::string line = std::string("Nothing to ") + what + " at " + m->tc + ".";
+        const char* what = m->stage == EditModel::Edit ? "re-orient or patch" : m->stage == EditModel::Graphics ? "place" : m->stage == EditModel::Grade ? "trim" : nullptr;
+        bool preview = !s.info.canvas && m->stage == EditModel::Edit;   // Velaria View: the timeline, nothing to edit
+        std::string line = m->stage == EditModel::Sound ? (!s.info.audio ? "Sound off" : s.info.audioAmbi ? (s.info.audioTap ? "Ambisonic bus, head-tracked" : "Ambisonic, head-tracked") : (s.info.audioTap ? "Stereo bus" : "Monitor mix"))
+                         : preview ? "Preview"
+                                   : std::string("Nothing to ") + what + " at " + m->tc + ".";
         c.text(padL, rowA + 38, line, S24, kText);
         float rx = sp.w - padR;
-        int nx = nearestOverlayClip(*m, 1), pv = nearestOverlayClip(*m, -1);
+        bool jumps = s.info.canvas && m->stage != EditModel::Sound;   // "next overlay" means nothing to Sound or to View
+        int nx = jumps ? nearestOverlayClip(*m, 1) : -1, pv = jumps ? nearestOverlayClip(*m, -1) : -1;
         if (nx >= 0) {
             std::string lb = "Next \xC2\xB7 " + tcForFrame(*m, m->clips[nx].start);
             float w = Chrome::chipWidth(lb, -1, "") + 38;
@@ -466,10 +478,10 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         }
         std::string where = m->tc;
         std::string elsewhere;
-        for (int l = 0; l < 3; l++) {
-            if (l == m->layer) continue;
-            int n = m->countOnLayer(l);
-            if (n > 0) elsewhere += (elsewhere.empty() ? "" : " \xC2\xB7 ") + std::to_string(n) + (l == 0 ? " overlay" : l == 1 ? " patch" : " picture control") + (n > 1 ? (l == 1 ? "es" : "s") : "");
+        for (int l = 0; l < 3 && s.info.canvas && m->stage != EditModel::Sound; l++) {
+            if (l == m->stage) continue;
+            int n = m->countOnStage(l);
+            if (n > 0) elsewhere += (elsewhere.empty() ? "" : " \xC2\xB7 ") + std::to_string(n) + (l == EditModel::Edit ? " footage control" : l == EditModel::Graphics ? " overlay" : " trim") + (n > 1 ? "s" : "");
         }
         // the clip under the playhead on V1, or what the other layers hold
         std::string plate;
@@ -477,17 +489,17 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         float wx = padL;
         wx = c.text(wx, rowB + 26, where, S20, kText);
         if (!plate.empty()) wx = c.text(wx, rowB + 26, "  \xC2\xB7  V1  \xC2\xB7  " + fitText(plate, S20, 500), S20, kDim);
-        if (!elsewhere.empty()) c.text(wx, rowB + 26, fitText("  \xC2\xB7  " + elsewhere + " on the other layers", S20, sp.w - padR - wx), S20, kDim);
+        if (!elsewhere.empty()) c.text(wx, rowB + 26, fitText("  \xC2\xB7  " + elsewhere + " on the other stages", S20, sp.w - padR - wx), S20, kDim);
         else if (plate.empty()) c.text(wx, rowB + 26, "  \xC2\xB7  plate only", S20, kDim);
         statusLine(rowC);
         return rects;
     }
     // ---- row A: every group on this layer, the picked one in copper; prev / next; the actions
-    bool patches = m->layer != 0;
+    bool patches = m->stage != EditModel::Graphics;   // nothing in the picture can be picked: chips only, with the lock
     bool locked = m->isLocked(*g);
     {
         std::vector<int> idx;
-        for (int i = 0; i < (int)m->groups.size(); i++) if (m->inLayer(m->groups[i])) idx.push_back(i);
+        for (int i = 0; i < (int)m->groups.size(); i++) if (m->inStage(m->groups[i])) idx.push_back(i);
         // right side first, so the names know how much room they have
         float rx = sp.w - padR;
         if (patches) {
@@ -513,7 +525,7 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
             bool hidden = m->isHidden(*g);
             rx -= 10 + 60;
             ch.iconChip(HudButton::Hide, 0, rx, rowA, 60, hidden ? ChipState::On : ChipState::Rest, hidden ? Icon::Hidden : Icon::Outline, hidden ? "Show" : "Hide");
-            int nh = m->hiddenInLayer();
+            int nh = m->hiddenInStage();
             if (nh > (hidden ? 1 : 0)) {
                 std::string all = "Show " + std::to_string(nh);
                 float aw = Chrome::chipWidth(all, -1, "");
@@ -600,6 +612,46 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
     bool locked = g && m->isLocked(*g);
     // the bar names the clip being controlled (Nelson, 2 Nov: "just give me the name of the clip")
     if (g) ch.subtitle = !g->label.empty() ? g->label : g->clipName;
+    if (m && m->stage == EditModel::Sound) {
+        // The Sound stage (+94): the Selected panel is the SOUND panel. What is in the headset, where it comes from,
+        // the orbs, and the delay. The numbers that only matter when something is wrong stay on Settings.
+        const HudInfo& in = s.info;
+        ch.subtitle = !in.audio ? "off" : in.audioAmbi ? (in.audioTap ? "ambisonic bus" : "ambisonic") : (in.audioTap ? "stereo bus" : "monitor mix");
+        float y = ch.begin("SOUND");
+        if (y < 0) return rects;
+        const float pad = 40, inner = sp.w - 2 * pad, gap = 12, ch_h = 54;
+        auto group = [&](const char* name) { c.text(pad, y + 16, name, S16, kDim, 3); y += 30; };
+        group("IN THE HEADSET");
+        std::string snd = !in.audio ? "Sound: off"
+                        : in.audioAmbi ? (in.audioLive ? (in.audioTap ? "Sound: ambisonic \xC2\xB7 bus" : "Sound: ambisonic") : "Sound: ambisonic, waiting")
+                                       : (in.audioLive ? (in.audioTap ? "Sound: in headset \xC2\xB7 bus" : "Sound: in headset") : "Sound: waiting");
+        ch.chip(HudButton::Audio, 0, pad, y, inner, ch_h, snd, in.audio);
+        y += ch_h + gap;
+        c.text(pad, y + 22, !in.audio ? "Resolve's mix stays on the Mac." : in.audioAmbi ? "First-order ambisonics, head-tracked." : "Stereo. An Ambisonics bus with Velaria Sound gives a head-tracked field.", S20, Colour{1, 1, 1, 0.45f});
+        y += 48;
+        if (in.audioAmbiguous) { c.text(pad, y + 22, "Two Velaria Sound inserts \xE2\x80\x93 remove one", S20, kSignal); y += 40; }
+        y += 8;
+        group("WHERE IT IS");
+        {
+            bool can = in.audio && in.audioAmbi;
+            float mw = 150;
+            ch.chip3(HudButton::SoundMap, 0, pad, y, mw, ch_h, !can ? ChipState::Flat : in.soundMap ? ChipState::On : ChipState::Rest, "Map");
+            c.text(pad + mw + gap + 8, y + 36, !can ? "Needs an ambisonic bus." : in.soundOrbs ? "Orbs where the bus is loudest \xC2\xB7 red quiet, yellow loud"
+                                                                                                : "Painted on the sphere where the bus is loudest", S20, Colour{1, 1, 1, 0.45f});
+            y += ch_h + gap + 8;
+        }
+        group("TIMING");
+        {
+            char b[96];
+            float small = 110, mid = inner - 2 * small - 2 * gap;
+            ch.chip(HudButton::DelayDown, 0, pad, y, small, ch_h, "\xE2\x88\x92 10 ms", false);
+            snprintf(b, sizeof b, "Delay %d ms %s", in.delayMs, in.delayAuto ? "\xC2\xB7 auto" : "\xC2\xB7 tap for auto");
+            ch.chip(HudButton::DelayAuto, 0, pad + small + gap, y, mid, ch_h, b, in.delayAuto);
+            ch.chip(HudButton::DelayUp, 0, pad + small + gap + mid + gap, y, small, ch_h, "+ 10 ms", false);
+            y += ch_h + gap;
+        }
+        return rects;
+    }
     float y = ch.begin(g && g->kind == "patch" ? "PATCH WINDOW" : g && g->kind == "trim" ? "TRIM" : g && g->kind == "stereo" ? "STEREO" : sphere ? "FOOTAGE \xC2\xB7 WHOLE SPHERE" : "SELECTED");
     if (y < 0) return rects;
     // +87: everything about the selected card lives here, under tabs: Placement, then the card's own sections
@@ -630,12 +682,12 @@ std::vector<ButtonRect> drawPlacement(Canvas& c, const UiState& s) {
         return rects;
     }
     if (!g) {
-        if (m && m->bridgeOk && m->layer == 1) {
-            c.text(40, y + 60, "No patch window at this frame.", M30, kDim);
-            c.text(40, y + 104, "The plate stays as it is set in Resolve.", M30, Colour{1, 1, 1, 0.38f});
-        } else if (m && m->bridgeOk && m->layer == 2) {
-            c.text(40, y + 60, "No PanoMap or Orient 360 at this frame.", M30, kDim);
+        if (m && m->bridgeOk && m->stage == EditModel::Edit) {
+            c.text(40, y + 60, "No PanoMap, Orient 360 or patch at this frame.", M30, kDim);
             c.text(40, y + 104, "Add Velaria Orient 360 at the end of the plate's chain.", M30, Colour{1, 1, 1, 0.38f});
+        } else if (m && m->bridgeOk && m->stage == EditModel::Grade) {
+            c.text(40, y + 60, "No Velaria Trim at this frame.", M30, kDim);
+            c.text(40, y + 104, "Add Velaria Trim after the plate's grade; its bars appear here.", M30, Colour{1, 1, 1, 0.38f});
         } else {
             c.text(40, y + 60, m && m->bridgeOk ? "No overlay at this frame." : "Waiting for the Resolve bridge\xE2\x80\xA6", M30, kDim);
             c.text(40, y + 104, "Park on a clip with a Velaria overlay (title or footage window).", M30, Colour{1, 1, 1, 0.38f});
