@@ -42,10 +42,10 @@ css += '''
 # ---------------- Copy ----------------
 FAQ = [
  ("View or Canvas: which one do I need?",
-  ["Velaria View is the monitor. You see your live Resolve timeline in the headset in every format, with sound, scopes, a level grid and notes that land as Resolve markers. If you only need to check your cut where your audience will see it, View is enough.",
-   "Velaria Canvas is everything in View, plus the controls that change the picture from inside the headset: move titles and footage windows, set their depth, level and re-orient the shot, set keyframes and do a trim pass. It includes the Velaria effects for Resolve that those controls drive."]),
+  ["Velaria View is the monitor. You see your live Resolve timeline in the headset in every format, with your mix, a level grid and notes that land as Resolve markers. If you only need to check your cut where your audience will see it, View is enough.",
+   "Velaria Canvas is everything in View, plus the controls that change the picture from inside the headset: 3D title templates, moving titles and footage windows and setting their depth, levelling and re-orienting the shot, keyframes, scopes and a trim pass. It includes the Velaria effects for Resolve that those controls drive."]),
  ("What do I get when I buy Velaria?",
-  ["One download for your Mac, with the Velaria output that DaVinci Resolve Studio plays to, the Velaria app for your Quest, the Velaria Sound plug-in for Fairlight, an installer and uninstaller, and the setup guide. Velaria Canvas also includes the Velaria effects for Resolve: Canvas Control, Orient 360 and 180, Stereo and Trim.",
+  ["One download for your Mac, with the Velaria output that DaVinci Resolve Studio plays to, the Velaria app for your Quest, the Velaria Sound plug-in for Fairlight, an installer and uninstaller, and the setup guide. Velaria Canvas also includes the Velaria effects for Resolve: Canvas Control, the 3D title templates, Orient 360 and 180, Stereo and Trim.",
    "Both are one-time purchases, with no subscription and no license key."]),
  ("Which Mac, which Resolve and which headset do I need?",
   ["A Mac with Apple silicon running macOS 13 or newer, DaVinci Resolve Studio 19, 20 or 21, and a Meta Quest 3. Quest 3S, Quest 2 and Quest Pro run the app, but Quest 3 is the headset we test on.",
@@ -74,7 +74,7 @@ FAQ = [
   ["Yes. Put the Velaria Sound plug-in on a Fairlight bus and that bus plays through the Quest in step with the picture, with no patching. A stereo bus plays as stereo. A first-order ambisonic bus turns with your head, so a sound placed behind you stays behind you as you look around.",
    "It is a spatialized review, not a mix monitor: mix on your studio system."]),
  ("Can I finish a color grade in the headset?",
-  ["No. A Quest is not a reference display. Velaria gives you scopes measured on the Mac, and Canvas adds a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor."]),
+  ["No. A Quest is not a reference display. Velaria Canvas gives you scopes measured on the Mac and a trim pass, so you can check and adjust how the film sits on the device your audience will wear. Grade on your reference monitor."]),
  ("Cable or Wi-Fi?",
   ["The USB-C cable is the default and the steadier choice. Wi-Fi works too, on a fast network you trust, with the Mac and the headset on the same network. Either way the app finds your Mac on its own."]),
  ("How is this different from a headset app that shows a video stream from my Mac?",
@@ -246,10 +246,8 @@ see = '''  <section class="see wrap" id="view" aria-labelledby="view-title">
       <li data-reveal><h3>Notes that land in Resolve</h3><p>Drop a note from the headset and it becomes a marker at the playhead, colored by kind: Editing, Sound, Color, Graphics, Immersive, or Love this.</p></li>
       <li data-reveal><h3>Grab a still</h3><p>Save the frame you're looking at to a Velaria Stills folder beside your media, without Resolve changing pages.</p></li>
       <li data-reveal><h3>Hide a layer</h3><p>Switch a title or a footage window off to see the plate behind it, and bring it back with one tap.</p></li>
-      <li data-reveal><h3>Scopes in the headset</h3><p>Waveform, RGB parade, vectorscope and histogram, measured on your Mac from the frame Resolve sends, before any compression.</p></li>
       <li data-reveal><h3>A true horizon</h3><p>A level grid over the picture, with degree marks, so a tilt of a degree shows up before your audience feels it.</p></li>
       <li data-reveal><h3>It tells you what's wrong</h3><p>When a Resolve setting is off, the headset names it and gives the fix in Resolve's own menu words.</p></li>
-      <li data-reveal><h3>Scrub, play, park</h3><p>The headset follows the playhead as you work and holds the frame when you stop, so you can look around a parked shot.</p></li>
     </ul>
   </section>
 '''
@@ -259,14 +257,14 @@ feat = feat.replace('''      <h2 id="features-title" class="head" data-reveal>Fi
  '''      <div><p class="tag" data-reveal>Velaria Canvas</p>
       <h2 id="features-title" class="head" data-reveal>Fix it while you're in there.</h2></div>''')
 new_list = '''      <ul class="flist">
-        <li data-reveal><h3>Place titles and footage</h3><p>Point at an overlay in the scene to select it, then drag it where it belongs. Pan, tilt, roll, distance and scale each have their own control.</p></li>
+        <li data-reveal><h3>3D title templates</h3><p>Pick a title, type your words and place it. Real depth in both eyes, not a flat card floating in the scene.</p></li>
+        <li data-reveal><h3>Place titles and footage</h3><p>Point at an overlay in the scene to select it, then drag it where it belongs. Pan, tilt, roll, distance and scale each have their own control, and one card's placement can be copied onto the next.</p></li>
         <li data-reveal><h3>Set stereo depth by eye</h3><p>Push a title back or pull it forward and watch it settle against the scene, so nothing ends up floating in the viewer's face. Set the convergence of a whole stereo shot the same way.</p></li>
         <li data-reveal><h3>Level and re-orient 360 and 180</h3><p>Re-level a shot against the grid, or turn the sphere so the action starts in front.</p></li>
         <li data-reveal><h3>Keyframes and undo</h3><p>A keyframe on any control, marks on the timeline deck, and undo that goes straight to your Resolve project.</p></li>
         <li data-reveal><h3>Always know what you're moving</h3><p>Overlays, patches and the whole picture are separate layers, each named, with a lock so the plate stays put.</p></li>
-        <li data-reveal><h3>A trim pass on the delivery device</h3><p>Exposure, lift, gamma, gain, contrast, saturation, temperature and tint on a layer above your grade. A trim for the headset your audience will wear, not a final grade.</p></li>
+        <li data-reveal><h3>Scopes and a trim pass</h3><p>Waveform, parade, vectorscope and histogram measured on your Mac before compression, and exposure, lift, gamma, gain, contrast, saturation, temperature and tint on a layer above your grade. A trim for the headset your audience will wear, not a final grade.</p></li>
         <li data-reveal><h3>180 with the same tools</h3><p>The Velaria 180 effects let Canvas Control, Orient and Trim work on a VR180 timeline just as they do on 360.</p></li>
-        <li data-reveal><h3>Copy a placement</h3><p>Copy where one card sits and paste it onto another, so a series of titles lands in the same place.</p></li>
       </ul>'''
 feat = re.sub(r'      <ul class="flist">.*?</ul>', new_list, feat, flags=re.S)
 
@@ -386,7 +384,7 @@ buy = '''  <section class="buy" id="buy" aria-labelledby="buy-title">
               <li>Your live timeline in the headset, in step with Resolve's viewer</li>
               <li>360, VR180, fisheye and dome, with theater tilt and seats</li>
               <li>Your mix in sync, ambisonic mixes head-tracked</li>
-              <li>Scopes, level grid, notes as markers, stills</li>
+              <li>Level grid, notes as markers, stills</li>
             </ul>
             <a class="button button--ghost" data-buy="view" href="#BUY-URL-VIEW">Buy View</a>
           </article>
@@ -396,9 +394,10 @@ buy = '''  <section class="buy" id="buy" aria-labelledby="buy-title">
             <p>Edit your immersive film from inside it.</p>
             <ul>
               <li>Everything in View</li>
+              <li>3D title templates with real depth</li>
               <li>Move titles and footage windows, and set their depth</li>
               <li>Level and re-orient 360 and 180, and set convergence</li>
-              <li>Keyframes with Resolve's undo, and a trim pass</li>
+              <li>Scopes and a trim pass, keyframes with Resolve's undo</li>
               <li>The Velaria effects for Resolve</li>
             </ul>
             <a class="button" data-buy="canvas" href="#BUY-URL-CANVAS">Buy Canvas</a>
