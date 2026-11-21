@@ -1,0 +1,64 @@
+[
+ {
+  "id": "clean",
+  "desc": "Velaria Title - Clean.setting at defaults, yaw 30",
+  "file": "clean.comp",
+  "timeline": "14 Titles 360",
+  "frames": [
+   6,
+   40,
+   145
+  ]
+ },
+ {
+  "id": "lower",
+  "desc": "Velaria Lower Third.setting at defaults, yaw 30",
+  "file": "lower.comp",
+  "timeline": "14 Titles 360",
+  "frames": [
+   6,
+   40,
+   145
+  ]
+ },
+ {
+  "id": "caption",
+  "desc": "Velaria Caption.setting at defaults, yaw 30",
+  "file": "caption.comp",
+  "timeline": "14 Titles 360",
+  "frames": [
+   6,
+   40,
+   145
+  ]
+ },
+ {
+  "id": "slab",
+  "desc": "Velaria Title 3D - Slab.setting at defaults, yaw 30",
+  "file": "slab.comp",
+  "timeline": "14 Titles 360",
+  "frames": [
+   6,
+   40,
+   145
+  ]
+ },
+ {
+  "id": "clean_noout",
+  "desc": "Clean, Animate out off: frame 145 must be as frame 40",
+  "file": "clean_noout.comp",
+  "timeline": "14 Titles 360",
+  "frames": [
+   145
+  ]
+ },
+ {
+  "id": "slab_off",
+  "desc": "Slab off: letters only, lit",
+  "file": "slab_off.comp",
+  "timeline": "14 Titles 360",
+  "frames": [
+   40
+  ]
+ }
+]
