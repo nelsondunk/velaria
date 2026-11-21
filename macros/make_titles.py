@@ -100,7 +100,7 @@ def smooth(u):
 
 
 U_IN = "math.min(1, math.max(0, (time - Title_Controls.AnimStart) / math.max(1, Title_Controls.AnimLen)))"
-U_OUT = "math.min(1, math.max(0, (comp:GetAttrs().COMPN_RenderEnd - time) / math.max(1, Title_Controls.AnimLen)))"
+U_OUT = "math.min(1, math.max(0, (comp.RenderEnd - time) / math.max(1, Title_Controls.AnimLen)))"
 IN = smooth(U_IN)
 OUT = "iif(Title_Controls.AnimateOut < 0.5, 1, %s)" % smooth(U_OUT)
 
