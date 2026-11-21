@@ -24,6 +24,7 @@ Velaria takes the place of Blackmagic Desktop Video while it is installed. A Dec
 
 ## Sound and transport
 
+- **Frame rates.** 24, 25 and 30 fps are what Velaria has been run on. 60 fps works by design (the stream is scaled to about 3360 × 3360 per frame to stay inside the encoder's budget) but is not yet verified end to end. 50 fps has no matching headset refresh rate and will judder; a 50p timeline is best reviewed with a 25p copy. Apple Immersive's 90 fps is out of scope.
 - **Sound is the monitor mix**, or the bus **Velaria Sound** is inserted on. First-order ambisonics only (what the headsets' own players decode); higher orders are heard as first order. The headset decodes it binaurally (a generic HRTF, SADIE II), so the image is not identical to Fairlight's own Binaural monitor, which uses a different HRTF set. The sound orbs are first-order beams too: sounds closer together than about 130° merge into one orb between them.
 - **Audio delay follows video delay.** The headset adds the delay the mix needs to stay in step with the picture; expect a short settling period after play starts.
 - **Play and stop are Resolve's.** The headset can scrub, step and jump between clips, but it cannot start or stop playback.
