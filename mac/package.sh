@@ -39,7 +39,8 @@ cp "$P"/howto-*.md "$P/headset-reference.md" "$OUT/docs/"
 grep -ohE 'ref/[A-Za-z0-9_-]+\.png' "$P"/*.md | sort -u | while IFS= read -r pic; do cp "../quest/host/$pic" "$OUT/docs/ref/"; done
 mkdir -p "$OUT/macros"
 # the 3D Titles / 3D Cards (Vine, Salmon, Hay Bale) are internal: their model kits are client assets (Nelson, 2 Nov)
-for f in ../macros/Velaria*.setting; do case "$f" in *"3D Title"*|*"3D Card"*) ;; *) cp "$f" "$OUT/macros/";; esac; done
+# (the shipped title templates are "Velaria Title - Clean", "Velaria Lower Third", "Velaria Caption", "Velaria Title 3D - Slab": not matched below)
+for f in ../macros/Velaria*.setting; do case "$f" in *"3D Title - Vine"*|*"3D Title - Salmon"*|*"3D Title - Hay Bale"*|*"3D Card"*) ;; *) cp "$f" "$OUT/macros/";; esac; done
 cp ../macros/Skylight_UpgradeMacros.lua "$OUT/macros/"
 # Dome add-on (VELARIA_DOME=1): the Dome Output Fuse and DCTL. Not in the Core package: Dome is the upsell (Nelson, 2 Nov).
 if [ "${VELARIA_DOME:-0}" = 1 ]; then

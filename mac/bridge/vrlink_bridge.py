@@ -41,7 +41,7 @@ os.environ.setdefault("RESOLVE_SCRIPT_LIB",
                       "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so")
 sys.path.append(RESOLVE_API + "/Modules")
 
-BRIDGE_VERSION = "1.0.15"
+BRIDGE_VERSION = "1.0.16"
 RESTORE_GRACE_S = 5.0   # headset gone this long before a scaled timeline is put back
 PORT = int(os.environ.get("VRLINK_BRIDGE_PORT", "47812"))
 LOG = os.path.expanduser("~/Library/Logs/Velaria/bridge.log")
@@ -788,6 +788,7 @@ class Bridge:
         groups[:] = [g for g in groups if not g.get("_folded")]
 
     # Words that say what a macro is, for the card's name on the strip (the operator id minus the vendor prefix)
+    TEMPLATE_LABELS = {"TitleClean": "Title \u00b7 Clean", "LowerThird": "Lower third", "Caption": "Caption", "TitleSlab": "Title 3D \u00b7 Slab"}
     MACRO_WORDS = {"CanvasControl": "Window", "FactWindow": "Window", "Orient360": "Orient 360", "Orient180": "Orient 180",
                    "Trim": "Trim", "Stereo360": "Stereo 360", "Stereo180": "Stereo 180"}
 
@@ -797,6 +798,9 @@ class Bridge:
         if g["kind"] != "card":
             name = re.sub(r"^(Velaria_|Kalyx_|Skylight_)", "", g["tool"])
             return self.MACRO_WORDS.get(re.sub(r"_\d+$", "", name), name.replace("_", " "))
+        base = re.sub(r"^(Velaria_|Kalyx_|Skylight_)", "", re.sub(r"_\d+$", "", g["tool"]))
+        if base in self.TEMPLATE_LABELS:   # the shipped title templates (+94): named for what they are
+            return self.TEMPLATE_LABELS[base]
         kids = g.get("children") or []
         if kids:
             k = re.sub(r"_\d+$", "", kids[0])

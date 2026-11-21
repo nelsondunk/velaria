@@ -105,6 +105,7 @@ Common need: an in-scene "drawing" mode (ray → sphere → equirect UV) and a v
 - [ ] Velaria Publish: VR180 and dome delivery presets (YouTube VR180 metadata; dome masters as image sequences).
 
 ## Graphics track — stock templates and internal stereo
+- [x] **Title templates (21 Nov, 1.1):** Clean, Lower Third, Caption (flat, through Canvas Control's Graphic input) and 3D Slab (Text3D through the 3D Scene input), one macro each, Text / Look / Animation pages, rendered and stereo-checked on Bruce. See CHANGELOG "Title templates, bridge 1.0.16". The Stereo Placer below is now "Canvas Control with Window shows = Graphic", which these templates wrap.
 - [ ] **Stereo Placer** wrapper macro: any flat Fusion title/callout/template connects to its image input; output is a per-eye placed cutout with yaw/pitch/distance/size/convergence and the standard headset controls. Generalised from Skylight_FactWindow's footage path. Makes stock templates usable without modifying them.
 - [ ] **Layer depths**: Placer variant with several image inputs (plate, text, accent), each at its own distance; our own presets built this way.
 - [ ] **Relief from depth map**: per-eye displacement of a flat graphic from a generated depth map (card bevel, raised text) for apparent thickness.

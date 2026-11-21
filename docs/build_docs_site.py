@@ -39,6 +39,8 @@ PAGES = [
      "How to place a footage window, a flat title or a 3D scene on a 360 or 180 shot with Velaria Canvas Control in DaVinci Resolve."),
     ("orient-360", "Orient 360 and patches", "howto-orient-360-and-patches.md",
      "How to re-level a stereo 360 shot with Velaria Orient 360 and work on LatLong Patcher paint-outs from inside a Quest headset."),
+    ("titles", "Titles", "howto-titles.md",
+     "Velaria's title templates for 360 and 180: Clean, Lower Third, Caption and the 3D Slab title, placed in the sphere with stereo depth from DaVinci Resolve or the headset."),
     ("trim", "Trim", "howto-trim.md",
      "How to make a brightness, contrast and colour trim pass from inside the headset with Velaria Trim on a Resolve adjustment clip."),
     ("180-and-fisheye", "180, 360 and fisheye", "howto-180-and-fisheye.md",

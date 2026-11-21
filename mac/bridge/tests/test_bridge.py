@@ -92,6 +92,18 @@ def test_card_labels_follow_what_the_window_shows():
     assert params_of(b)["label"] == "3D scene"
 
 
+def test_title_templates_are_named_for_what_they_are():
+    # the shipped templates are Canvas Control combos: Window shows = Graphic / Nothing would say "Graphic" / "3D scene"
+    b, _ = make_bridge()
+    tl = b.project.GetCurrentTimeline()
+    for tool, label, shows in (("Velaria_TitleClean", "Title \u00b7 Clean", 1.0), ("Velaria_LowerThird_2", "Lower third", 1.0),
+                               ("Velaria_Caption", "Caption", 1.0), ("Velaria_TitleSlab", "Title 3D \u00b7 Slab", 2.0)):
+        tl.macro.Name = tool
+        tl.macro.values["Source"] = shows
+        msg = b.macro_params()
+        assert msg["groups"][0]["label"] == label, (tool, msg["groups"][0]["label"])
+
+
 def test_timeline_snapshot():
     b, _ = make_bridge()
     t = b.timeline_snapshot()

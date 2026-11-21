@@ -33,7 +33,7 @@ Velaria takes the place of Blackmagic Desktop Video while it is installed. A Dec
 
 - The headset changes the controls of Velaria effects, LatLong Patcher windows and PanoMap on the clips under the playhead. It does not add, move or delete anything on the timeline.
 - Changes are meant for a parked playhead. On a frame with several stacked Fusion compositions, Resolve can take a second or more for each change. The strip shows the wait.
-- **No ready-made 3D title templates.** Canvas Control takes your own 3D scene.
+- **Four title templates ship** (Clean, Lower Third, Caption, 3D Slab). The three flat ones have placement depth only; the Slab title has depth inside it. Your own 3D scene goes through Canvas Control as before.
 
 ## Network
 
