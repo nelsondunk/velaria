@@ -156,6 +156,11 @@ def combo(macro_id, cc, design_tools, design_inputs, graphic_tool=None, scene_to
     tools["Plate_In"] = {"__type": "PipeRouter", "ViewInfo": {"__type": "PipeRouterInfo", "Pos": [-2300, -395]}}
     tools["Left_Footage_Input"]["Inputs"]["Input"] = inp(src="Plate_In")
     if graphic_tool:
+        # a title is read, not peeped at: the window plane is 2.2x Canvas Control's footage-window default (about
+        # 50 degrees wide at 3 m), fills its plane (no glow margin) and the glow is off
+        tools["Left_Window_Plane"]["Inputs"]["Transform3DOp.Scale.X"] = inp(2.2)
+        tools["Window_Size_Value"]["Inputs"]["TopLeftRed"] = inp(1.0)
+        tools["Left_Glow_Layer"]["Inputs"]["Blend"] = inp(0.0)
         tools["Graphic_Input"]["Inputs"]["Input"] = inp(src=graphic_tool)
         # the design is 1920 wide; fit it to the window (Canvas Control's own expression assumes a comp-sized graphic)
         tools["Graphic_Input"]["Inputs"]["Size"] = inp(expr="Window_Size_Value.TopLeftRed * Transparent_BG.Width / 1920")
@@ -171,12 +176,10 @@ def combo(macro_id, cc, design_tools, design_inputs, graphic_tool=None, scene_to
     cci = cc["Inputs"]
     for key in ("Yaw", "Pitch", "Roll", "Distance", "ObjectTurn", "ObjectTilt", "ObjectSpin"):
         inputs[key] = copy.deepcopy(cci[key])
-    inputs.update(design_inputs)
-    for key in ("WindowSize", "GlowAmount", "GlowSize", "GlowBrightness") if graphic_tool else ():
-        inputs[key] = copy.deepcopy(cci[key])
-        inputs[key]["Page"] = "Look"
     if graphic_tool:
-        inputs["WindowSize"]["Name"] = "Size in the window"
+        inputs["WindowScale"] = {"__type": "InstanceInput", "SourceOp": "Left_Window_Plane", "Source": "Transform3DOp.Scale.X", "Name": "Size", "Page": "Placement",
+                                 "Default": 2.2, "MinScale": 0.3, "MaxScale": 6}
+    inputs.update(design_inputs)
     for key in ("EyeSeparation", "WindowDepth", "OutputWidth"):
         inputs[key] = copy.deepcopy(cci[key])
     outputs = {"MainOutput1": {"__type": "InstanceOutput", "SourceOp": "Card_Over_Plate", "Source": "Output", "Name": "Over plate (Over/Under Stereo)"}}
