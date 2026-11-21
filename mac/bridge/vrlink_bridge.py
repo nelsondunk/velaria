@@ -984,7 +984,12 @@ class Bridge:
                 continue
             cg = q.get("cgroup")
             if cg and cg in cgroups and 3 <= len(cgroups[cg]) <= 4 and cgroups[cg][0] is q:
-                mem = cgroups[cg][:3]
+                # Fusion lists a macro's inputs alphabetically (X, XB, XG), not as published: put the channels in R G B
+                # order by their id suffix, else a swatch's green and blue swap (seen on the title templates, 21 Nov)
+                def chan(m):
+                    if m is q: return 0
+                    return {"G": 1, "B": 2}.get(m["id"][-1:], 1.5)
+                mem = sorted(cgroups[cg][:3], key=chan)
                 name = q["name"]
                 for suffix in (" \u00b7 R", " Red", " R", " Colour Red", " Color Red"):
                     if name.endswith(suffix):

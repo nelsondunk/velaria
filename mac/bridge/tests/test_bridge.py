@@ -104,6 +104,16 @@ def test_title_templates_are_named_for_what_they_are():
         assert msg["groups"][0]["label"] == label, (tool, msg["groups"][0]["label"])
 
 
+def test_colour_triplet_channels_in_rgb_order_whatever_fusion_lists():
+    # Fusion lists a macro's inputs alphabetically: TextColour, TextColourB, TextColourG. The swatch must still be R G B.
+    b, _ = make_bridge()
+    base = {"kind": "number", "section": "Look", "min": 0.0, "max": 1.0, "cgroup": 21}
+    params = [dict(base, id="TextColour", name="Text colour", value=0.96), dict(base, id="TextColourB", name="", value=0.88), dict(base, id="TextColourG", name="", value=0.93)]
+    out = b.organise(params)
+    col = [p for p in out if p["kind"] == "colour"][0]
+    assert col["value"] == [0.96, 0.93, 0.88] and col["ids"] == ["TextColour", "TextColourG", "TextColourB"]
+
+
 def test_timeline_snapshot():
     b, _ = make_bridge()
     t = b.timeline_snapshot()
