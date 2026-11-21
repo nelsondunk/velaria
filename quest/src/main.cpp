@@ -334,8 +334,7 @@ struct App {
     bool hudForce = true;
     std::string notice;
     int64_t noticeUntil = 0;
-    uint64_t droppedAtWindow = 0;
-    int64_t dropWindowNs = 0;
+    DropMonitor drops;   // frame-drop warning for the strip (+93: 2 s window, see hud.h)
     bool handsSeen = false;
     bool cursorShown = false;
     bool stripShown = false, panelShown = false;
@@ -2302,13 +2301,8 @@ static void updateHud(int64_t now, bool playing) {
         }
         in.scopesView = g.settings.scopesView;
     }
-    // dropping frames lately?
-    if (now - g.dropWindowNs > 5000000000LL) {
-        uint64_t d = st.framesSkipped - g.droppedAtWindow;
-        in.warning = (d > 8 && playing) ? (in.usb ? "Dropping frames" : "Dropping frames \xE2\x80\x93 try the USB cable") : "";
-        g.droppedAtWindow = st.framesSkipped;
-        g.dropWindowNs = now;
-    }
+    // dropping frames lately? (2 s window: the pill shows within 2 s and clears within 4 s of recovery)
+    in.warning = g.drops.update(st.framesSkipped, playing, in.usb, now);
     // bridge: follow the video link's host, drain its messages into the edit model
     {
         std::string host = g.net.connected() ? (g.net.viaUsb() ? "127.0.0.1" : g.net.host()) : "";

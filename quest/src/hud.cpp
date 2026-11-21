@@ -800,4 +800,25 @@ void HudRenderer::threadMain() {
     }
 }
 
+std::string stripWorry(const HudInfo& in) {
+    if (!in.warning.empty()) return in.warning;
+    if (in.audioAmbiguous) return "Two Velaria Sound inserts \xE2\x80\x93 remove one";
+    if (in.connected && in.hasVideo && in.delayMs > 250) return "Delay " + std::to_string(in.delayMs) + " ms";
+    return "";
+}
+
+const std::string& DropMonitor::update(uint64_t framesSkipped, bool playing, bool usb, int64_t nowNs) {
+    if (!primed) {   // first call: the count so far is history, not news
+        primed = true;
+        lastSkipped = framesSkipped;
+        return warning;
+    }
+    for (uint64_t k = lastSkipped; k < framesSkipped && skips.size() < 64; k++) skips.push_back(nowNs);
+    lastSkipped = framesSkipped;
+    while (!skips.empty() && nowNs - skips.front() > kWindowNs) skips.pop_front();
+    if (!playing) skips.clear();   // a seek or a stop skips frames by design
+    warning = skips.size() > kMaxPerWindow ? (usb ? "Dropping frames" : "Dropping frames \xE2\x80\x93 try the USB cable") : "";
+    return warning;
+}
+
 }  // namespace vrq

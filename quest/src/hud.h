@@ -8,6 +8,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <deque>
 #include <string>
 #include <thread>
 #include <vector>
@@ -235,6 +236,24 @@ struct HudInfo {
     double scopesAgeMs = 0;
     int scopesView = 0;       // 0 waveform + vectorscope, 1 parade, 2 histograms
 };
+// Spec item 4 (+93): the strip says a problem only while there is one. These two are the whole decision, kept out of
+// the drawing code so tools/striptest.cpp can drive them with injected numbers.
+// The worry text for the status line ("" = nothing wrong): a frame-drop warning first, then two equal Velaria Sound
+// inserts, then a delay over 250 ms while a picture is arriving.
+std::string stripWorry(const HudInfo& in);
+// Frame drops: a sliding 2 s window of skip times; more than 3 skips in it while playing is the warning. So it shows
+// the moment the fourth skip lands and clears at most 2 s after the last one; a lone skip at a cut or seek is nothing.
+struct DropMonitor {
+    static constexpr int64_t kWindowNs = 2000000000LL;
+    static constexpr size_t kMaxPerWindow = 3;
+    std::deque<int64_t> skips;      // times of recent skipped frames, oldest first
+    uint64_t lastSkipped = 0;
+    bool primed = false;
+    std::string warning;
+    // returns the current warning ("" = none); call every frame with the running skip count
+    const std::string& update(uint64_t framesSkipped, bool playing, bool usb, int64_t nowNs);
+};
+
 
 struct EditModel;
 

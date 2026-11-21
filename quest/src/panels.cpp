@@ -428,10 +428,7 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
         }
         x = c.text(x, y + 37, st, S20, kIce);
         // +87: the numbers live on the Settings panel; here only what is out of range, while it is (spec item 4)
-        std::string worry;
-        if (!s.info.warning.empty()) worry = s.info.warning;
-        else if (s.info.audioAmbiguous) worry = "Two Velaria Sound inserts \xE2\x80\x93 remove one";
-        else if (s.info.connected && s.info.hasVideo && s.info.delayMs > 250) worry = "Delay " + std::to_string(s.info.delayMs) + " ms";
+        std::string worry = stripWorry(s.info);
         if (!worry.empty()) {
             c.fillRoundRect(x + 12, y + 18, 1, 24, 0.5f, Colour{1, 1, 1, 0.20f});
             c.icon(Icon::Warning, x + 25 + 12, y + 30, 24, kSignal);
