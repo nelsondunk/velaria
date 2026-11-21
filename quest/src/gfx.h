@@ -61,6 +61,10 @@ public:
         float phase;       // per-orb noise offset
     };
     bool drawOrbs(GLuint dstTex, int x0, int y0, int w, int h, const OrbView& view, const OrbDraw* orbs, int n, float timeS);
+    // GPU time of the orb pass (GL_EXT_disjoint_timer_query, measured from the first eye's draw to the second's): call
+    // once per frame after both draws; logs "sound orbs: n orbs, gpu avg/max ms" every 2 s so the cost is in logcat.
+    void orbTimerSample(int orbCount);
+    float orbGpuMs() const { return m_orbMsAvg; }   // last 2 s average, 0 until measured
 
     // Uploads RGBA pixels into dstTex. `rgba` is top-row-first unless bottomUp (already in GL row order).
     void upload(GLuint dstTex, const uint8_t* rgba, int w, int h, bool bottomUp = false);
@@ -88,6 +92,19 @@ private:
     GLuint m_orbs = 0;
     GLint m_obEye = -1, m_obRot = -1, m_obTan = -1, m_obTime = -1, m_obCount = -1, m_obOrb = -1, m_obOrbP = -1;
     GLuint m_vao = 0;
+    // orb pass timing
+    GLuint m_orbQuery[4] = {0, 0, 0, 0};
+    int m_orbQueryHead = 0, m_orbQueryCount = 0;
+    bool m_orbTimerOk = false, m_orbQueryOpen = false;
+    double m_orbMsSum = 0, m_orbMsMax = 0;
+    int m_orbSamples = 0;
+    int64_t m_orbLogNs = 0;
+    float m_orbMsAvg = 0;
+    void (*m_genQueries)(GLsizei, GLuint*) = nullptr;
+    void (*m_beginQuery)(GLenum, GLuint) = nullptr;
+    void (*m_endQuery)(GLenum) = nullptr;
+    void (*m_getQueryObjectuiv)(GLuint, GLenum, GLuint*) = nullptr;
+    void (*m_getQueryObjectui64v)(GLuint, GLenum, uint64_t*) = nullptr;
     // Keyed by AHardwareBuffer_getId (never reused), not by pointer: the decoder reallocates buffers and a recycled
     // pointer would sample a stale image. Entries unused for a while are released so freed buffers don't pile up.
     std::map<uint64_t, Imported> m_images;

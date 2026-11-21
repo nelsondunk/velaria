@@ -12,7 +12,7 @@ struct Orb {
     float level = 0;   // 0..1, how far above the field's average the peak stands (smoothed)
     float alpha = 0;   // 0..1 fade (150 ms in and out)
     float phase = 0;   // per-orb offset so the wobble is not in step
-    int id = 0;
+    unsigned id = 0;
     int64_t lastSeenNs = 0;
 };
 
@@ -32,12 +32,13 @@ public:
     static constexpr float kMinLevel = 0.35f;      // a local maximum this far below the peak is skirt, not a source
     static constexpr float kMergeDeg = 40.0f;      // two maxima closer than this are one first-order blob
     static constexpr float kMatchDeg = 30.0f;      // a peak this close to a known orb is that orb, moved
+    static constexpr float kDriftDeg = 70.0f;      // an orb whose peak is gone drifts into a live orb this close as it fades (they mush)
     static constexpr float kFadeNs = 150e6f;
 
 private:
     std::vector<Orb> m_orbs;
     int64_t m_lastNs = 0;
-    int m_nextId = 1;
+    unsigned m_nextId = 1;
 };
 
 }  // namespace vrq

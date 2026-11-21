@@ -239,6 +239,8 @@ struct App {
     OrbTracker orbTracker;                  // the map's peaks as orbs (+91)
     Swapchain orbs;                         // both eyes side by side, a projection layer at kOrbDist
     int64_t orbT0Ns = 0;                    // the orbs' wobble clock
+    int64_t fieldSeenNs = 0;                // last time soundField handed over a covariance (it declines while the audio thread holds it)
+    uint32_t maxLayers = 16;                // the runtime's layer limit (Quest: 16); over it xrEndFrame fails and the frame is black
     Swapchain theatre;                      // dome theatre background: top/bottom stereo equirect for the current seat (+68)
     std::string theatreKey;                 // which render is in the swapchain ("M15_seat2"); empty = none
     std::set<std::string> theatreMissing;   // assets absent or undecodable: don't retry every frame
@@ -586,6 +588,8 @@ static bool initXr() {
         sp.next = &hp;
         xrGetSystemProperties(g.instance, g.systemId, &sp);
         g.extHands = hp.supportsHandTracking == XR_TRUE;
+        if (sp.graphicsProperties.maxLayerCount > 0) g.maxLayers = sp.graphicsProperties.maxLayerCount;
+        LOGI("compositor layers at most %u", g.maxLayers);
         LOGI("hand tracking %s, aim %s", g.extHands ? "supported" : "unsupported", g.extAim ? "yes" : "no");
     }
 
@@ -2732,6 +2736,7 @@ static void renderFrame() {
     if (fs.shouldRender && g.video.hasContent && g.settings.soundMap && g.settings.audio && g.settings.ambisonic) {
         float C[4][4];
         if (g.audio.soundField(C, now)) {
+            g.fieldSeenNs = now;
             mapLive = true;
             if (now - g.soundMapNs > 22000000LL) {   // ~45 Hz is plenty for a 120 ms-smoothed field
                 g.soundMapNs = now;
@@ -2772,25 +2777,27 @@ static void renderFrame() {
                 float range = std::max(g.soundMapPeak - (float)mean, 1e-9f);
                 g.orbTracker.update(p.data(), kSoundMapW, kSoundMapH, g.soundMapPeak, now);
                 if (!g.settings.soundOrbs) {   // the orbs are drawn from the tracker; the flat map paints texels
-                g.soundMapPx.resize(p.size() * 4);
-                for (size_t k = 0; k < p.size(); k++) {
-                    float t = (p[k] - (float)mean) / range;
-                    t = t < 0 ? 0 : t;
-                    t = t * t * t;                       // display sharpening: the peak stays where it is, the skirt fades
-                    // graphite -> copper -> near white; premultiplied alpha for the compositor's source-alpha blend
-                    float a = 0.72f * t;
-                    float r = (0.55f + 0.45f * t) * a, gch = (0.30f + 0.55f * t) * a, b = (0.15f + 0.65f * t) * a;
-                    uint8_t* o = &g.soundMapPx[k * 4];
-                    o[0] = (uint8_t)(r * 255); o[1] = (uint8_t)(gch * 255); o[2] = (uint8_t)(b * 255); o[3] = (uint8_t)(a * 255);
-                }
-                renderInto(g.soundMap, [&](GLuint tex) { g.gfx.upload(tex, g.soundMapPx.data(), kSoundMapW, kSoundMapH); });
+                    g.soundMapPx.resize(p.size() * 4);
+                    for (size_t k = 0; k < p.size(); k++) {
+                        float t = (p[k] - (float)mean) / range;
+                        t = t < 0 ? 0 : t;
+                        t = t * t * t;                       // display sharpening: the peak stays where it is, the skirt fades
+                        // graphite -> copper -> near white; premultiplied alpha for the compositor's source-alpha blend
+                        float a = 0.72f * t;
+                        float r = (0.55f + 0.45f * t) * a, gch = (0.30f + 0.55f * t) * a, b = (0.15f + 0.65f * t) * a;
+                        uint8_t* o = &g.soundMapPx[k * 4];
+                        o[0] = (uint8_t)(r * 255); o[1] = (uint8_t)(gch * 255); o[2] = (uint8_t)(b * 255); o[3] = (uint8_t)(a * 255);
+                    }
+                    renderInto(g.soundMap, [&](GLuint tex) { g.gfx.upload(tex, g.soundMapPx.data(), kSoundMapW, kSoundMapH); });
                 }
             }
-        } else if (!g.orbTracker.orbs().empty()) {
-            g.orbTracker.update(nullptr, 0, 0, g.soundMapPeak, now);   // no field: fade what is showing
+        } else if (!g.orbTracker.orbs().empty() && now - g.fieldSeenNs > 60000000LL) {
+            // soundField declines while the audio thread holds the covariance (a few frames in a hundred); only a
+            // real gap (60 ms, three field ticks) fades the orbs, or they would dip a step at random
+            g.orbTracker.update(nullptr, 0, 0, g.soundMapPeak, now);
         }
     } else if (!g.orbTracker.orbs().empty()) {
-        g.orbTracker.update(nullptr, 0, 0, g.soundMapPeak, now);
+        g.orbTracker.update(nullptr, 0, 0, g.soundMapPeak, now);   // map or sound off: fade what is showing
     }
     if (mapLive && !g.settings.soundOrbs && g.soundMap.hasContent) {
         mapLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
@@ -2810,7 +2817,7 @@ static void renderFrame() {
     // frame, drawn per eye into a projection layer so they have real depth against the picture at infinity.
     XrCompositionLayerProjection orbLayer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
     XrCompositionLayerProjectionView orbViews[2] = {{XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW}, {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW}};
-    if (fs.shouldRender && g.settings.soundMap && g.settings.soundOrbs && g.headValid && !g.orbTracker.orbs().empty() && g.orbs.handle != XR_NULL_HANDLE) {
+    if (fs.shouldRender && g.settings.soundOrbs && g.headValid && !g.orbTracker.orbs().empty() && g.orbs.handle != XR_NULL_HANDLE) {   // orbs fade out after Map is switched off
         XrViewLocateInfo vli{XR_TYPE_VIEW_LOCATE_INFO};
         vli.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
         vli.displayTime = fs.predictedDisplayTime;
@@ -2830,13 +2837,14 @@ static void renderFrame() {
                 XrVector3f d = qRotate(frame, {-o.dir[1], o.dir[2], -o.dir[0]});
                 XrVector3f c = vAdd(g.head.position, vScale(d, kOrbDist));
                 draw[n].pos[0] = c.x; draw[n].pos[1] = c.y; draw[n].pos[2] = c.z;
-                draw[n].radius = kOrbDist * (0.085f + 0.055f * o.level);   // ~5 to 8 degrees across
+                draw[n].radius = kOrbDist * (0.085f + 0.055f * o.level);   // 10 to 16 degrees across before the wobble and skirt
                 draw[n].level = o.level;
                 draw[n].alpha = o.alpha;
                 draw[n].phase = o.phase;
                 n++;
             }
             float timeS = (float)((now - g.orbT0Ns) * 1e-9);
+            bool drawn = true;
             renderInto(g.orbs, [&](GLuint tex) {
                 for (int e = 0; e < 2; e++) {
                     Gfx::OrbView v;
@@ -2847,21 +2855,24 @@ static void renderFrame() {
                     memcpy(v.rot, rot, sizeof rot);
                     v.tanL = std::tan(views[e].fov.angleLeft); v.tanR = std::tan(views[e].fov.angleRight);
                     v.tanU = std::tan(views[e].fov.angleUp); v.tanD = std::tan(views[e].fov.angleDown);
-                    g.gfx.drawOrbs(tex, e * kOrbEyeW, 0, kOrbEyeW, kOrbEyeH, v, draw, n, timeS);
+                    drawn = g.gfx.drawOrbs(tex, e * kOrbEyeW, 0, kOrbEyeW, kOrbEyeH, v, draw, n, timeS) && drawn;
                 }
             });
-            for (int e = 0; e < 2; e++) {
+            if (drawn && g.orbs.hasContent) for (int e = 0; e < 2; e++) {
                 orbViews[e].pose = views[e].pose;
                 orbViews[e].fov = views[e].fov;
                 orbViews[e].subImage.swapchain = g.orbs.handle;
                 orbViews[e].subImage.imageRect = {{e * kOrbEyeW, 0}, {kOrbEyeW, kOrbEyeH}};
                 orbViews[e].subImage.imageArrayIndex = 0;
             }
-            orbLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
-            orbLayer.space = g.localSpace;
-            orbLayer.viewCount = 2;
-            orbLayer.views = orbViews;
-            layers.push_back((XrCompositionLayerBaseHeader*)&orbLayer);
+            if (drawn && g.orbs.hasContent) {   // a failed draw (program did not link, FBO incomplete) must not show an unwritten image
+                orbLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+                orbLayer.space = g.localSpace;
+                orbLayer.viewCount = 2;
+                orbLayer.views = orbViews;
+                layers.push_back((XrCompositionLayerBaseHeader*)&orbLayer);
+                g.gfx.orbTimerSample(n);
+            }
         }
     }
     // Level grid: a world-level equirect sphere drawn over the picture (same recentre yaw, so its 0 deg tick is
@@ -3104,15 +3115,35 @@ static void renderFrame() {
                               p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w, q->size.width, q->size.height);
                 what = q->subImage.swapchain == g.lift.handle ? "lift" : q->subImage.swapchain == g.cursor.handle ? "cursor"
                      : q->subImage.swapchain == g.outline.handle ? "card outline" : q->subImage.swapchain == g.strip.handle ? "strip" : "panel";
+            } else if (layers[i]->type == XR_TYPE_COMPOSITION_LAYER_PROJECTION) {
+                auto* pl = (XrCompositionLayerProjection*)layers[i];
+                for (uint32_t v = 0; v < pl->viewCount && ok; v++) {
+                    XrPosef& p = const_cast<XrPosef&>(pl->views[v].pose);
+                    const XrFovf& f = pl->views[v].fov;
+                    ok = finite(p.position.x) && finite(p.position.y) && finite(p.position.z) && unit(p.orientation) &&
+                         finite(f.angleLeft) && finite(f.angleRight) && finite(f.angleUp) && finite(f.angleDown) && f.angleRight > f.angleLeft && f.angleUp > f.angleDown;
+                    if (!ok) LOGE("bad projection view %u: pos %.3f %.3f %.3f fov %.3f %.3f %.3f %.3f", v, p.position.x, p.position.y, p.position.z,
+                                  f.angleLeft, f.angleRight, f.angleUp, f.angleDown);
+                }
+                what = "sound orbs";
             }
             if (ok) { i++; continue; }
             int64_t now = monoNs();
             if (now - lastWarnNs > 1000000000LL) {
-                LOGE("dropping %s quad with a non-finite pose or size", what);
+                LOGE("dropping %s layer with a non-finite pose or size", what);
                 lastWarnNs = now;
             }
             layers.erase(layers.begin() + i);
         }
+    }
+    if (layers.size() > g.maxLayers) {   // the runtime refuses the whole frame over its limit: drop the last ones (cursor, lift) and say so once a second
+        static int64_t lastLimitNs = 0;
+        int64_t nowL = monoNs();
+        if (nowL - lastLimitNs > 1000000000LL) {
+            lastLimitNs = nowL;
+            LOGE("%u layers, the runtime takes %u: dropping the last %u", (unsigned)layers.size(), g.maxLayers, (unsigned)(layers.size() - g.maxLayers));
+        }
+        layers.resize(g.maxLayers);
     }
     fei.layerCount = (uint32_t)layers.size();
     fei.layers = layers.data();
@@ -3144,6 +3175,17 @@ static void renderFrame() {
                              (double)(o.x * o.x + o.y * o.y + o.z * o.z + o.w * o.w), q->size.width, q->size.height,
                              q->subImage.imageRect.offset.x, q->subImage.imageRect.offset.y, q->subImage.imageRect.extent.width,
                              q->subImage.imageRect.extent.height, (int)q->eyeVisibility, (unsigned)q->layerFlags);
+                    } else if (layers[i]->type == XR_TYPE_COMPOSITION_LAYER_PROJECTION) {
+                        auto* pl = (const XrCompositionLayerProjection*)layers[i];
+                        for (uint32_t v = 0; v < pl->viewCount; v++) {
+                            const XrPosef& p = pl->views[v].pose;
+                            const XrFovf& f = pl->views[v].fov;
+                            LOGE("  layer %u projection view %u space %p pos %.4f %.4f %.4f ori %.5f %.5f %.5f %.5f fov %.4f %.4f %.4f %.4f rect %d,%d %dx%d flags %u",
+                                 (unsigned)i, v, (void*)pl->space, p.position.x, p.position.y, p.position.z, p.orientation.x, p.orientation.y, p.orientation.z,
+                                 p.orientation.w, f.angleLeft, f.angleRight, f.angleUp, f.angleDown, pl->views[v].subImage.imageRect.offset.x,
+                                 pl->views[v].subImage.imageRect.offset.y, pl->views[v].subImage.imageRect.extent.width, pl->views[v].subImage.imageRect.extent.height,
+                                 (unsigned)pl->layerFlags);
+                        }
                     } else {
                         LOGE("  layer %u type %d", (unsigned)i, (int)layers[i]->type);
                     }

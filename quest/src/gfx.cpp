@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <time.h>
 
 #include "font.h"
 #include "orbs_shader.h"
@@ -221,6 +222,19 @@ bool Gfx::init() {
         m_obOrb = glGetUniformLocation(m_orbs, "uOrb");
         m_obOrbP = glGetUniformLocation(m_orbs, "uOrbP");
     }
+    {
+        const char* ext = (const char*)glGetString(GL_EXTENSIONS);
+        if (ext && strstr(ext, "GL_EXT_disjoint_timer_query")) {
+            m_genQueries = (void (*)(GLsizei, GLuint*))eglGetProcAddress("glGenQueriesEXT");
+            m_beginQuery = (void (*)(GLenum, GLuint))eglGetProcAddress("glBeginQueryEXT");
+            m_endQuery = (void (*)(GLenum))eglGetProcAddress("glEndQueryEXT");
+            m_getQueryObjectuiv = (void (*)(GLuint, GLenum, GLuint*))eglGetProcAddress("glGetQueryObjectuivEXT");
+            m_getQueryObjectui64v = (void (*)(GLuint, GLenum, uint64_t*))eglGetProcAddress("glGetQueryObjectui64vEXT");
+            m_orbTimerOk = m_genQueries && m_beginQuery && m_endQuery && m_getQueryObjectuiv && m_getQueryObjectui64v;
+            if (m_orbTimerOk) m_genQueries(4, m_orbQuery);
+        }
+        LOGI("GPU timer queries %s", m_orbTimerOk ? "available" : "unavailable");
+    }
     glGenVertexArrays(1, &m_vao);
     LOGI("GL: %s / %s", glGetString(GL_RENDERER), glGetString(GL_VERSION));
     return true;
@@ -338,6 +352,11 @@ bool Gfx::drawOrbs(GLuint dstTex, int x0, int y0, int w, int h, const OrbView& v
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         return false;
     }
+    const GLenum kTimeElapsed = 0x88BF;   // GL_TIME_ELAPSED_EXT
+    if (m_orbTimerOk && x0 == 0 && !m_orbQueryOpen && m_orbQueryCount < 4) {
+        m_beginQuery(kTimeElapsed, m_orbQuery[(m_orbQueryHead + m_orbQueryCount) % 4]);
+        m_orbQueryOpen = true;
+    }
     glViewport(x0, y0, w, h);
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
@@ -359,9 +378,49 @@ bool Gfx::drawOrbs(GLuint dstTex, int x0, int y0, int w, int h, const OrbView& v
     glBindVertexArray(m_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
+    if (m_orbQueryOpen && x0 != 0) {
+        m_endQuery(kTimeElapsed);
+        m_orbQueryOpen = false;
+        m_orbQueryCount++;
+    }
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return true;
+}
+
+void Gfx::orbTimerSample(int orbCount) {
+    if (!m_orbTimerOk) return;
+    if (m_orbQueryOpen) {   // a frame that drew only one eye: close it so the ring does not jam
+        m_endQuery(0x88BF);
+        m_orbQueryOpen = false;
+        m_orbQueryCount++;
+    }
+    while (m_orbQueryCount > 0) {   // harvest what is ready, oldest first, without stalling the GPU
+        GLuint ready = 0;
+        m_getQueryObjectuiv(m_orbQuery[m_orbQueryHead], 0x8867 /* GL_QUERY_RESULT_AVAILABLE */, &ready);
+        if (!ready) break;
+        uint64_t ns = 0;
+        m_getQueryObjectui64v(m_orbQuery[m_orbQueryHead], 0x8866 /* GL_QUERY_RESULT */, &ns);
+        m_orbQueryHead = (m_orbQueryHead + 1) % 4;
+        m_orbQueryCount--;
+        double ms = ns * 1e-6;
+        if (ms < 100) {   // a disjoint event gives garbage; skip it
+            m_orbMsSum += ms;
+            m_orbMsMax = std::max(m_orbMsMax, ms);
+            m_orbSamples++;
+        }
+    }
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    int64_t now = (int64_t)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+    if (m_orbLogNs == 0) m_orbLogNs = now;
+    if (now - m_orbLogNs >= 2000000000LL && m_orbSamples > 0) {
+        m_orbMsAvg = (float)(m_orbMsSum / m_orbSamples);
+        LOGI("sound orbs: %d orb%s, gpu %.2f ms avg, %.2f ms max over %d frames", orbCount, orbCount == 1 ? "" : "s", m_orbMsAvg, m_orbMsMax, m_orbSamples);
+        m_orbMsSum = m_orbMsMax = 0;
+        m_orbSamples = 0;
+        m_orbLogNs = now;
+    }
 }
 
 void Gfx::upload(GLuint dstTex, const uint8_t* rgba, int w, int h, bool bottomUp) {

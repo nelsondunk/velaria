@@ -119,8 +119,21 @@ void OrbTracker::update(const float* p, int w, int h, float peakHold, int64_t no
     }
     for (size_t oi = 0; oi < m_orbs.size(); oi++) {
         Orb& o = m_orbs[oi];
-        if (orbHit[oi]) o.alpha = std::min(1.0f, o.alpha + step);
-        else o.alpha -= step;
+        if (orbHit[oi]) { o.alpha = std::min(1.0f, o.alpha + step); continue; }
+        o.alpha -= step;
+        // Two sources that close on each other become one first-order peak long before they meet; the peak that
+        // went is this orb's. Drift it into the nearest live orb as it fades, so on screen the two mush together.
+        int near = -1;
+        float nearA = kDriftDeg;
+        for (size_t oj = 0; oj < m_orbs.size(); oj++) {
+            if (!orbHit[oj]) continue;
+            float a = angleDeg(o.dir, m_orbs[oj].dir);
+            if (a < nearA) { nearA = a; near = (int)oj; }
+        }
+        if (near >= 0) {
+            for (int c = 0; c < 3; c++) o.dir[c] += (m_orbs[near].dir[c] - o.dir[c]) * 0.35f;
+            normalize3(o.dir);
+        }
     }
     m_orbs.erase(std::remove_if(m_orbs.begin(), m_orbs.end(), [](const Orb& o) { return o.alpha <= 0; }), m_orbs.end());
     for (size_t pi = 0; pi < peaks.size(); pi++) {
@@ -130,7 +143,7 @@ void OrbTracker::update(const float* p, int w, int h, float peakHold, int64_t no
         o.level = peaks[pi].level;
         o.alpha = 0.0f;
         o.id = m_nextId++;
-        o.phase = (float)((o.id * 2654435761u) % 1000) / 1000.0f * 6.2831853f;
+        o.phase = (float)((o.id * 2654435761u) % 1000u) / 1000.0f * 6.2831853f;
         o.lastSeenNs = nowNs;
         m_orbs.push_back(o);
     }

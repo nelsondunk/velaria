@@ -114,7 +114,7 @@ int main() {
         // circling tone: one orb, same id throughout, within 12 degrees of the source as it moves 2 deg per tick
         OrbTracker t; peakHold = 0;
         field({{0, 0, 1}}, 0, 0, p); run(t, p, 10, now);
-        int id = t.orbs().empty() ? -1 : t.orbs()[0].id;
+        unsigned id = t.orbs().empty() ? 0 : t.orbs()[0].id;
         float worst = 0; bool sameId = id > 0, always1 = true;
         for (int k = 1; k <= 180; k++) {
             float az = k * 2.0f;
@@ -140,6 +140,28 @@ int main() {
         now += 22000000LL; t2.update(p.data(), W, H, peakHold, now);
         now += 22000000LL; t2.update(p.data(), W, H, peakHold, now);
         check(t2.orbs().size() == 1 && t2.orbs()[0].alpha > 0 && t2.orbs()[0].alpha < 0.5f, "new source -> orb fades in, not on at once");
+    }
+    {
+        // two sources walk toward each other from 150 apart. First order gives one peak between them once they are
+        // closer than ~130, so one orb loses its peak; it must drift into the surviving orb as it fades, so on
+        // screen the pair mushes together instead of one blinking out at a distance.
+        OrbTracker t; peakHold = 0;
+        field({{75, 0, 1}, {-75, 0, 1}}, 0, 0, p); run(t, p, 20, now);
+        bool two = visible(t) == 2;
+        float closestFading = 999;
+        int maxOrbs = 0;
+        for (int k = 1; k <= 40; k++) {
+            float half = 75 - 3.0f * k;   // 3 deg per tick each: closing at 270 deg/s, fast
+            if (half < 5) half = 5;
+            field({{half, 0, 1}, {-half, 0, 1}}, 0, 0, p); run(t, p, 1, now);
+            maxOrbs = std::max(maxOrbs, (int)t.orbs().size());
+            for (auto& a : t.orbs()) {
+                if (a.alpha >= 0.99f) continue;   // a fading one
+                for (auto& b : t.orbs()) if (&a != &b && b.alpha > a.alpha) closestFading = std::min(closestFading, angDeg(a.dir, b.dir));
+            }
+        }
+        char buf[160]; snprintf(buf, sizeof buf, "closing pair -> fading orb gets within %.0f deg of the live one (bridging range ~20); ends as %zu orb(s)", closestFading, t.orbs().size());
+        check(two && closestFading < 20 && visible(t) == 1, buf);
     }
     printf("%s\n", fails ? "FAILURES" : "all passed");
     return fails ? 1 : 0;

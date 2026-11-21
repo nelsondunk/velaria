@@ -54,8 +54,7 @@ float dens(vec3 p, out float glow, out float lev) {
     float rho = 0.0;
     glow = 0.0;
     lev = 0.0;
-    for (int i = 0; i < kMax; i++) {
-        if (i >= uCount) break;
+    for (int i = 0; i < uCount; i++) {   // a uniform bound, so the driver does not unroll kMax x N copies of the noise
         vec3 rel = p - uOrb[i].xyz;
         float dist = length(rel);
         float r = uOrb[i].w;
@@ -80,8 +79,7 @@ void main() {
     // the ray's span through the orbs' bounding spheres (1.6 r covers the wobble and the soft skirt)
     float t0 = 1e9, t1 = -1e9;
     float rmin = 1e9;
-    for (int i = 0; i < kMax; i++) {
-        if (i >= uCount) break;
+    for (int i = 0; i < uCount; i++) {
         vec3 oc = uEye - uOrb[i].xyz;
         float R = uOrb[i].w * 1.6;
         float b = dot(oc, d), c = dot(oc, oc) - R * R;
@@ -95,7 +93,7 @@ void main() {
     }
     if (t1 < 0.0) { oColor = vec4(0.0); return; }
     t0 = max(t0, 0.0);
-    const int N = 28;
+    const int N = 24;
     float dt = (t1 - t0) / float(N);
     float eps = 0.07 * rmin;
     vec3 acc = vec3(0.0);
@@ -121,7 +119,7 @@ void main() {
             rim = pow(1.0 - abs(dot(nn, -d)), 2.5);
         }
         vec3 base = ramp(lev / max(rho, 1e-4));
-        vec3 col = base * diff + base * glow * 0.9 + vec3(1.0, 0.98, 0.9) * spec * 0.5 + base * rim * 0.7;
+        vec3 col = min(base * diff + base * glow * 0.9 + vec3(1.0, 0.98, 0.9) * spec * 0.5 + base * rim * 0.7, vec3(1.0));   // keeps colour <= alpha: valid premultiplied
         acc += T * a * col;
         T *= 1.0 - a;
         if (T < 0.03) break;
