@@ -62,7 +62,7 @@ for v in variants:
         names = it.GetFusionCompNameList() or []
         if names: it.LoadFusionCompByName(names[-1])
     tools = sorted(x.Name for x in (comp.GetToolList() or {}).values()) if comp else []
-    r = {"desc": v["desc"], "expect": v["expect"], "timeline": v["timeline"], "import": bool(comp), "ntools": len(tools), "tools": tools[:14]}
+    r = {"desc": v["desc"], "timeline": v["timeline"], "import": bool(comp), "ntools": len(tools), "tools": tools[:14]}
     if dry or not comp:
         r["status"] = "IMPORTED" if comp else "FAIL"; results[vid] = r
         json.dump(results, open(RESULT, "w"), indent=1); print(vid, r["status"], len(tools), "tools"); continue
