@@ -395,6 +395,14 @@ std::vector<ButtonRect> drawInstance(Canvas& c, const UiState& s) {
             ch.chip3(HudButton::PanelToggle, (int)dock[k].id, rx, barCy - 26, 52, 52, s.enabled[(int)dock[k].id] ? ChipState::Rest : ChipState::Flat, "", (int)dock[k].icon, "", dock[k].tip);
             rx -= 14;
         }
+        // the sound map is a scope: its switch sits with the panel toggles while an ambisonic bus plays, not three
+        // taps away on the Settings panel (+89; the Settings panel is closed by default since +87)
+        if (s.info.audio && s.info.audioAmbi) {
+            float mw = Chrome::chipWidth("Map", -1, "", 52, 16);
+            rx -= mw;
+            ch.chip3(HudButton::SoundMap, 0, rx, barCy - 26, mw, 52, s.info.soundMap ? ChipState::On : ChipState::Flat, "Map", -1, "", "Sound map on the sphere");
+            rx -= 14;
+        }
         if (rolled) return rects;
         c.fillRoundRect(0, barH - 1, (float)sp.w, 1, 0, Colour{1, 1, 1, 0.08f});
     }
