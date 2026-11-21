@@ -45,9 +45,11 @@ Run from the branch tip (`d773621` and after) on the build Mac; nothing installe
 | Headset `hrirtest` | Linux | kernel sane, 1 s decoded in 21 ms |
 | `hudpreview` renders of every panel | Linux | regenerated into `quest/host/ref/` (+87 layout) |
 | Headset `orbstest` (sound-orb peak tracker) | Linux | 16 checks passed (one source within 0.5°, 150° pair → two, 30° pair → one, all-W and diffuse → none, circling tone lag 4.8°, fade in/out) |
+| Title templates `s_titles.py` (6 comps × in/hold/out frames) | Bruce, Resolve | all PASS; right eye 12 px left on the 3840 chart |
+| Bridge `pytest` | Linux | **53 passed** (template labels, R G B swatch order) |
 | Headset `striptest` (strip pill rules, drop window) | Linux | 13 checks passed (pill within 1.0 s of drops at 3/s, clear within 1.0 s, nothing while paused) |
 | Headset `orbsview` (orb shader, Mesa) | Linux | compiles and links under GLES 3; stereo pair rendered, disparity as 2.5 m at 64 mm |
-| rc1 APK | Bruce | repackaged 06:35 Sat with **+94** (clean start on the Quest, no shader errors) |
+| rc1 APK | Bruce | repackaged 09:23 Sat with **+94**, bridge 1.0.16 and the four title templates (clean start on the Quest, no shader errors) |
 | `package.sh 1.1.0-rc1` with `VELARIA_VST3_LICENSED=1` | build Mac | built, 52 MB, `~/VRLink/release/Velaria-1.1.0-rc1/` |
 | `check_release.sh` | build Mac | **clean** apart from the legal placeholders ([LEGAL ENTITY NAME], [MAILING ADDRESS], [SUPPORT EMAIL], the [VERIFY] items in THIRD-PARTY-NOTICES) — "do not sell this build" until those are filled |
 
