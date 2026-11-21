@@ -114,6 +114,9 @@ def controls_router(x, y, fields, extra_user):
     inputs["AnimLen"] = inp(12)
     inputs["AnimateOut"] = inp(1)
     user = dict(extra_user)
+    # a PipeRouter input exists only if a control declares it (invisible is fine); In / Out are driven, never shown
+    for k, nm in (("In", "In (driven)"), ("Out", "Out (driven)")):
+        user[k] = dict(slider(nm, "Animation", 1, 0, 1), IC_Visible=False)
     user["AnimStart"] = slider("Animation start (frame)", "Animation", 0, 0, 120, True)
     user["AnimLen"] = slider("Animation length (frames)", "Animation", 12, 1, 60, True)
     user["AnimateOut"] = checkbox("Animate out before the clip ends", "Animation", 1)
